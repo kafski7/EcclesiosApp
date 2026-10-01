@@ -1,7 +1,7 @@
 /** Test fixture mirroring the dev seed tree (packages/db seed). */
-import type { GroupNode, GroupLookup } from "./access";
-import type { HierarchyLevel, MetropolitanVisibility } from "./levels";
-import { buildPath } from "./path";
+import type { GroupNode, GroupLookup } from "./access.js";
+import type { HierarchyLevel, MetropolitanVisibility } from "./levels.js";
+import { buildPath } from "./path.js";
 
 export function makeTree(suffraganVisibility: MetropolitanVisibility = "aggregates") {
   const nodes = new Map<string, GroupNode>();

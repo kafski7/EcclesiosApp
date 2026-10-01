@@ -1,6 +1,6 @@
-import type { HierarchyLevel, MetropolitanVisibility } from "./levels";
-import { DEFAULT_METROPOLITAN_VISIBILITY } from "./levels";
-import { isStrictDescendant, pathIds } from "./path";
+import type { HierarchyLevel, MetropolitanVisibility } from "./levels.js";
+import { DEFAULT_METROPOLITAN_VISIBILITY } from "./levels.js";
+import { isStrictDescendant, pathIds } from "./path.js";
 
 /** Result of viewer → target resolution (blueprint §3.5). Ordered most → least powerful. */
 export const ACCESS_LEVELS = [

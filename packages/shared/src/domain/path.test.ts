@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildPath, descendantsLikePattern, isStrictDescendant, pathIds } from "./path";
-import { isValidParent } from "./levels";
+import { buildPath, descendantsLikePattern, isStrictDescendant, pathIds } from "./path.js";
+import { isValidParent } from "./levels.js";
 
 describe("path", () => {
   it("builds root and child paths", () => {

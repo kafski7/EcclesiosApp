@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ACCESS_LEVELS } from "../domain/access";
-import { HierarchyLevelSchema, MemberRoleSchema, PlatformRoleSchema } from "../enums";
+import { ACCESS_LEVELS } from "../domain/access.js";
+import { HierarchyLevelSchema, MemberRoleSchema, PlatformRoleSchema } from "../enums.js";
 
 /** functionality §2 — login identifier is an email or an E.164 telephone. */
 export const IdentifierSchema = z

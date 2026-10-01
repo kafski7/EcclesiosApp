@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { levelRank } from "./domain/levels";
-import { HierarchyLevelSchema, MemberRoleSchema } from "./enums";
+import { levelRank } from "./domain/levels.js";
+import { HierarchyLevelSchema, MemberRoleSchema } from "./enums.js";
 
 describe("hierarchy", () => {
   it("orders parish above outstation", () => {

@@ -6,7 +6,7 @@ import {
   METROPOLITAN_VISIBILITY,
   PLATFORM_PRIVILEGES,
   PLATFORM_ROLES,
-} from "./domain";
+} from "./domain/index.js";
 
 export const HierarchyLevelSchema = z.enum(HIERARCHY_LEVELS);
 export const MemberRoleSchema = z.enum(MEMBER_ROLES);

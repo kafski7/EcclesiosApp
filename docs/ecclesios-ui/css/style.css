@@ -50,7 +50,6 @@
   --shadow-1:     0 1px 2px rgba(26,22,18,.05), 0 2px 8px rgba(26,22,18,.04);
   --shadow-2:     0 10px 28px rgba(26,22,18,.10);
 
-  --font-serif:   "Playfair Display", Georgia, "Times New Roman", serif;
   --font-sans:    "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -67,7 +66,7 @@ body{
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
 }
-h1,h2,h3,h4{ font-family:var(--font-serif); font-weight:600; line-height:1.22; margin:0; color:var(--text); }
+h1,h2,h3,h4{ font-family:var(--font-sans); font-weight:600; line-height:1.22; margin:0; color:var(--text); }
 p{ margin:0; }
 ul,ol{ margin:0; padding:0; list-style:none; }
 a{ color:inherit; text-decoration:none; }
@@ -231,7 +230,7 @@ sup{ line-height:0; }
 .brand{ display:flex; align-items:center; gap:11px; padding:4px 10px 18px; }
 .brand-cross{ width:26px; height:26px; color:var(--accent); }
 .brand-name{
-  font-family:var(--font-serif); font-size:23px; font-weight:600;
+  font-family:var(--font-sans); font-size:23px; font-weight:600;
   color:#F6F1E7; letter-spacing:.3px; line-height:1;
 }
 .brand-col{ display:flex; flex-direction:column; gap:3px; min-width:0; }
@@ -361,7 +360,7 @@ sup{ line-height:0; }
 .post-quote{
   margin:13px 0 0; padding:2px 0 2px 15px;
   border-left:3px solid var(--accent);
-  font-family:var(--font-serif); font-style:italic;
+  font-family:var(--font-sans); font-style:italic;
   font-size:15.5px; line-height:1.55; color:var(--text);
 }
 .post-quote cite{ display:block; margin-top:5px; font:600 12px/1 var(--font-sans); font-style:normal; color:var(--text-3); }
@@ -404,14 +403,14 @@ sup{ line-height:0; }
   display:flex; align-items:baseline; justify-content:space-between; gap:10px;
   margin-bottom:8px;
 }
-.rail-title{ font-family:var(--font-serif); font-size:17px; font-weight:700; }
+.rail-title{ font-family:var(--font-sans); font-size:17px; font-weight:700; }
 .rail-head .link{ font-size:12.5px; }
 
 .trend{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft); }
 .trend:last-child{ border-bottom:0; padding-bottom:2px; }
 .trend-rank{
   width:15px; text-align:center; flex-shrink:0;
-  font-family:var(--font-serif); font-size:14px; font-weight:700; color:var(--text-3);
+  font-family:var(--font-sans); font-size:14px; font-weight:700; color:var(--text-3);
 }
 .trend-meta{ flex:1; min-width:0; }
 .trend-meta b{ display:block; font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -427,7 +426,7 @@ sup{ line-height:0; }
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
   background:var(--primary-soft); color:var(--primary); border-radius:10px;
 }
-.date-box b{ font-family:var(--font-serif); font-size:16px; font-weight:700; line-height:1; }
+.date-box b{ font-family:var(--font-sans); font-size:16px; font-weight:700; line-height:1; }
 .date-box small{ font-size:9px; font-weight:700; letter-spacing:.1em; }
 .event-meta{ flex:1; min-width:0; }
 .event-meta b{ display:block; font-size:13.5px; font-weight:600; line-height:1.35; }
@@ -561,7 +560,7 @@ sup{ line-height:0; }
   margin-top:22px;
 }
 .ch-label{
-  font-family:var(--font-serif); font-size:15px; font-weight:700; color:var(--text-2);
+  font-family:var(--font-sans); font-size:15px; font-weight:700; color:var(--text-2);
 }
 
 /* 12. ADMIN (CMS) DASHBOARD + STYLEGUIDE --------------------------------- */
@@ -584,7 +583,7 @@ sup{ line-height:0; }
 .stat--ok     .stat-ic{ background:rgba(30,123,79,.11);  color:var(--success); }
 .stat--gold   .stat-ic{ background:var(--accent-soft);   color:var(--accent-600); }
 .stat--danger .stat-ic{ background:rgba(180,35,24,.10);  color:var(--danger); }
-.stat-val{ font-family:var(--font-serif); font-size:25px; font-weight:700; line-height:1.05; }
+.stat-val{ font-family:var(--font-sans); font-size:25px; font-weight:700; line-height:1.05; }
 .stat-label{ margin-top:2px; font-size:13px; font-weight:500; color:var(--text-2); }
 .stat-note{ display:inline-flex; align-items:center; gap:4px; margin-top:5px; font-size:11.5px; font-weight:600; }
 .stat-note .ic{ width:12px; height:12px; }
@@ -603,7 +602,7 @@ sup{ line-height:0; }
   display:flex; align-items:baseline; justify-content:space-between; gap:10px;
   margin-bottom:12px;
 }
-.panel-title{ font-family:var(--font-serif); font-size:18px; font-weight:700; }
+.panel-title{ font-family:var(--font-sans); font-size:18px; font-weight:700; }
 .panel-head .link{ font-size:12.5px; }
 
 .activity li{
@@ -635,7 +634,7 @@ sup{ line-height:0; }
 .parish-card{ overflow:hidden; }
 .parish-media svg{ width:100%; height:auto; }
 .parish-body{ display:flex; flex-direction:column; gap:2px; padding:16px 18px 18px; }
-.parish-body b{ font-family:var(--font-serif); font-size:17px; font-weight:700; }
+.parish-body b{ font-family:var(--font-sans); font-size:17px; font-weight:700; }
 .parish-body small{ font-size:12.5px; color:var(--text-3); }
 .parish-body .link{ margin-top:9px; }
 
@@ -669,7 +668,7 @@ sup{ line-height:0; }
 }
 .icon-cell .ic{ width:22px; height:22px; color:var(--primary); }
 .motto-block{ padding:30px; text-align:center; }
-.motto{ font-family:var(--font-serif); font-style:italic; font-size:22px; color:var(--text); }
+.motto{ font-family:var(--font-sans); font-style:italic; font-size:22px; color:var(--text); }
 .motto-sub{ margin-top:6px; font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-3); }
 
 /* 13. RESPONSIVE ---------------------------------------------------------- */

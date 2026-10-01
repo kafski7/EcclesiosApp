@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { Access } from "./access";
-import { canApprove, canReadSummaries, canWrite, resolveAccess } from "./access";
-import type { MetropolitanVisibility } from "./levels";
-import { makeTree } from "./fixture";
+import type { Access } from "./access.js";
+import { canApprove, canReadSummaries, canWrite, resolveAccess } from "./access.js";
+import type { MetropolitanVisibility } from "./levels.js";
+import { makeTree } from "./fixture.js";
 
 type Row = [viewer: string, target: string, expected: Access];
 

@@ -2,14 +2,32 @@
   "name": "@ecclesios/shared",
   "version": "0.0.0",
   "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./domain": { "types": "./dist/domain/index.d.ts", "default": "./dist/domain/index.js" }
+    ".": {
+      "types": {
+        "import": "./dist/esm/index.d.ts",
+        "require": "./dist/cjs/index.d.ts"
+      },
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./domain": {
+      "types": {
+        "import": "./dist/esm/domain/index.d.ts",
+        "require": "./dist/cjs/domain/index.d.ts"
+      },
+      "import": "./dist/esm/domain/index.js",
+      "require": "./dist/cjs/domain/index.js",
+      "default": "./dist/esm/domain/index.js"
+    }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.cjs.json && node -e \"fs.mkdirSync('dist/cjs', {recursive: true}); fs.writeFileSync('dist/cjs/package.json', '{\\\"type\\\": \\\"commonjs\\\"}')\"",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

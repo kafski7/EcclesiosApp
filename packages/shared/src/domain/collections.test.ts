@@ -6,7 +6,7 @@ import {
   isCollectionEditable,
   isCollectionFinal,
   nextCollectionStatus,
-} from "./collections";
+} from "./collections.js";
 
 describe("pending collections state machine (blueprint §8.1)", () => {
   it("happy path: PENDING → APPROVED → SYNCED", () => {

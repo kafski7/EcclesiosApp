@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "./styles/kit.css";
+
+/* Tailwind theme mapped onto the kit tokens, so utilities and shadcn/ui use the same palette. */
+@theme inline {
+  --color-background: var(--surface);
+  --color-foreground: var(--text);
+  --color-card: var(--card);
+  --color-card-foreground: var(--text);
+  --color-primary: var(--primary);
+  --color-primary-foreground: #ffffff;
+  --color-accent: var(--accent);
+  --color-accent-foreground: #2a1f05;
+  --color-muted: #f1eee6;
+  --color-muted-foreground: var(--text-3);
+  --color-border: var(--line);
+  --color-ring: var(--accent);
+  --color-destructive: var(--danger);
+  --radius-lg: var(--radius);
+  --radius-md: var(--radius-sm);
+  /* literal stacks: the kit already owns --font-sans/--font-serif, and self-references would be cyclic */
+  --font-sans: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  * { border-color: var(--line); }
+}

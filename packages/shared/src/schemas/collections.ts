@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CollectionStatusSchema } from "../enums";
+import { CollectionStatusSchema } from "../enums.js";
 
 /** Money as a decimal string — never a float (max 2 dp). */
 export const MoneySchema = z.string().regex(/^\d{1,12}(\.\d{1,2})?$/, "Amount like 120.50");

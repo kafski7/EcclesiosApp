@@ -9,7 +9,7 @@
     "./eslint/base": "./eslint/base.js",
     "./eslint/react": "./eslint/react.js",
     "./prettier": "./prettier.cjs",
-    "./vitest": "./vitest.base.mjs"
+    "./vitest": { "types": "./vitest.base.d.mts", "default": "./vitest.base.mjs" }
   },
   "dependencies": {
     "@eslint/js": "^9.12.0",
