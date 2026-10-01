@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home · Ecclesios</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v18M7 7.8h10M9.4 21h5.2' fill='none' stroke='%23C59B27' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== ICON SPRITE ==================== -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 3v18M7 7.8h10M9.4 21h5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></g></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.8-3.8"/></g></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.6 5.8 1.6 5.8H4.4S6 14.1 6 9.5z"/><path d="M10.3 19.3a1.9 1.9 0 0 0 3.4 0"/></g></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 3v2.3M12 18.7V21M4.6 5.4l1.7 1.7M17.7 16.9l1.7 1.7M3 12h2.3M18.7 12H21M4.6 18.6l1.7-1.7M17.7 7.1l1.7-1.7"/></g></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 11.2 8-6.7 8 6.7"/><path d="M6.4 9.9v9.6h11.2V9.9"/></g></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.6 5.1 8.4 4.5 5 4.7v13.8c3.4-.2 5.6.4 7 1.9 1.4-1.5 3.6-2.1 7-1.9V4.7c-3.4-.2-5.6.4-7 1.9z"/><path d="M12 6.6v13.8"/></g></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.4 19.6c.8-3.4 3.5-5.3 6.6-5.3s5.8 1.9 6.6 5.3"/></g></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m15.3 8.7-1.9 4.7-4.7 1.9 1.9-4.7z"/></g></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="9.2" y="3.4" width="5.6" height="10.2" rx="2.8"/><path d="M6 11.6a6 6 0 0 0 12 0M12 17.6v3"/></g></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18.4V6l10-2.2v12.4"/><circle cx="6.7" cy="18.4" r="2.3"/><circle cx="16.7" cy="16.2" r="2.3"/></g></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.8 9.3 9.2-4.1 9.2 4.1-9.2 4.1z"/><path d="M6.8 11.5v4.1c0 1.4 2.3 2.7 5.2 2.7s5.2-1.3 5.2-2.7v-4.1M20.4 9.7v4.9"/></g></symbol>
+  <symbol id="i-bible" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5h11A1.5 1.5 0 0 1 18.5 6v13.5H7.5A1.5 1.5 0 0 1 6 18z"/><path d="M6 18a1.5 1.5 0 0 1 1.5-1.5h11"/><path d="M12 7.6v5.6M9.6 10.4h4.8"/></g></symbol>
+  <symbol id="i-dots-h" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5.5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></g></symbol>
+  <symbol id="i-dots-v" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="12" cy="5.5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="18.5" r="1.5"/></g></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m5.5 17.5 4.5-4.5 3 3 2.5-2.5 3 3"/></g></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M10.5 13.5a3.6 3.6 0 0 0 5.1 0l3-3a3.6 3.6 0 1 0-5.1-5.1l-1.2 1.2"/><path d="M13.5 10.5a3.6 3.6 0 0 0-5.1 0l-3 3a3.6 3.6 0 1 0 5.1 5.1l1.2-1.2"/></g></symbol>
+  <symbol id="i-emoji" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M9 10h.01M15 10h.01"/><path d="M8.8 14.2a4.3 4.3 0 0 0 6.4 0"/></g></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-9-9.3C1.9 7.2 4.3 4.5 7.2 4.5c2 0 3.7 1.2 4.8 3 1.1-1.8 2.8-3 4.8-3 2.9 0 5.3 2.7 4.2 6.2-1.5 4.7-9 9.3-9 9.3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-comment" viewBox="0 0 24 24"><path d="M21 11.7a8.3 8.3 0 0 1-8.3 8.3H4.4l2.1-3A8.3 8.3 0 1 1 21 11.7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V4M8.2 7.3 12 3.5l3.8 3.8"/><path d="M5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6"/></g></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M7 3.5h10a.8.8 0 0 1 .8.8v16.4L12 17.2 6.2 20.7V4.3a.8.8 0 0 1 .8-.8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-verified" viewBox="0 0 24 24"><path fill="#C59B27" d="M12 1.6 14.3 3.5l3-.2.9 2.8 2.6 1.4-.6 2.9L22 12l-1.8 1.6.6 2.9-2.6 1.4-.9 2.8-3-.2L12 22.4 9.7 20.5l-3 .2-.9-2.8-2.6-1.4.6-2.9L2 12l1.8-1.6-.6-2.9L5.8 6.1l.9-2.8 3 .2z"/><path fill="#fff" d="m10.7 15.8-3.2-3.2 1.3-1.3 1.9 1.9 4.4-4.4 1.3 1.3z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.9 2.7 2.9 14.3 0 17M12 3.5c-2.9 2.7-2.9 14.3 0 17"/></g></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10.5h16M8.5 3.5v3.5M15.5 3.5v3.5"/></g></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3.2c3.3 3.6 6 6.6 6 10a6 6 0 0 1-12 0c0-2 .9-3.9 2.3-5.8.5 1 1.2 1.9 2.2 2.4-.3-2.4.3-4.6 1.5-6.6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-church" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 21v-8.6L12 8.4l5.5 4V21"/><path d="M3.5 21h17M12 8.4V5.4M10.6 6.7h2.8"/><path d="M10 21v-3.6a2 2 0 0 1 4 0V21"/></g></symbol>
+  <symbol id="i-arrow-r" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15M13.8 6.2 19.5 12l-5.7 5.8"/></g></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9.5 6.5 5.5 5.5-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8.6" r="3.2"/><path d="M3.4 19.2c.7-3 3-4.7 5.6-4.7s4.9 1.7 5.6 4.7"/><path d="M15.4 5.8a3.2 3.2 0 0 1 0 5.6M17.6 14.7c1.7.8 2.8 2.3 3.2 4.5"/></g></symbol>
+  <symbol id="i-cake" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.1 1.1-1.7 2-1.7 2.9a1.7 1.7 0 0 0 3.4 0c0-.9-.6-1.8-1.7-2.9zM12 3.2v2"/><path d="M4.6 13.4a2.5 2.5 0 0 0 2.4 1.8c1 0 2-.5 2.5-1.4.5.9 1.4 1.4 2.5 1.4s2-.5 2.5-1.4c.5.9 1.5 1.4 2.5 1.4a2.5 2.5 0 0 0 2.4-1.8"/><path d="M4.6 13V19a1.6 1.6 0 0 0 1.6 1.6h11.6A1.6 1.6 0 0 0 19.4 19v-6"/></g></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v11H9.4L4 20.5z"/><path d="M8 9.5h8M8 12.5h5"/></g></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.4 5 5.9v5.6c0 4.6 3 7.8 7 9.1 4-1.3 7-4.5 7-9.1V5.9z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5 3.5 10.8l6.2 2.4 2.4 6.3z"/><path d="M20.5 3.5 9.7 13.2"/></g></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7L18 8v12.5H6.5z"/><path d="M13.5 3.5V8H18"/></g></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></g></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.6 3.5L17 12H6"/></g></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 7.5h14M5 12h14M5 16.5h14"/><circle cx="9.5" cy="7.5" r="1.8" fill="#fff"/><circle cx="14.5" cy="12" r="1.8" fill="#fff"/><circle cx="8" cy="16.5" r="1.8" fill="#fff"/></g></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 16.5 5.2-5.2 3.4 3.4L20 7.5"/><path d="M15 7.5h5v5"/></g></symbol>
+</svg>
+
+<input class="nav-toggle" type="checkbox" id="nav-toggle">
+
+<div class="shell">
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <svg class="ic brand-cross" aria-hidden="true"><use href="#i-logo"/></svg>
+      <span class="brand-name">Ecclesios</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-item active" href="index.html" aria-current="page"><svg class="ic"><use href="#i-home"/></svg><span>Home</span><b class="nav-badge">3</b></a>
+      <a class="nav-item" href="readings.html"><svg class="ic"><use href="#i-book"/></svg><span>Readings</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg><span>Saints</span></a>
+      <a class="nav-item" href="explore.html"><svg class="ic"><use href="#i-compass"/></svg><span>Explore</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-mic"/></svg><span>Podcasts</span><b class="nav-badge">2</b></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-music"/></svg><span>Hymnal</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-cap"/></svg><span>Teachings</span></a>
+      <a class="nav-item" href="bible.html"><svg class="ic"><use href="#i-bible"/></svg><span>Bible</span></a>
+      <div class="nav-sep" role="separator"></div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-menu"/></svg><span>More</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <span class="avatar av-36 av-brand">KA</span>
+      <span class="s-user-meta"><b>Kofi Asante</b><small>kofi@ecclesios.org</small></span>
+      <svg class="ic" aria-label="Settings" role="button" tabindex="0"><use href="#i-gear"/></svg>
+    </div>
+  </aside>
+
+  <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
+
+  <div class="main">
+    <!-- ==================== TOPBAR ==================== -->
+    <header class="topbar">
+      <label class="hamburger" for="nav-toggle" aria-label="Open navigation"><svg class="ic"><use href="#i-menu"/></svg></label>
+      <label class="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input type="search" placeholder="Search for saints, readings, events, and more…" aria-label="Search Ecclesios">
+      </label>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Notifications, 3 unread"><svg class="ic"><use href="#i-bell"/></svg><i class="dot-badge">3</i></button>
+        <span class="avatar av-36 av-brand" title="Kofi Asante">KA</span>
+      </div>
+    </header>
+
+    <!-- ==================== CONTENT ==================== -->
+    <main class="content home-layout">
+      <section class="feed" aria-label="Feed">
+
+        <nav class="feed-tabs" aria-label="Feed filter">
+          <span class="feed-tab active" aria-current="true">For You</span>
+          <span class="feed-tab" role="button" tabindex="0">Following</span>
+        </nav>
+
+        <!-- composer -->
+        <div class="card composer">
+          <span class="avatar av-40 av-brand">KA</span>
+          <div class="composer-body">
+            <textarea class="composer-input" rows="1" placeholder="Share something with your community…"></textarea>
+            <div class="composer-bar">
+              <button class="compose-ic" aria-label="Add image"><svg class="ic"><use href="#i-image"/></svg></button>
+              <button class="compose-ic" aria-label="Attach link"><svg class="ic"><use href="#i-link"/></svg></button>
+              <button class="compose-ic" aria-label="Add emoji"><svg class="ic"><use href="#i-emoji"/></svg></button>
+              <button class="btn btn-primary btn-sm">Post</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- post 1 : parish event -->
+        <article class="card post">
+          <header class="post-head">
+            <span class="avatar av-40 av-brand">
+              <svg class="ic" style="width:19px;height:19px;color:#E9C879"><use href="#i-church"/></svg>
+            </span>
+            <div class="post-id">
+              <span class="post-name">St. Anthony's Catholic Church <svg class="verified" role="img" aria-label="Verified"><use href="#i-verified"/></svg></span>
+              <span class="post-sub">2h <svg class="ic" style="width:12px;height:12px;display:inline-block;vertical-align:-2px"><use href="#i-globe"/></svg></span>
+            </div>
+            <button class="kebab" aria-label="Post options"><svg class="ic"><use href="#i-dots-h"/></svg></button>
+          </header>
+
+          <h3 class="post-title">Parish Feast Day Celebration &ndash; Save the Date!</h3>
+          <p class="post-text">Join us for a day of thanksgiving, fellowship and joy as we celebrate the Feast of St.&nbsp;Anthony on Sunday, June&nbsp;15,&nbsp;2025 at 10:00&nbsp;AM. Mass will be followed by a community gathering in the parish hall. All are welcome!</p>
+
+          <div class="post-media">
+            <svg viewBox="0 0 640 340" role="img" aria-label="Feast of St. Anthony — Sunday, June 15, 2025, 10:00 AM">
+              <defs>
+                <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#2E3A47"/><stop offset=".6" stop-color="#5C6B7A"/><stop offset="1" stop-color="#9FB0BC"/>
+                </linearGradient>
+              </defs>
+              <rect width="640" height="340" fill="url(#gSky)"/>
+              <rect y="288" width="640" height="52" fill="#22282E"/>
+              <g fill="#161B20">
+                <rect x="96" y="152" width="46" height="136"/>
+                <polygon points="96,152 119,98 142,152"/>
+                <rect x="117" y="72" width="4" height="28"/><rect x="110" y="80" width="18" height="4"/>
+                <rect x="142" y="206" width="196" height="82"/>
+                <polygon points="128,206 240,164 352,206"/>
+                <rect x="338" y="152" width="46" height="136"/>
+                <polygon points="338,152 361,98 384,152"/>
+                <rect x="359" y="72" width="4" height="28"/><rect x="352" y="80" width="18" height="4"/>
+              </g>
+              <g fill="#E8C66B" opacity=".85">
+                <rect x="112" y="178" width="14" height="26" rx="7"/>
+                <rect x="354" y="178" width="14" height="26" rx="7"/>
+                <rect x="206" y="230" width="12" height="22" rx="6"/>
+                <rect x="234" y="230" width="12" height="22" rx="6"/>
+                <rect x="262" y="230" width="12" height="22" rx="6"/>
+              </g>
+              <g text-anchor="middle">
+                <text x="500" y="128" font-family="Playfair Display,Georgia,serif" font-style="italic" font-size="26" fill="#F2E9D8">Feast of</text>
+                <text x="500" y="165" font-family="Playfair Display,Georgia,serif" font-weight="600" font-size="33" fill="#FFFFFF">St. Anthony</text>
+                <rect x="438" y="182" width="124" height="2" fill="#C59B27"/>
+                <text x="500" y="210" font-family="Inter,Arial,sans-serif" font-size="13.5" fill="#E4DCCB">Sunday, June 15, 2025</text>
+                <text x="500" y="230" font-family="Inter,Arial,sans-serif" font-size="13.5" fill="#E4DCCB">10:00 AM</text>
+              </g>
+            </svg>
+          </div>
+
+          <footer class="post-actions">
+            <button class="act act--like"><svg class="ic"><use href="#i-heart"/></svg>128</button>
+            <button class="act"><svg class="ic"><use href="#i-comment"/></svg>12</button>
+            <button class="act"><svg class="ic"><use href="#i-share"/></svg>Share</button>
+            <button class="act act-save" aria-label="Save post"><svg class="ic"><use href="#i-bookmark"/></svg></button>
+          </footer>
+        </article>
+
+        <!-- saint of the day -->
+        <article class="card saint-card">
+          <svg class="saint-photo" viewBox="0 0 96 96" role="img" aria-label="St. Anthony of Padua">
+            <defs><linearGradient id="gSaint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5A0E17"/><stop offset="1" stop-color="#2B0A0E"/></linearGradient></defs>
+            <circle cx="48" cy="48" r="48" fill="url(#gSaint)"/>
+            <circle cx="48" cy="44" r="21" fill="none" stroke="#E4C879" stroke-width="1.6" opacity=".85"/>
+            <circle cx="48" cy="44" r="9.5" fill="#EFD9AC"/>
+            <path d="M29 78c2.6-13 9.6-19.5 19-19.5S64.4 65 67 78z" fill="#EFD9AC"/>
+            <path d="M48 24.5c.4 2.6-.4 4.8-2.4 6.6" fill="none" stroke="#E4C879" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <div class="saint-body">
+            <span class="saint-kicker">Saint of the Day</span>
+            <h3 class="saint-name">St. Anthony of Padua</h3>
+            <span class="saint-date">June 13</span>
+            <p class="saint-text">Known for his powerful preaching and deep love for the poor, St.&nbsp;Anthony is the patron saint of lost things and a model of humble service to God and others.</p>
+            <a class="link" href="#">Learn more <svg class="ic"><use href="#i-arrow-r"/></svg></a>
+          </div>
+        </article>
+
+        <!-- post 2 : priest reflection -->
+        <article class="card post">
+          <header class="post-head">
+            <span class="avatar av-40 av-slate">FA</span>
+            <div class="post-id">
+              <span class="post-name">Fr. Emmanuel Asante <svg class="verified" role="img" aria-label="Verified"><use href="#i-verified"/></svg></span>
+              <span class="post-sub">1d</span>
+            </div>
+            <button class="kebab" aria-label="Post options"><svg class="ic"><use href="#i-dots-h"/></svg></button>
+          </header>
+
+          <p class="post-text">Today's Gospel reminds us that true discipleship is not just about following Christ, but about carrying our cross with love and trust.</p>
+          <blockquote class="post-quote">&ldquo;Whoever does not take up their cross and follow me is not worthy of me.&rdquo;<cite>&mdash; Matthew 10:38</cite></blockquote>
+
+          <div class="post-media">
+            <svg viewBox="0 0 640 300" role="img" aria-label="Cross silhouetted against a sunset">
+              <defs>
+                <linearGradient id="gSunset" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#5B3E63"/><stop offset=".45" stop-color="#C76B4B"/><stop offset=".78" stop-color="#F0B562"/><stop offset="1" stop-color="#F7D98C"/>
+                </linearGradient>
+                <radialGradient id="gGlow" cx=".5" cy=".72" r=".55">
+                  <stop offset="0" stop-color="#FFE9B0" stop-opacity=".85"/><stop offset="1" stop-color="#FFE9B0" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <rect width="640" height="300" fill="url(#gSunset)"/>
+              <circle cx="320" cy="214" r="150" fill="url(#gGlow)"/>
+              <circle cx="320" cy="210" r="34" fill="#FFEFC4"/>
+              <path d="M0 252 Q160 226 320 244 T640 240 V300 H0 Z" fill="#3A2436" opacity=".92"/>
+              <path d="M0 274 Q200 254 400 270 T640 266 V300 H0 Z" fill="#241324"/>
+              <g fill="#1A0E1D">
+                <rect x="238" y="98" width="12" height="150" rx="2"/>
+                <rect x="211" y="127" width="66" height="11" rx="2"/>
+              </g>
+            </svg>
+          </div>
+
+          <footer class="post-actions">
+            <button class="act act--like"><svg class="ic"><use href="#i-heart"/></svg>256</button>
+            <button class="act"><svg class="ic"><use href="#i-comment"/></svg>18</button>
+            <button class="act"><svg class="ic"><use href="#i-share"/></svg>Share</button>
+            <button class="act act-save" aria-label="Save post"><svg class="ic"><use href="#i-bookmark"/></svg></button>
+          </footer>
+        </article>
+      </section>
+
+      <!-- ==================== RIGHT RAIL ==================== -->
+      <aside class="rail" aria-label="Discover">
+
+        <label class="search">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input type="search" placeholder="Search Ecclesios…" aria-label="Search Ecclesios">
+        </label>
+
+        <section class="card rail-card">
+          <header class="rail-head"><h2 class="rail-title">Trending in Ecclesios</h2></header>
+          <div class="trend"><span class="trend-rank">1</span><div class="trend-meta"><b>#YearOfHope</b><small>12.4K posts</small></div><button class="kebab" aria-label="Options"><svg class="ic"><use href="#i-dots-v"/></svg></button></div>
+          <div class="trend"><span class="trend-rank">2</span><div class="trend-meta"><b>Saint Anthony</b><small>8.7K posts</small></div><button class="kebab" aria-label="Options"><svg class="ic"><use href="#i-dots-v"/></svg></button></div>
+          <div class="trend"><span class="trend-rank">3</span><div class="trend-meta"><b>Catholic Parenting</b><small>5.2K posts</small></div><button class="kebab" aria-label="Options"><svg class="ic"><use href="#i-dots-v"/></svg></button></div>
+          <div class="trend"><span class="trend-rank">4</span><div class="trend-meta"><b>Ordinary Time</b><small>3.1K posts</small></div><button class="kebab" aria-label="Options"><svg class="ic"><use href="#i-dots-v"/></svg></button></div>
+          <div class="trend"><span class="trend-rank">5</span><div class="trend-meta"><b>PrayTheRosary</b><small>2.9K posts</small></div><button class="kebab" aria-label="Options"><svg class="ic"><use href="#i-dots-v"/></svg></button></div>
+        </section>
+
+        <section class="card rail-card">
+          <header class="rail-head">
+            <h2 class="rail-title">Upcoming events</h2>
+            <a class="link" href="#">View all <svg class="ic"><use href="#i-chev-r"/></svg></a>
+          </header>
+          <div class="event-item"><span class="date-box"><small>JUN</small><b>15</b></span><div class="event-meta"><b>Feast of St. Anthony</b><small>10:00 AM &middot; St. Anthony's Parish</small></div></div>
+          <div class="event-item"><span class="date-box"><small>JUN</small><b>21</b></span><div class="event-meta"><b>Youth Retreat</b><small>9:00 AM &middot; St. Joseph's Parish</small></div></div>
+          <div class="event-item"><span class="date-box"><small>JUN</small><b>28</b></span><div class="event-meta"><b>Marriage Preparation Workshop</b><small>10:00 AM &middot; Holy Family Parish</small></div></div>
+        </section>
+
+        <section class="card rail-card">
+          <header class="rail-head"><h2 class="rail-title">Saint of the day</h2></header>
+          <div class="saint-mini">
+            <svg class="saint-mini-medal" viewBox="0 0 96 96" role="img" aria-label="St. Anthony of Padua">
+              <defs><linearGradient id="gSaint2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5A0E17"/><stop offset="1" stop-color="#2B0A0E"/></linearGradient></defs>
+              <circle cx="48" cy="48" r="48" fill="url(#gSaint2)"/>
+              <circle cx="48" cy="44" r="21" fill="none" stroke="#E4C879" stroke-width="1.6" opacity=".85"/>
+              <circle cx="48" cy="44" r="9.5" fill="#EFD9AC"/>
+              <path d="M29 78c2.6-13 9.6-19.5 19-19.5S64.4 65 67 78z" fill="#EFD9AC"/>
+            </svg>
+            <div class="sug-meta"><b>St. Anthony of Padua</b><small>June 13</small></div>
+            <a class="link" href="#" style="margin:0">View profile</a>
+          </div>
+        </section>
+
+        <section class="card rail-card">
+          <header class="rail-head">
+            <h2 class="rail-title">Suggested churches &amp; creators</h2>
+            <a class="link" href="#">View all <svg class="ic"><use href="#i-chev-r"/></svg></a>
+          </header>
+          <div class="sug">
+            <span class="avatar av-40 av-brand"><svg class="ic" style="width:18px;height:18px;color:#E9C879"><use href="#i-church"/></svg></span>
+            <div class="sug-meta"><b>St. Joseph's Catholic Church</b><small>Accra, Ghana</small></div>
+            <button class="btn-follow">Follow</button>
+          </div>
+          <div class="sug">
+            <span class="avatar av-40 av-slate">RB</span>
+            <div class="sug-meta"><b>Bishop Robert Barron</b><small>Theology &amp; Faith</small></div>
+            <button class="btn-follow">Follow</button>
+          </div>
+          <div class="sug">
+            <span class="avatar av-40 av-gold">CD</span>
+            <div class="sug-meta"><b>Catholic Daily</b><small>Teachings &amp; Reflections</small></div>
+            <button class="btn-follow">Follow</button>
+          </div>
+        </section>
+
+      </aside>
+    </main>
+  </div>
+</div>
+</body>
+</html>

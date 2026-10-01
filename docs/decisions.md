@@ -1,0 +1,14 @@
+# Decision Log
+
+Decisions that change or clarify blueprint.md / functionality.md. Newest first.
+
+| # | Date | Decision | Docs updated |
+|---|---|---|---|
+| D-008 | 2026-10-01 | The scope decorator names a **capability**, not a level: `@Scope({ need: "write" \| "approve" \| "readRecords" \| "readSummaries" \| "readAggregates" })`. `resolveAccess` already maps level → access, so routes never hard-code hierarchy levels (replaces todo's `@Scope(OWN \| DESCENDANT(level))`). Platform accounts (users) have no church scope and are always denied on scoped routes. | todo P2 · functionality §2.3 |
+| D-007 | 2026-10-01 | One refresh session per account for now: the `refresh_token_hash` column holds a single rotating token, so signing in on a second device ends the first device's refresh (access tokens stay valid until expiry). Reusing a rotated refresh token revokes the session. A `sessions` table (multi-device) is added before launch — todo Phase 9. | functionality §2.3 · todo P9 |
+| D-006 | 2026-10-01 | `verify-otp` takes a signed, 10-minute **challenge token** (returned by login) plus the code — not the identifier — so the second step reveals nothing about which accounts exist. JWTs are HS256 with the algorithm pinned, implemented in `apps/api/src/auth/core/jwt.ts` (no framework dependency, unit-tested); OTPs, temp tokens and refresh tokens are stored only as HMAC-SHA256 hashes. | functionality §2.3 |
+| D-005 | 2026-10-01 | Hierarchy scoping uses the materialised `groups.path` (prefix matching, §3.5) plus the pure `resolveAccess` function in `@ecclesios/shared` — not recursive CTEs. The path is maintained app-side on insert/move (`buildPath`); `path LIKE '/a/b/%'` is an index range scan via `groups_path_prefix_idx`. | blueprint §6 · todo P2 |
+| D-004 | 2026-09-30 | `hierarchy.md`, `sup_prompt.md`, `prompt.md` are dropped. The hierarchy is defined in blueprint §3 and functionality §5. | todo |
+| D-003 | 2026-09-30 | Two separate role sets: church roles (Administrator, Manager, Society-Leader, Parishioner) on `members`; platform roles (Super-Admin, Creator) on `users`, with creator abilities as explicit privileges. | blueprint §4, §7 · functionality §1 · todo P1 |
+| D-002 | 2026-09-30 | Suffragan dioceses are children of the metropolitan archdiocese in the tree. What the archdiocese sees is a per-diocese setting `metropolitan_visibility` = `hidden` / `aggregates` (default) / `detailed`, set by the diocese's own Administrator. Never write access. Province aggregates unaffected. | blueprint §3, §3.4–3.5 · functionality §5.3 · todo P1, P6 |
+| D-001 | 2026-09-30 | Outstation collections are staged locally in `pending_collections` (PENDING → APPROVED → SYNCED / REJECTED / SYNC_FAILED) and posted to the external accounting API only after parish approval. | blueprint §7, §8.1 · functionality §4.12 · todo P1, P6 |

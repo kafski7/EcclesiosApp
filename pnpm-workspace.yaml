@@ -1,0 +1,6 @@
+packages:
+  - "apps/api"
+  - "apps/web"
+  - "apps/admin"
+  # apps/mobile is a Phase-11 placeholder — deliberately NOT a workspace yet
+  - "packages/*"

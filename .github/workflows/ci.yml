@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Optional Turborepo remote cache
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Format
+        run: pnpm format:check
+      - name: Build shared packages
+        run: pnpm turbo run build
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Unit tests
+        run: pnpm test
+
+  migrations:
+    # Phase 1 exit criterion: first migration applies cleanly on a fresh Postgres, seed runs.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ecclesios
+          POSTGRES_PASSWORD: ecclesios
+          POSTGRES_DB: ecclesios
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ecclesios" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://ecclesios:ecclesios@localhost:5432/ecclesios
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Migrations are committed and up to date
+        run: |
+          pnpm db:generate
+          test -z "$(git status --porcelain packages/db/drizzle)" || { echo "Schema changed without a committed migration — run pnpm db:generate and commit."; git status --porcelain packages/db/drizzle; exit 1; }
+      - run: pnpm db:migrate
+      - run: pnpm db:seed
+      - name: API e2e (auth flow, rate limits, RBAC scope guard)
+        run: |
+          pnpm turbo run build --filter=@ecclesios/api...
+          pnpm --filter @ecclesios/api test:e2e
+        env:
+          JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdef
+          JWT_REFRESH_SECRET: ci-refresh-secret-0123456789abcdef

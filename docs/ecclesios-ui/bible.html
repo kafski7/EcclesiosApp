@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bible · Ecclesios</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v18M7 7.8h10M9.4 21h5.2' fill='none' stroke='%23C59B27' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== ICON SPRITE ==================== -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 3v18M7 7.8h10M9.4 21h5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></g></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.8-3.8"/></g></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.6 5.8 1.6 5.8H4.4S6 14.1 6 9.5z"/><path d="M10.3 19.3a1.9 1.9 0 0 0 3.4 0"/></g></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 3v2.3M12 18.7V21M4.6 5.4l1.7 1.7M17.7 16.9l1.7 1.7M3 12h2.3M18.7 12H21M4.6 18.6l1.7-1.7M17.7 7.1l1.7-1.7"/></g></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 11.2 8-6.7 8 6.7"/><path d="M6.4 9.9v9.6h11.2V9.9"/></g></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.6 5.1 8.4 4.5 5 4.7v13.8c3.4-.2 5.6.4 7 1.9 1.4-1.5 3.6-2.1 7-1.9V4.7c-3.4-.2-5.6.4-7 1.9z"/><path d="M12 6.6v13.8"/></g></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.4 19.6c.8-3.4 3.5-5.3 6.6-5.3s5.8 1.9 6.6 5.3"/></g></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m15.3 8.7-1.9 4.7-4.7 1.9 1.9-4.7z"/></g></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="9.2" y="3.4" width="5.6" height="10.2" rx="2.8"/><path d="M6 11.6a6 6 0 0 0 12 0M12 17.6v3"/></g></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18.4V6l10-2.2v12.4"/><circle cx="6.7" cy="18.4" r="2.3"/><circle cx="16.7" cy="16.2" r="2.3"/></g></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.8 9.3 9.2-4.1 9.2 4.1-9.2 4.1z"/><path d="M6.8 11.5v4.1c0 1.4 2.3 2.7 5.2 2.7s5.2-1.3 5.2-2.7v-4.1M20.4 9.7v4.9"/></g></symbol>
+  <symbol id="i-bible" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5h11A1.5 1.5 0 0 1 18.5 6v13.5H7.5A1.5 1.5 0 0 1 6 18z"/><path d="M6 18a1.5 1.5 0 0 1 1.5-1.5h11"/><path d="M12 7.6v5.6M9.6 10.4h4.8"/></g></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 7.5h14M5 12h14M5 16.5h14"/><circle cx="9.5" cy="7.5" r="1.8" fill="#fff"/><circle cx="14.5" cy="12" r="1.8" fill="#fff"/><circle cx="8" cy="16.5" r="1.8" fill="#fff"/></g></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9.5 6.5 5.5 5.5-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<input class="nav-toggle" type="checkbox" id="nav-toggle">
+
+<div class="shell">
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <svg class="ic brand-cross" aria-hidden="true"><use href="#i-logo"/></svg>
+      <span class="brand-name">Ecclesios</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-item" href="index.html"><svg class="ic"><use href="#i-home"/></svg><span>Home</span><b class="nav-badge">3</b></a>
+      <a class="nav-item" href="readings.html"><svg class="ic"><use href="#i-book"/></svg><span>Readings</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg><span>Saints</span></a>
+      <a class="nav-item" href="explore.html"><svg class="ic"><use href="#i-compass"/></svg><span>Explore</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-mic"/></svg><span>Podcasts</span><b class="nav-badge">2</b></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-music"/></svg><span>Hymnal</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-cap"/></svg><span>Teachings</span></a>
+      <a class="nav-item active" href="bible.html" aria-current="page"><svg class="ic"><use href="#i-bible"/></svg><span>Bible</span></a>
+      <div class="nav-sep" role="separator"></div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-menu"/></svg><span>More</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <span class="avatar av-36 av-brand">KA</span>
+      <span class="s-user-meta"><b>Kofi Asante</b><small>kofi@ecclesios.org</small></span>
+      <svg class="ic" aria-label="Settings" role="button" tabindex="0"><use href="#i-gear"/></svg>
+    </div>
+  </aside>
+
+  <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
+
+  <div class="main">
+    <!-- ==================== TOPBAR ==================== -->
+    <header class="topbar">
+      <label class="hamburger" for="nav-toggle" aria-label="Open navigation"><svg class="ic"><use href="#i-menu"/></svg></label>
+      <label class="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input type="search" placeholder="Search verses, books, translations…" aria-label="Search the Bible">
+      </label>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Notifications, 3 unread"><svg class="ic"><use href="#i-bell"/></svg><i class="dot-badge">3</i></button>
+        <span class="avatar av-36 av-brand" title="Kofi Asante">KA</span>
+      </div>
+    </header>
+
+    <!-- ==================== CONTENT ==================== -->
+    <main class="content content-narrow">
+
+      <header class="page-head" style="margin-bottom:18px">
+        <h1 class="page-title">The Holy Bible</h1>
+        <p class="page-sub">Good News Bible (GNB) &mdash; offline downloads arriving with additional translations.</p>
+      </header>
+
+      <!-- reader controls -->
+      <section class="card bible-controls" aria-label="Bible navigation">
+        <select class="control" aria-label="Testament">
+          <option selected>New Testament</option>
+          <option>Old Testament</option>
+        </select>
+        <select class="control" aria-label="Book">
+          <option selected>John</option>
+          <option>Matthew</option>
+          <option>Mark</option>
+          <option>Luke</option>
+          <option>Acts</option>
+        </select>
+        <select class="control" aria-label="Chapter">
+          <option selected>3</option>
+          <option>1</option>
+          <option>2</option>
+          <option>4</option>
+        </select>
+        <button class="icon-btn" aria-label="Reader settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
+      </section>
+
+      <!-- chapter text -->
+      <article class="card bible-text">
+        <h2 class="bible-ref">John 3</h2>
+        <p class="book-meta">The Gospel according to John &middot; Chapter 3</p>
+
+        <p class="verse"><sup>1</sup>Now there was a man of the Pharisees named Nicodemus, a ruler of the Jews.</p>
+        <p class="verse"><sup>2</sup>He came to Jesus by night and said to him, &ldquo;Rabbi, we know that you are a teacher who has come from God; for no one can do these signs that you do unless God is with him.&rdquo;</p>
+        <p class="verse"><sup>3</sup>Jesus answered him, <span class="woj">&ldquo;Very truly, I tell you, no one can see the kingdom of God unless they are born again.&rdquo;</span></p>
+        <p class="verse"><sup>4</sup>&ldquo;How can anyone be born when they are old?&rdquo; Nicodemus asked. &ldquo;Surely they cannot enter a second time into the mother's womb to be born!&rdquo;</p>
+        <p class="verse"><sup>5</sup>Jesus answered, <span class="woj">&ldquo;Very truly, I tell you, no one can enter the kingdom of God unless they are born of water and the Spirit.</span></p>
+        <p class="verse"><sup>6</sup><span class="woj">Flesh gives birth to flesh, but the Spirit gives birth to spirit.</span></p>
+        <p class="verse"><sup>7</sup><span class="woj">You should not be surprised at my saying, you must be born again.</span></p>
+        <p class="verse"><sup>8</sup><span class="woj">The wind blows wherever it pleases. You hear its sound, but you cannot tell where it comes from or where it is going. So it is with everyone born of the Spirit.&rdquo;</span></p>
+        <p class="verse"><sup>9</sup>&ldquo;How can this be?&rdquo; Nicodemus asked.</p>
+        <p class="verse"><sup>10</sup><span class="woj">&ldquo;You are Israel's teacher,&rdquo;</span> said Jesus, <span class="woj">&ldquo;and do you not understand these things?</span></p>
+        <p class="verse"><sup>11</sup><span class="woj">Very truly I tell you, we speak of what we know, and we testify to what we have seen, but still you people do not accept our testimony.</span></p>
+        <p class="verse"><sup>12</sup><span class="woj">I have spoken to you of earthly things and you do not believe; how then will you believe if I speak of heavenly things?</span></p>
+        <p class="verse"><sup>13</sup><span class="woj">No one has ever gone into heaven except the one who came from heaven &mdash; the Son of Man.</span></p>
+        <p class="verse"><sup>14</sup><span class="woj">Just as Moses lifted up the snake in the wilderness, so the Son of Man must be lifted up,</span></p>
+        <p class="verse"><sup>15</sup><span class="woj">that everyone who believes may have eternal life in him.&rdquo;</span></p>
+        <p class="verse"><sup>16</sup><span class="woj">For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.</span></p>
+        <p class="verse"><sup>17</sup><span class="woj">For God did not send his Son into the world to condemn the world, but to save the world through him.</span></p>
+      </article>
+
+      <!-- chapter navigation -->
+      <nav class="chapter-nav" aria-label="Chapter navigation">
+        <a class="btn btn-outline" href="#"><svg class="ic"><use href="#i-chev-l"/></svg>Previous</a>
+        <span class="ch-label">John 3</span>
+        <a class="btn btn-primary" href="#">Next<svg class="ic"><use href="#i-chev-r"/></svg></a>
+      </nav>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

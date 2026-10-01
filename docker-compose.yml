@@ -1,0 +1,65 @@
+name: ecclesios
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ecclesios
+      POSTGRES_PASSWORD: ecclesios
+      POSTGRES_DB: ecclesios
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecclesios -d ecclesios"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["6379:6379"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    # minio/minio is currently blocked on Docker Hub (pull denied); elestio/minio
+    # is a mirror that also bundles the `mc` client at /usr/bin/mc.
+    # Pinned to RELEASE.2025-09-07T16-13-09Z via digest.
+    image: elestio/minio@sha256:25348a257f1ece1b192f25f6cd9854618fa86422ac87b494b5d4e629c556d4bd
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ecclesios
+      MINIO_ROOT_PASSWORD: ecclesios-dev-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [miniodata:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: creates the private media bucket (binaries only reachable via presigned URLs)
+  minio-init:
+    image: elestio/minio@sha256:25348a257f1ece1b192f25f6cd9854618fa86422ac87b494b5d4e629c556d4bd
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ecclesios ecclesios-dev-secret &&
+      mc mb --ignore-existing local/ecclesios-media &&
+      mc anonymous set none local/ecclesios-media &&
+      echo 'bucket ready'
+      "
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

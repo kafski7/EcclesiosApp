@@ -1,0 +1,36 @@
+import { describe, expect, it } from "vitest";
+import {
+  COLLECTION_ACTIONS,
+  COLLECTION_STATUSES,
+  InvalidCollectionTransition,
+  isCollectionEditable,
+  isCollectionFinal,
+  nextCollectionStatus,
+} from "./collections";
+
+describe("pending collections state machine (blueprint §8.1)", () => {
+  it("happy path: PENDING → APPROVED → SYNCED", () => {
+    expect(nextCollectionStatus("PENDING", "approve")).toBe("APPROVED");
+    expect(nextCollectionStatus("APPROVED", "syncOk")).toBe("SYNCED");
+  });
+  it("retry path: APPROVED → SYNC_FAILED → APPROVED", () => {
+    expect(nextCollectionStatus("APPROVED", "syncFail")).toBe("SYNC_FAILED");
+    expect(nextCollectionStatus("SYNC_FAILED", "retry")).toBe("APPROVED");
+  });
+  it("reject is final", () => {
+    expect(nextCollectionStatus("PENDING", "reject")).toBe("REJECTED");
+    expect(isCollectionFinal("REJECTED")).toBe(true);
+  });
+  it("final states accept no action", () => {
+    for (const s of ["SYNCED", "REJECTED"] as const)
+      for (const a of COLLECTION_ACTIONS)
+        expect(() => nextCollectionStatus(s, a)).toThrow(InvalidCollectionTransition);
+  });
+  it("cannot approve twice or reject after approval", () => {
+    expect(() => nextCollectionStatus("APPROVED", "approve")).toThrow();
+    expect(() => nextCollectionStatus("APPROVED", "reject")).toThrow();
+  });
+  it("only PENDING is editable", () => {
+    expect(COLLECTION_STATUSES.filter(isCollectionEditable)).toEqual(["PENDING"]);
+  });
+});

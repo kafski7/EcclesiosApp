@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+.turbo/
+*.log
+.DS_Store
+
+# env — only .env.example files are committed
+.env
+.env.*
+!.env.example
+
+# chat hand-off bundles
+ecclesios-bundle*.md
+
+.vscode/*
+!.vscode/extensions.json
+.idea/

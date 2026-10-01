@@ -1,0 +1,4 @@
+{
+  "extends": "@ecclesios/config/tsconfig/base.json",
+  "files": []
+}

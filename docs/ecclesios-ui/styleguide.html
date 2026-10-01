@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design System · Ecclesios</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v18M7 7.8h10M9.4 21h5.2' fill='none' stroke='%23C59B27' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ==================== ICON SPRITE ==================== -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 3v18M7 7.8h10M9.4 21h5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></g></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.8-3.8"/></g></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.6 5.8 1.6 5.8H4.4S6 14.1 6 9.5z"/><path d="M10.3 19.3a1.9 1.9 0 0 0 3.4 0"/></g></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 3v2.3M12 18.7V21M4.6 5.4l1.7 1.7M17.7 16.9l1.7 1.7M3 12h2.3M18.7 12H21M4.6 18.6l1.7-1.7M17.7 7.1l1.7-1.7"/></g></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 11.2 8-6.7 8 6.7"/><path d="M6.4 9.9v9.6h11.2V9.9"/></g></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.6 5.1 8.4 4.5 5 4.7v13.8c3.4-.2 5.6.4 7 1.9 1.4-1.5 3.6-2.1 7-1.9V4.7c-3.4-.2-5.6.4-7 1.9z"/><path d="M12 6.6v13.8"/></g></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.4 19.6c.8-3.4 3.5-5.3 6.6-5.3s5.8 1.9 6.6 5.3"/></g></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m15.3 8.7-1.9 4.7-4.7 1.9 1.9-4.7z"/></g></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="9.2" y="3.4" width="5.6" height="10.2" rx="2.8"/><path d="M6 11.6a6 6 0 0 0 12 0M12 17.6v3"/></g></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18.4V6l10-2.2v12.4"/><circle cx="6.7" cy="18.4" r="2.3"/><circle cx="16.7" cy="16.2" r="2.3"/></g></symbol>
+  <symbol id="i-cap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m2.8 9.3 9.2-4.1 9.2 4.1-9.2 4.1z"/><path d="M6.8 11.5v4.1c0 1.4 2.3 2.7 5.2 2.7s5.2-1.3 5.2-2.7v-4.1M20.4 9.7v4.9"/></g></symbol>
+  <symbol id="i-bible" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4.5h11A1.5 1.5 0 0 1 18.5 6v13.5H7.5A1.5 1.5 0 0 1 6 18z"/><path d="M6 18a1.5 1.5 0 0 1 1.5-1.5h11"/><path d="M12 7.6v5.6M9.6 10.4h4.8"/></g></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-9-9.3C1.9 7.2 4.3 4.5 7.2 4.5c2 0 3.7 1.2 4.8 3 1.1-1.8 2.8-3 4.8-3 2.9 0 5.3 2.7 4.2 6.2-1.5 4.7-9 9.3-9 9.3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-comment" viewBox="0 0 24 24"><path d="M21 11.7a8.3 8.3 0 0 1-8.3 8.3H4.4l2.1-3A8.3 8.3 0 1 1 21 11.7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V4M8.2 7.3 12 3.5l3.8 3.8"/><path d="M5 12.5v6A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-6"/></g></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10.5h16M8.5 3.5v3.5M15.5 3.5v3.5"/></g></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3.2c3.3 3.6 6 6.6 6 10a6 6 0 0 1-12 0c0-2 .9-3.9 2.3-5.8.5 1 1.2 1.9 2.2 2.4-.3-2.4.3-4.6 1.5-6.6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+  <symbol id="i-church" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 21v-8.6L12 8.4l5.5 4V21"/><path d="M3.5 21h17M12 8.4V5.4M10.6 6.7h2.8"/><path d="M10 21v-3.6a2 2 0 0 1 4 0V21"/></g></symbol>
+</svg>
+
+<input class="nav-toggle" type="checkbox" id="nav-toggle">
+
+<div class="shell">
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside class="sidebar">
+    <a class="brand" href="index.html">
+      <svg class="ic brand-cross" aria-hidden="true"><use href="#i-logo"/></svg>
+      <span class="brand-name">Ecclesios</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-item" href="index.html"><svg class="ic"><use href="#i-home"/></svg><span>Home</span><b class="nav-badge">3</b></a>
+      <a class="nav-item" href="readings.html"><svg class="ic"><use href="#i-book"/></svg><span>Readings</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg><span>Saints</span></a>
+      <a class="nav-item" href="explore.html"><svg class="ic"><use href="#i-compass"/></svg><span>Explore</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-mic"/></svg><span>Podcasts</span><b class="nav-badge">2</b></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-music"/></svg><span>Hymnal</span></a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-cap"/></svg><span>Teachings</span></a>
+      <a class="nav-item" href="bible.html"><svg class="ic"><use href="#i-bible"/></svg><span>Bible</span></a>
+      <div class="nav-sep" role="separator"></div>
+      <a class="nav-item active" href="styleguide.html" aria-current="page"><svg class="ic"><use href="#i-menu"/></svg><span>More</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <span class="avatar av-36 av-brand">KA</span>
+      <span class="s-user-meta"><b>Kofi Asante</b><small>kofi@ecclesios.org</small></span>
+      <svg class="ic" aria-label="Settings" role="button" tabindex="0"><use href="#i-gear"/></svg>
+    </div>
+  </aside>
+
+  <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
+
+  <div class="main">
+    <!-- ==================== TOPBAR ==================== -->
+    <header class="topbar">
+      <label class="hamburger" for="nav-toggle" aria-label="Open navigation"><svg class="ic"><use href="#i-menu"/></svg></label>
+      <label class="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input type="search" placeholder="Search the design system…" aria-label="Search design system">
+      </label>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Notifications, 3 unread"><svg class="ic"><use href="#i-bell"/></svg><i class="dot-badge">3</i></button>
+        <span class="avatar av-36 av-brand" title="Kofi Asante">KA</span>
+      </div>
+    </header>
+
+    <!-- ==================== CONTENT ==================== -->
+    <main class="content content-narrow">
+
+      <header class="page-head" style="text-align:center;padding-top:8px">
+        <svg class="ic" style="width:38px;height:38px;margin:0 auto 10px;color:var(--accent)"><use href="#i-logo"/></svg>
+        <h1 class="page-title" style="font-size:38px">Ecclesios</h1>
+        <p class="page-sub" style="letter-spacing:.24em;text-transform:uppercase;font-size:12px;margin-top:8px">Faith &nbsp;&middot;&nbsp; Community &nbsp;&middot;&nbsp; Church</p>
+        <p class="page-sub" style="max-width:420px;margin:12px auto 0">A modern Catholic social platform and church management system.</p>
+      </header>
+
+      <!-- colors -->
+      <section class="sg-section" style="margin-top:34px">
+        <h2 class="sg-title">Design System &mdash; Color</h2>
+        <div class="swatches">
+          <div class="card swatch">
+            <div class="sw-color" style="background:#5A0E17"></div>
+            <div class="sw-name">Primary</div>
+            <div class="sw-hex">#5A0E17</div>
+          </div>
+          <div class="card swatch">
+            <div class="sw-color" style="background:#C59B27"></div>
+            <div class="sw-name">Accent</div>
+            <div class="sw-hex">#C59B27</div>
+          </div>
+          <div class="card swatch">
+            <div class="sw-color" style="background:#1A1A1A"></div>
+            <div class="sw-name">Text</div>
+            <div class="sw-hex">#1A1A1A</div>
+          </div>
+          <div class="card swatch">
+            <div class="sw-color" style="background:#FAF9F6"></div>
+            <div class="sw-name">Surface</div>
+            <div class="sw-hex">#FAF9F6</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- typography -->
+      <section class="sg-section">
+        <h2 class="sg-title">Typography</h2>
+        <div class="card" style="padding:8px 20px">
+          <div class="sg-type-row">
+            <span class="sg-label">Headings &middot; Serif</span>
+            <span style="font-family:var(--font-serif);font-size:26px;font-weight:600">Playfair Display &mdash; Aa</span>
+          </div>
+          <div class="sg-type-row">
+            <span class="sg-label">Display</span>
+            <span style="font-family:var(--font-serif);font-size:21px;font-style:italic">Closer to Christ. Together in Faith.</span>
+          </div>
+          <div class="sg-type-row" style="border-bottom:0">
+            <span class="sg-label">Body &middot; Sans</span>
+            <span style="font-size:15px;color:var(--text-2)">Inter &mdash; The quick brown fox jumps over the lazy dog. 0123456789</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- iconography -->
+      <section class="sg-section">
+        <h2 class="sg-title">Iconography</h2>
+        <div class="icon-grid">
+          <div class="icon-cell"><svg class="ic"><use href="#i-home"/></svg>Home</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-book"/></svg>Readings</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-user"/></svg>Saints</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-search"/></svg>Search</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-bell"/></svg>Alerts</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-compass"/></svg>Explore</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-mic"/></svg>Podcasts</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-music"/></svg>Hymnal</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-cap"/></svg>Teachings</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-bible"/></svg>Bible</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-church"/></svg>Church</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-flame"/></svg>Spirit</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-heart"/></svg>Like</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-comment"/></svg>Comment</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-share"/></svg>Share</div>
+          <div class="icon-cell"><svg class="ic"><use href="#i-calendar"/></svg>Events</div>
+        </div>
+      </section>
+
+      <!-- components -->
+      <section class="sg-section">
+        <h2 class="sg-title">Core Components</h2>
+        <div class="card" style="padding:22px">
+          <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px">
+            <button class="btn btn-primary">Primary</button>
+            <button class="btn btn-gold">Accent</button>
+            <button class="btn btn-outline">Outline</button>
+            <button class="btn-follow">Follow</button>
+            <span class="chip chip-gold"><i class="chip-dot"></i>Easter Season</span>
+            <span class="chip chip-burgundy">Ordinary Time</span>
+            <b class="nav-badge" style="margin-left:0">3</b>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center">
+            <span class="avatar av-48 av-brand">KA</span>
+            <span class="avatar av-48 av-slate">FA</span>
+            <span class="avatar av-48 av-gold">CD</span>
+            <span class="avatar av-48 av-teal">SJ</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- motto -->
+      <section class="card motto-block">
+        <p class="motto">Closer to Christ.<br>Together in Faith.</p>
+        <p class="motto-sub">Ecclesios</p>
+      </section>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>
