@@ -11,7 +11,17 @@ import { useSession } from "@/stores/session";
 export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
   const principal = useSession((s) => s.principal);
 
-  const Item = ({ to, icon, label, hint }: { to: string; icon: ReactNode; label: string; hint?: string }) => {
+  const Item = ({
+    to,
+    icon,
+    label,
+    hint,
+  }: {
+    to: string;
+    icon: ReactNode;
+    label: string;
+    hint?: string;
+  }) => {
     const link = (
       <Link
         to={to}
@@ -30,8 +40,18 @@ export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
   return (
     <nav aria-label="More" className="flex flex-col gap-5">
       <Section title="Church Management">
-        <Item to="/subscribe" icon={<Building2 />} label="Subscribe your church" hint="Basic, Premium or Ultimate" />
-        <Item to="/cms-login" icon={<ShieldCheck />} label="Church Management login" hint="For subscribed churches" />
+        <Item
+          to="/subscribe"
+          icon={<Building2 />}
+          label="Subscribe your church"
+          hint="Basic, Premium or Ultimate"
+        />
+        <Item
+          to="/cms-login"
+          icon={<ShieldCheck />}
+          label="Church Management login"
+          hint="For subscribed churches"
+        />
       </Section>
       <Section title="You">
         <Item to="/notifications" icon={<Bell />} label="Notifications" />

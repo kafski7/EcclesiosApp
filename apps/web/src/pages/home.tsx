@@ -1,5 +1,6 @@
 import { ArrowRight, Image as ImageIcon, Link2, Search, Smile } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SaintOfTheDay } from "@/components/saints/saint-of-the-day";
 import { PRIMARY_NAV } from "@/nav";
 
 const BLURBS: Record<string, string> = {
@@ -26,7 +27,14 @@ export function HomePage() {
           <button type="button" role="tab" aria-selected className="feed-tab active">
             For You
           </button>
-          <button type="button" role="tab" aria-selected={false} className="feed-tab" disabled title="After sign-in">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={false}
+            className="feed-tab"
+            disabled
+            title="After sign-in"
+          >
             Following
           </button>
         </div>
@@ -57,25 +65,34 @@ export function HomePage() {
           </div>
         </div>
 
-        <article className="card saint-card">
-          <span className="saint-photo grid place-items-center bg-[var(--primary-soft)] font-serif text-3xl text-[var(--primary)]" aria-hidden>
-            ✠
-          </span>
-          <div className="saint-body">
-            <p className="saint-kicker">Welcome to Ecclesios</p>
-            <h1 className="saint-name">Faith, community and Church — in one place</h1>
-            <p className="saint-date">Readings · Saints · Hymns · Bible</p>
-            <p className="saint-text">
-              Daily readings, saints, hymns, teachings, podcasts and the Bible — and your church, connected.
-            </p>
-          </div>
-        </article>
+        {/* Saint of the day (D-025); the welcome card shows when no saint is celebrated today. */}
+        <SaintOfTheDay
+          fallback={
+          <article className="card saint-card">
+            <span
+              className="saint-photo grid place-items-center bg-[var(--primary-soft)] font-serif text-3xl text-[var(--primary)]"
+              aria-hidden
+            >
+              ✠
+            </span>
+            <div className="saint-body">
+              <p className="saint-kicker">Welcome to Ecclesios</p>
+              <h1 className="saint-name">Faith, community and Church — in one place</h1>
+              <p className="saint-date">Readings · Saints · Hymns · Bible</p>
+              <p className="saint-text">
+                Daily readings, saints, hymns, teachings, podcasts and the Bible — and your church,
+                connected.
+              </p>
+            </div>
+          </article>
+          }
+        />
 
         <article className="card post">
           <h2 className="post-title mt-0">Your feed is on its way</h2>
           <p className="post-text">
-            Saint of the day, upcoming events, new teachings and podcast episodes will appear here as each section goes
-            live.
+            Saint of the day, upcoming events, new teachings and podcast episodes will appear here
+            as each section goes live.
           </p>
           <blockquote className="post-quote">
             Where two or three are gathered in my name, there am I among them.
@@ -111,7 +128,10 @@ export function HomePage() {
                     <b>{label}</b>
                     <small>{BLURBS[to]}</small>
                   </span>
-                  <ArrowRight className="ic size-4 text-[var(--text-3)] transition-transform group-hover:translate-x-1" aria-hidden />
+                  <ArrowRight
+                    className="ic size-4 text-[var(--text-3)] transition-transform group-hover:translate-x-1"
+                    aria-hidden
+                  />
                 </Link>
               </li>
             ))}

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useUi } from "@/stores/ui";
+import { MembershipBanner } from "./membership-banner";
 import { MoreMenu } from "./more-menu";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -26,7 +27,10 @@ export function AppShell() {
 
   return (
     <div className={`shell${navOpen ? " nav-open" : ""}`}>
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded focus:bg-white focus:px-3 focus:py-2">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded focus:bg-white focus:px-3 focus:py-2"
+      >
         Skip to content
       </a>
       <Sidebar />
@@ -35,6 +39,7 @@ export function AppShell() {
       <div className="main">
         <Topbar />
         <main id="main" className="content">
+          <MembershipBanner />
           <Outlet />
         </main>
       </div>

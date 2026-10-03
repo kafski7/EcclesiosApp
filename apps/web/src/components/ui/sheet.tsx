@@ -14,7 +14,11 @@ export function SheetContent({
   title,
   description,
   ...props
-}: ComponentProps<typeof Dialog.Content> & { title: string; description?: string; children: ReactNode }) {
+}: ComponentProps<typeof Dialog.Content> & {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
   return (
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" />
@@ -29,12 +33,17 @@ export function SheetContent({
           <div>
             <Dialog.Title className="font-serif text-xl font-bold">{title}</Dialog.Title>
             {description ? (
-              <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description>
+              <Dialog.Description className="mt-1 text-sm text-muted-foreground">
+                {description}
+              </Dialog.Description>
             ) : (
               <Dialog.Description className="sr-only">{title}</Dialog.Description>
             )}
           </div>
-          <Dialog.Close className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" aria-label="Close menu">
+          <Dialog.Close
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"
+            aria-label="Close menu"
+          >
             <X className="size-5" />
           </Dialog.Close>
         </div>

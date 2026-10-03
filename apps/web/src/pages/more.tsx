@@ -11,7 +11,11 @@ export function MorePage() {
     staleTime: 30_000,
   });
   const ok = health.data?.status === "ok";
-  const status = health.isPending ? "Checking connection…" : ok ? "Connected" : "Offline — some features are unavailable";
+  const status = health.isPending
+    ? "Checking connection…"
+    : ok
+      ? "Connected"
+      : "Offline — some features are unavailable";
 
   return (
     <div className="mx-auto max-w-md">

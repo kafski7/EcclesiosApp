@@ -36,5 +36,7 @@ export function maskDestination(value: string): string {
     const [local = "", domain = ""] = value.split("@");
     return `${local.slice(0, 1)}***@${domain}`;
   }
-  return value.length > 8 ? `${value.slice(0, 4)}${"*".repeat(value.length - 8)}${value.slice(-4)}` : "****";
+  return value.length > 8
+    ? `${value.slice(0, 4)}${"*".repeat(value.length - 8)}${value.slice(-4)}`
+    : "****";
 }

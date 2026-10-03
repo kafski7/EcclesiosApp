@@ -76,7 +76,10 @@ export async function makeHarness(config: Partial<AuthConfig> = {}) {
   const advance = (sec: number) => {
     now = new Date(now.getTime() + sec * 1000);
   };
-  const stores: Record<AccountKind, MemoryStore> = { member: new MemoryStore(), user: new MemoryStore() };
+  const stores: Record<AccountKind, MemoryStore> = {
+    member: new MemoryStore(),
+    user: new MemoryStore(),
+  };
   const sent: OtpMessage[] = [];
   const audits: AuditEntry[] = [];
   const pw = await fakeHasher.hash("Ecclesios#2026");
@@ -90,7 +93,7 @@ export async function makeHarness(config: Partial<AuthConfig> = {}) {
     telephone: "+2332000000508",
     passwordHash: pw,
     firstLogin: new Date("2026-01-01"),
-    claims: { kind: "member", role: "ADMINISTRATOR", groupId: "00000000-0000-4000-8000-000000000107", hierarchyLevel: "PARISH" },
+    claims: { kind: "member" },
   });
   stores.member.add({
     ...blankAuth(),
@@ -101,7 +104,7 @@ export async function makeHarness(config: Partial<AuthConfig> = {}) {
     telephone: "+2332000000518",
     passwordHash: pw,
     firstLogin: null,
-    claims: { kind: "member", role: "PARISHIONER", groupId: "00000000-0000-4000-8000-000000000107", hierarchyLevel: "PARISH" },
+    claims: { kind: "member" },
   });
   stores.member.add({
     ...blankAuth(),
@@ -112,7 +115,18 @@ export async function makeHarness(config: Partial<AuthConfig> = {}) {
     telephone: null,
     passwordHash: pw,
     firstLogin: new Date("2026-01-01"),
-    claims: { kind: "member", role: "PARISHIONER", groupId: "00000000-0000-4000-8000-000000000107", hierarchyLevel: "PARISH" },
+    claims: { kind: "member" },
+  });
+  stores.member.add({
+    ...blankAuth(),
+    id: "00000000-0000-4000-8000-000000000598",
+    kind: "member",
+    active: true,
+    email: "pending@dev.ecclesios.local",
+    telephone: null,
+    passwordHash: pw,
+    firstLogin: new Date("2026-01-01"),
+    claims: { kind: "member" },
   });
   stores.user.add({
     ...blankAuth(),
@@ -139,7 +153,9 @@ export async function makeHarness(config: Partial<AuthConfig> = {}) {
 }
 
 /** Runner-agnostic: returns the thrown error (or fails if nothing was thrown). */
-export async function caught(fn: () => Promise<unknown>): Promise<{ code?: string; status?: number; details?: unknown; retryAfterSec?: number }> {
+export async function caught(
+  fn: () => Promise<unknown>,
+): Promise<{ code?: string; status?: number; details?: unknown; retryAfterSec?: number }> {
   try {
     await fn();
   } catch (e) {

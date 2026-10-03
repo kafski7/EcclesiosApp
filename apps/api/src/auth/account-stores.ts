@@ -1,35 +1,27 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { groups, members, roles, users } from "@ecclesios/db";
+import { members, users } from "@ecclesios/db";
 import { eq, sql } from "drizzle-orm";
 import { DB, type Database } from "../db/db.module";
 import type { AccountRecord, AccountStore, AuthState } from "./core/types";
 
 const isEmail = (s: string) => s.includes("@");
 
-/** members table → /api/auth/login (functionality §2.2). */
+/** members table → /api/auth/login (functionality §2.2). Church memberships are not needed to sign in (D-015). */
 @Injectable()
 export class MemberAccountStore implements AccountStore {
   constructor(@Inject(DB) private readonly db: Database) {}
-
-  private select() {
-    return this.db
-      .select({ m: members, role: roles.code, level: groups.level })
-      .from(members)
-      .innerJoin(roles, eq(members.roleId, roles.id))
-      .innerJoin(groups, eq(members.groupId, groups.id));
-  }
 
   async findByIdentifier(identifier: string) {
     const where = isEmail(identifier)
       ? sql`lower(${members.email}) = lower(${identifier})`
       : eq(members.telephone, identifier);
-    const [row] = await this.select().where(where).limit(1);
-    return row ? toRecord(row) : null;
+    const [m] = await this.db.select().from(members).where(where).limit(1);
+    return m ? memberRecord(m) : null;
   }
 
   async findById(id: string) {
-    const [row] = await this.select().where(eq(members.id, id)).limit(1);
-    return row ? toRecord(row) : null;
+    const [m] = await this.db.select().from(members).where(eq(members.id, id)).limit(1);
+    return m ? memberRecord(m) : null;
   }
 
   async update(id: string, patch: Partial<AuthState>) {
@@ -37,17 +29,15 @@ export class MemberAccountStore implements AccountStore {
   }
 }
 
-type MemberRow = { m: typeof members.$inferSelect; role: (typeof roles.$inferSelect)["code"]; level: (typeof groups.$inferSelect)["level"] };
-
-function toRecord({ m, role, level }: MemberRow): AccountRecord {
+function memberRecord(m: typeof members.$inferSelect): AccountRecord {
   return {
     ...pickAuth(m),
     id: m.id,
     kind: "member",
-    active: m.status === "ACTIVE" && !m.isDeceased,
+    active: m.isActive && !m.isDeceased,
     email: m.email,
     telephone: m.telephone,
-    claims: { kind: "member", role, groupId: m.groupId, hierarchyLevel: level },
+    claims: { kind: "member" },
   };
 }
 

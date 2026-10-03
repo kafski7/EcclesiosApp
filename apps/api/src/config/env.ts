@@ -23,20 +23,48 @@ export const EnvSchema = z
     AUTH_RATE_IP_MAX: z.coerce.number().int().min(1).default(30),
     AUTH_RATE_IDENTIFIER_MAX: z.coerce.number().int().min(1).default(5),
     TRUST_PROXY: bool,
+    // Object storage (blueprint §5): MinIO in dev, R2/S3 in production. Binaries never pass through the API.
+    S3_ENDPOINT: z.string().url().default("http://localhost:9000"),
+    /** Endpoint the BROWSER uses for presigned URLs, if different (e.g. behind a CDN/proxy). */
+    S3_PUBLIC_ENDPOINT: z.string().url().optional(),
+    S3_REGION: z.string().default("us-east-1"),
+    S3_ACCESS_KEY: z.string().default("ecclesios"),
+    S3_SECRET_KEY: z.string().default("ecclesios-dev-secret"),
+    S3_BUCKET: z.string().default("ecclesios-media"),
+    S3_FORCE_PATH_STYLE: z
+      .enum(["0", "1", "true", "false"])
+      .default("1")
+      .transform((v) => v === "1" || v === "true"),
+    MEDIA_URL_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(600),
+    /** Hymnal paywall for SUBSCRIBER media (D-026). Off until personal plans exist. */
+    HYMNAL_PAYWALL: bool,
     CORS_ORIGINS: z
       .string()
       .default("")
-      .transform((v) => v.split(",").map((s) => s.trim()).filter(Boolean)),
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      ),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== "production") return;
     for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"] as const) {
       const v = env[key];
       if (v.length < 32 || v.startsWith("change-me"))
-        ctx.addIssue({ code: "custom", path: [key], message: "production secrets must be ≥32 random characters" });
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: "production secrets must be ≥32 random characters",
+        });
     }
     if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET)
-      ctx.addIssue({ code: "custom", path: ["JWT_REFRESH_SECRET"], message: "must differ from JWT_ACCESS_SECRET" });
+      ctx.addIssue({
+        code: "custom",
+        path: ["JWT_REFRESH_SECRET"],
+        message: "must differ from JWT_ACCESS_SECRET",
+      });
   });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -45,8 +73,12 @@ export const ENV = Symbol("ENV");
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = EnvSchema.safeParse(source);
   if (!parsed.success) {
-    const lines = parsed.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
-    throw new Error(`Invalid environment for @ecclesios/api:\n${lines}\n(see apps/api/.env.example)`);
+    const lines = parsed.error.issues
+      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
+    throw new Error(
+      `Invalid environment for @ecclesios/api:\n${lines}\n(see apps/api/.env.example)`,
+    );
   }
   return parsed.data;
 }

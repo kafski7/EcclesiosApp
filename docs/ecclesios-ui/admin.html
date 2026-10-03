@@ -1,227 +1,493 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard · Ecclesios CMS</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v18M7 7.8h10M9.4 21h5.2' fill='none' stroke='%23C59B27' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard · Ecclesios CMS</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v18M7 7.8h10M9.4 21h5.2' fill='none' stroke='%23C59B27' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <!-- ==================== ICON SPRITE ==================== -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none" aria-hidden="true">
+      <symbol id="i-logo" viewBox="0 0 24 24">
+        <path
+          d="M12 3v18M7 7.8h10M9.4 21h5.2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </g>
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="m20 20-3.8-3.8" />
+        </g>
+      </symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.6 5.8 1.6 5.8H4.4S6 14.1 6 9.5z" />
+          <path d="M10.3 19.3a1.9 1.9 0 0 0 3.4 0" />
+        </g>
+      </symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3.1" />
+          <path
+            d="M12 3v2.3M12 18.7V21M4.6 5.4l1.7 1.7M17.7 16.9l1.7 1.7M3 12h2.3M18.7 12H21M4.6 18.6l1.7-1.7M17.7 7.1l1.7-1.7"
+          />
+        </g>
+      </symbol>
+      <symbol id="i-church" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6.5 21v-8.6L12 8.4l5.5 4V21" />
+          <path d="M3.5 21h17M12 8.4V5.4M10.6 6.7h2.8" />
+          <path d="M10 21v-3.6a2 2 0 0 1 4 0V21" />
+        </g>
+      </symbol>
+      <symbol id="i-chev-d" viewBox="0 0 24 24">
+        <path
+          d="m6.5 9.5 5.5 5.5 5.5-5.5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.7">
+          <rect x="4" y="4" width="7" height="7" rx="1.6" />
+          <rect x="13" y="4" width="7" height="7" rx="1.6" />
+          <rect x="4" y="13" width="7" height="7" rx="1.6" />
+          <rect x="13" y="13" width="7" height="7" rx="1.6" />
+        </g>
+      </symbol>
+      <symbol id="i-users" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <circle cx="9" cy="8.6" r="3.2" />
+          <path d="M3.4 19.2c.7-3 3-4.7 5.6-4.7s4.9 1.7 5.6 4.7" />
+          <path d="M15.4 5.8a3.2 3.2 0 0 1 0 5.6M17.6 14.7c1.7.8 2.8 2.3 3.2 4.5" />
+        </g>
+      </symbol>
+      <symbol id="i-cake" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12 6.5c-1.1 1.1-1.7 2-1.7 2.9a1.7 1.7 0 0 0 3.4 0c0-.9-.6-1.8-1.7-2.9zM12 3.2v2"
+          />
+          <path
+            d="M4.6 13.4a2.5 2.5 0 0 0 2.4 1.8c1 0 2-.5 2.5-1.4.5.9 1.4 1.4 2.5 1.4s2-.5 2.5-1.4c.5.9 1.5 1.4 2.5 1.4a2.5 2.5 0 0 0 2.4-1.8"
+          />
+          <path d="M4.6 13V19a1.6 1.6 0 0 0 1.6 1.6h11.6A1.6 1.6 0 0 0 19.4 19v-6" />
+        </g>
+      </symbol>
+      <symbol id="i-flag" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 21V4" />
+          <path d="M6 5h11l-2.6 3.5L17 12H6" />
+        </g>
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24">
+        <path
+          d="M12 3.4 5 5.9v5.6c0 4.6 3 7.8 7 9.1 4-1.3 7-4.5 7-9.1V5.9z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linejoin="round"
+        />
+      </symbol>
+      <symbol id="i-msg" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 5.5h16v11H9.4L4 20.5z" />
+          <path d="M8 9.5h8M8 12.5h5" />
+        </g>
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <circle cx="12" cy="8.2" r="3.4" />
+          <path d="M5.4 19.6c.8-3.4 3.5-5.3 6.6-5.3s5.8 1.9 6.6 5.3" />
+        </g>
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path
+          d="M12 5v14M5 12h14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
+      </symbol>
+      <symbol id="i-send" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20.5 3.5 3.5 10.8l6.2 2.4 2.4 6.3z" />
+          <path d="M20.5 3.5 9.7 13.2" />
+        </g>
+      </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6.5 3.5h7L18 8v12.5H6.5z" />
+          <path d="M13.5 3.5V8H18" />
+        </g>
+      </symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24">
+        <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <rect x="4" y="5.5" width="16" height="15" rx="2" />
+          <path d="M4 10.5h16M8.5 3.5v3.5M15.5 3.5v3.5" />
+        </g>
+      </symbol>
+      <symbol id="i-arrow-r" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4.5 12h15M13.8 6.2 19.5 12l-5.7 5.8" />
+        </g>
+      </symbol>
+      <symbol id="i-trend-up" viewBox="0 0 24 24">
+        <g
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m4 16.5 5.2-5.2 3.4 3.4L20 7.5" />
+          <path d="M15 7.5h5v5" />
+        </g>
+      </symbol>
+    </svg>
 
-<!-- ==================== ICON SPRITE ==================== -->
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
-  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 3v18M7 7.8h10M9.4 21h5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></g></symbol>
-  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.8-3.8"/></g></symbol>
-  <symbol id="i-bell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 0 1 12 0c0 4.6 1.6 5.8 1.6 5.8H4.4S6 14.1 6 9.5z"/><path d="M10.3 19.3a1.9 1.9 0 0 0 3.4 0"/></g></symbol>
-  <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 3v2.3M12 18.7V21M4.6 5.4l1.7 1.7M17.7 16.9l1.7 1.7M3 12h2.3M18.7 12H21M4.6 18.6l1.7-1.7M17.7 7.1l1.7-1.7"/></g></symbol>
-  <symbol id="i-church" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 21v-8.6L12 8.4l5.5 4V21"/><path d="M3.5 21h17M12 8.4V5.4M10.6 6.7h2.8"/><path d="M10 21v-3.6a2 2 0 0 1 4 0V21"/></g></symbol>
-  <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></g></symbol>
-  <symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8.6" r="3.2"/><path d="M3.4 19.2c.7-3 3-4.7 5.6-4.7s4.9 1.7 5.6 4.7"/><path d="M15.4 5.8a3.2 3.2 0 0 1 0 5.6M17.6 14.7c1.7.8 2.8 2.3 3.2 4.5"/></g></symbol>
-  <symbol id="i-cake" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5c-1.1 1.1-1.7 2-1.7 2.9a1.7 1.7 0 0 0 3.4 0c0-.9-.6-1.8-1.7-2.9zM12 3.2v2"/><path d="M4.6 13.4a2.5 2.5 0 0 0 2.4 1.8c1 0 2-.5 2.5-1.4.5.9 1.4 1.4 2.5 1.4s2-.5 2.5-1.4c.5.9 1.5 1.4 2.5 1.4a2.5 2.5 0 0 0 2.4-1.8"/><path d="M4.6 13V19a1.6 1.6 0 0 0 1.6 1.6h11.6A1.6 1.6 0 0 0 19.4 19v-6"/></g></symbol>
-  <symbol id="i-flag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.6 3.5L17 12H6"/></g></symbol>
-  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.4 5 5.9v5.6c0 4.6 3 7.8 7 9.1 4-1.3 7-4.5 7-9.1V5.9z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
-  <symbol id="i-msg" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v11H9.4L4 20.5z"/><path d="M8 9.5h8M8 12.5h5"/></g></symbol>
-  <symbol id="i-user" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.4 19.6c.8-3.4 3.5-5.3 6.6-5.3s5.8 1.9 6.6 5.3"/></g></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-  <symbol id="i-send" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5 3.5 10.8l6.2 2.4 2.4 6.3z"/><path d="M20.5 3.5 9.7 13.2"/></g></symbol>
-  <symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3.5h7L18 8v12.5H6.5z"/><path d="M13.5 3.5V8H18"/></g></symbol>
-  <symbol id="i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4" y="5.5" width="16" height="15" rx="2"/><path d="M4 10.5h16M8.5 3.5v3.5M15.5 3.5v3.5"/></g></symbol>
-  <symbol id="i-arrow-r" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12h15M13.8 6.2 19.5 12l-5.7 5.8"/></g></symbol>
-  <symbol id="i-trend-up" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 16.5 5.2-5.2 3.4 3.4L20 7.5"/><path d="M15 7.5h5v5"/></g></symbol>
-</svg>
+    <input class="nav-toggle" type="checkbox" id="nav-toggle" />
 
-<input class="nav-toggle" type="checkbox" id="nav-toggle">
+    <div class="shell">
+      <!-- ==================== CMS SIDEBAR ==================== -->
+      <aside class="sidebar">
+        <a class="brand" href="admin.html">
+          <svg class="ic brand-cross" aria-hidden="true"><use href="#i-logo" /></svg>
+          <span class="brand-col">
+            <span class="brand-name" style="font-size: 20px">Ecclesios</span>
+            <span class="brand-sub">Church Management</span>
+          </span>
+        </a>
 
-<div class="shell">
-  <!-- ==================== CMS SIDEBAR ==================== -->
-  <aside class="sidebar">
-    <a class="brand" href="admin.html">
-      <svg class="ic brand-cross" aria-hidden="true"><use href="#i-logo"/></svg>
-      <span class="brand-col">
-        <span class="brand-name" style="font-size:20px">Ecclesios</span>
-        <span class="brand-sub">Church Management</span>
-      </span>
-    </a>
-
-    <div class="group-switch" role="button" tabindex="0" aria-label="Switch parish context">
-      <svg class="ic"><use href="#i-church"/></svg>
-      <span><b>St. Anthony's Parish</b><small>Accra, Ghana</small></span>
-      <svg class="ic"><use href="#i-chev-d"/></svg>
-    </div>
-
-    <nav class="nav" aria-label="Management">
-      <a class="nav-item active" href="admin.html" aria-current="page"><svg class="ic"><use href="#i-grid"/></svg><span>Dashboard</span></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-users"/></svg><span>Members</span></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-cake"/></svg><span>Birthdays</span></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-flag"/></svg><span>Societies</span></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-shield"/></svg><span>Committees</span></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-bell"/></svg><span>Notifications</span><b class="nav-badge">5</b></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-msg"/></svg><span>Messages</span></a>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg><span>Users &amp; Roles</span></a>
-      <div class="nav-sep" role="separator"></div>
-      <a class="nav-item" href="#"><svg class="ic"><use href="#i-gear"/></svg><span>Settings</span></a>
-    </nav>
-
-    <div class="sidebar-user">
-      <span class="avatar av-36 av-brand">KA</span>
-      <span class="s-user-meta"><b>Kofi Asante</b><small>Administrator</small></span>
-      <svg class="ic" aria-label="Profile settings" role="button" tabindex="0"><use href="#i-gear"/></svg>
-    </div>
-  </aside>
-
-  <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
-
-  <div class="main">
-    <!-- ==================== TOPBAR ==================== -->
-    <header class="topbar">
-      <label class="hamburger" for="nav-toggle" aria-label="Open navigation"><svg class="ic"><use href="#i-menu"/></svg></label>
-      <label class="search">
-        <svg class="ic"><use href="#i-search"/></svg>
-        <input type="search" placeholder="Search members, societies, messages…" aria-label="Search management">
-      </label>
-      <div class="top-actions">
-        <button class="icon-btn" aria-label="Notifications, 5 unread"><svg class="ic"><use href="#i-bell"/></svg><i class="dot-badge">5</i></button>
-        <span class="avatar av-36 av-brand" title="Kofi Asante">KA</span>
-      </div>
-    </header>
-
-    <!-- ==================== CONTENT ==================== -->
-    <main class="content">
-      <div class="dash-head">
-        <div>
-          <h1>Dashboard</h1>
-          <p class="dash-sub">St. Anthony's Parish &middot; overview of members, societies and parish activity.</p>
+        <div class="group-switch" role="button" tabindex="0" aria-label="Switch parish context">
+          <svg class="ic"><use href="#i-church" /></svg>
+          <span><b>St. Anthony's Parish</b><small>Accra, Ghana</small></span>
+          <svg class="ic"><use href="#i-chev-d" /></svg>
         </div>
-        <button class="btn btn-primary btn-sm"><svg class="ic"><use href="#i-plus"/></svg>Quick Add</button>
-      </div>
 
-      <!-- stat cards -->
-      <section class="stats-grid" aria-label="Parish statistics">
-        <div class="card stat stat--info">
-          <span class="stat-ic"><svg class="ic"><use href="#i-users"/></svg></span>
-          <div>
-            <div class="stat-val">1,248</div>
-            <div class="stat-label">Members</div>
-            <span class="stat-note up"><svg class="ic"><use href="#i-trend-up"/></svg>12% this month</span>
+        <nav class="nav" aria-label="Management">
+          <a class="nav-item active" href="admin.html" aria-current="page"
+            ><svg class="ic"><use href="#i-grid" /></svg><span>Dashboard</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-users" /></svg><span>Members</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-cake" /></svg><span>Birthdays</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-flag" /></svg><span>Societies</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-shield" /></svg><span>Committees</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-bell" /></svg><span>Notifications</span
+            ><b class="nav-badge">5</b></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-msg" /></svg><span>Messages</span></a
+          >
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-user" /></svg><span>Users &amp; Roles</span></a
+          >
+          <div class="nav-sep" role="separator"></div>
+          <a class="nav-item" href="#"
+            ><svg class="ic"><use href="#i-gear" /></svg><span>Settings</span></a
+          >
+        </nav>
+
+        <div class="sidebar-user">
+          <span class="avatar av-36 av-brand">KA</span>
+          <span class="s-user-meta"><b>Kofi Asante</b><small>Administrator</small></span>
+          <svg class="ic" aria-label="Profile settings" role="button" tabindex="0">
+            <use href="#i-gear" />
+          </svg>
+        </div>
+      </aside>
+
+      <label class="scrim" for="nav-toggle" aria-hidden="true"></label>
+
+      <div class="main">
+        <!-- ==================== TOPBAR ==================== -->
+        <header class="topbar">
+          <label class="hamburger" for="nav-toggle" aria-label="Open navigation"
+            ><svg class="ic"><use href="#i-menu" /></svg
+          ></label>
+          <label class="search">
+            <svg class="ic"><use href="#i-search" /></svg>
+            <input
+              type="search"
+              placeholder="Search members, societies, messages…"
+              aria-label="Search management"
+            />
+          </label>
+          <div class="top-actions">
+            <button class="icon-btn" aria-label="Notifications, 5 unread">
+              <svg class="ic"><use href="#i-bell" /></svg><i class="dot-badge">5</i>
+            </button>
+            <span class="avatar av-36 av-brand" title="Kofi Asante">KA</span>
           </div>
-        </div>
-        <div class="card stat stat--ok">
-          <span class="stat-ic"><svg class="ic"><use href="#i-flag"/></svg></span>
-          <div>
-            <div class="stat-val">12</div>
-            <div class="stat-label">Societies</div>
-            <span class="stat-note up">+2 new</span>
-          </div>
-        </div>
-        <div class="card stat stat--gold">
-          <span class="stat-ic"><svg class="ic"><use href="#i-cake"/></svg></span>
-          <div>
-            <div class="stat-val">8</div>
-            <div class="stat-label">Birthdays</div>
-            <span class="stat-note gold">Today</span>
-          </div>
-        </div>
-        <div class="card stat stat--danger">
-          <span class="stat-ic"><svg class="ic"><use href="#i-bell"/></svg></span>
-          <div>
-            <div class="stat-val">5</div>
-            <div class="stat-label">Notifications</div>
-            <span class="stat-note red">Unread</span>
-          </div>
-        </div>
-      </section>
+        </header>
 
-      <div class="dash-grid">
-        <!-- recent activity -->
-        <section class="card panel">
-          <header class="panel-head">
-            <h2 class="panel-title">Recent Activity</h2>
-            <a class="link" href="#">View all <svg class="ic"><use href="#i-arrow-r"/></svg></a>
-          </header>
-          <ul class="activity">
-            <li>
-              <i class="act-dot d-info"></i>
-              <div class="act-body"><b>New member registered</b><small>Ama Mensah &middot; St. Anthony's Parish</small></div>
-              <time>2h ago</time>
-            </li>
-            <li>
-              <i class="act-dot d-ok"></i>
-              <div class="act-body"><b>Society meeting updated</b><small>St. Vincent de Paul Society &middot; schedule changed</small></div>
-              <time>4h ago</time>
-            </li>
-            <li>
-              <i class="act-dot d-gold"></i>
-              <div class="act-body"><b>Birthday today</b><small>Grace Owusu &middot; Sacred Heart Society</small></div>
-              <time>6h ago</time>
-            </li>
-            <li>
-              <i class="act-dot d-primary"></i>
-              <div class="act-body"><b>Committee member added</b><small>Finance Committee &middot; Daniel Quaye</small></div>
-              <time>1d ago</time>
-            </li>
-            <li>
-              <i class="act-dot d-danger"></i>
-              <div class="act-body"><b>Announcement sent</b><small>Parish notice &middot; 1,240 recipients by SMS &amp; email</small></div>
-              <time>1d ago</time>
-            </li>
-          </ul>
-        </section>
+        <!-- ==================== CONTENT ==================== -->
+        <main class="content">
+          <div class="dash-head">
+            <div>
+              <h1>Dashboard</h1>
+              <p class="dash-sub">
+                St. Anthony's Parish &middot; overview of members, societies and parish activity.
+              </p>
+            </div>
+            <button class="btn btn-primary btn-sm">
+              <svg class="ic"><use href="#i-plus" /></svg>Quick Add
+            </button>
+          </div>
 
-        <aside class="dash-side">
-          <!-- quick actions -->
-          <section class="card panel">
-            <header class="panel-head"><h2 class="panel-title">Quick Actions</h2></header>
-            <div class="qa-list">
-              <button class="qa-btn"><svg class="ic"><use href="#i-plus"/></svg>Add New Member</button>
-              <button class="qa-btn"><svg class="ic"><use href="#i-calendar"/></svg>Create Event</button>
-              <button class="qa-btn"><svg class="ic"><use href="#i-send"/></svg>Send Message</button>
-              <button class="qa-btn"><svg class="ic"><use href="#i-users"/></svg>Manage Societies</button>
-              <button class="qa-btn"><svg class="ic"><use href="#i-file"/></svg>View Reports</button>
+          <!-- stat cards -->
+          <section class="stats-grid" aria-label="Parish statistics">
+            <div class="card stat stat--info">
+              <span class="stat-ic"
+                ><svg class="ic"><use href="#i-users" /></svg
+              ></span>
+              <div>
+                <div class="stat-val">1,248</div>
+                <div class="stat-label">Members</div>
+                <span class="stat-note up"
+                  ><svg class="ic"><use href="#i-trend-up" /></svg>12% this month</span
+                >
+              </div>
+            </div>
+            <div class="card stat stat--ok">
+              <span class="stat-ic"
+                ><svg class="ic"><use href="#i-flag" /></svg
+              ></span>
+              <div>
+                <div class="stat-val">12</div>
+                <div class="stat-label">Societies</div>
+                <span class="stat-note up">+2 new</span>
+              </div>
+            </div>
+            <div class="card stat stat--gold">
+              <span class="stat-ic"
+                ><svg class="ic"><use href="#i-cake" /></svg
+              ></span>
+              <div>
+                <div class="stat-val">8</div>
+                <div class="stat-label">Birthdays</div>
+                <span class="stat-note gold">Today</span>
+              </div>
+            </div>
+            <div class="card stat stat--danger">
+              <span class="stat-ic"
+                ><svg class="ic"><use href="#i-bell" /></svg
+              ></span>
+              <div>
+                <div class="stat-val">5</div>
+                <div class="stat-label">Notifications</div>
+                <span class="stat-note red">Unread</span>
+              </div>
             </div>
           </section>
 
-          <!-- parish card -->
-          <section class="card parish-card">
-            <div class="parish-media">
-              <svg viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" role="img" aria-label="St. Anthony's Parish building at dusk">
-                <defs><linearGradient id="ag1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A3357"/><stop offset=".65" stop-color="#B06A4A"/><stop offset="1" stop-color="#E0A866"/></linearGradient></defs>
-                <rect width="320" height="150" fill="url(#ag1)"/>
-                <circle cx="256" cy="106" r="26" fill="#FBE3AE"/>
-                <rect y="118" width="320" height="32" fill="#2E1A28"/>
-                <g fill="#241322">
-                  <rect x="52" y="66" width="26" height="52"/>
-                  <polygon points="52,66 65,38 78,66"/>
-                  <rect x="64.5" y="24" width="3" height="16"/><rect x="60.5" y="28" width="11" height="3"/>
-                  <rect x="78" y="84" width="92" height="34"/>
-                  <polygon points="72,84 124,62 176,84"/>
-                  <rect x="170" y="66" width="26" height="52"/>
-                  <polygon points="170,66 183,38 196,66"/>
-                  <rect x="182.5" y="24" width="3" height="16"/><rect x="178.5" y="28" width="11" height="3"/>
-                </g>
-                <g fill="#F0C878" opacity=".8">
-                  <rect x="60" y="82" width="9" height="16" rx="4.5"/>
-                  <rect x="176" y="82" width="9" height="16" rx="4.5"/>
-                  <rect x="102" y="96" width="9" height="14" rx="4.5"/><rect x="120" y="96" width="9" height="14" rx="4.5"/><rect x="138" y="96" width="9" height="14" rx="4.5"/>
-                </g>
-              </svg>
-            </div>
-            <div class="parish-body">
-              <b>St. Anthony's Parish</b>
-              <small>Accra, Ghana &middot; Archdiocese of Accra</small>
-              <a class="link" href="#">View Church Profile <svg class="ic"><use href="#i-arrow-r"/></svg></a>
-            </div>
-          </section>
-        </aside>
-      </div>
+          <div class="dash-grid">
+            <!-- recent activity -->
+            <section class="card panel">
+              <header class="panel-head">
+                <h2 class="panel-title">Recent Activity</h2>
+                <a class="link" href="#"
+                  >View all <svg class="ic"><use href="#i-arrow-r" /></svg
+                ></a>
+              </header>
+              <ul class="activity">
+                <li>
+                  <i class="act-dot d-info"></i>
+                  <div class="act-body">
+                    <b>New member registered</b
+                    ><small>Ama Mensah &middot; St. Anthony's Parish</small>
+                  </div>
+                  <time>2h ago</time>
+                </li>
+                <li>
+                  <i class="act-dot d-ok"></i>
+                  <div class="act-body">
+                    <b>Society meeting updated</b
+                    ><small>St. Vincent de Paul Society &middot; schedule changed</small>
+                  </div>
+                  <time>4h ago</time>
+                </li>
+                <li>
+                  <i class="act-dot d-gold"></i>
+                  <div class="act-body">
+                    <b>Birthday today</b><small>Grace Owusu &middot; Sacred Heart Society</small>
+                  </div>
+                  <time>6h ago</time>
+                </li>
+                <li>
+                  <i class="act-dot d-primary"></i>
+                  <div class="act-body">
+                    <b>Committee member added</b
+                    ><small>Finance Committee &middot; Daniel Quaye</small>
+                  </div>
+                  <time>1d ago</time>
+                </li>
+                <li>
+                  <i class="act-dot d-danger"></i>
+                  <div class="act-body">
+                    <b>Announcement sent</b
+                    ><small>Parish notice &middot; 1,240 recipients by SMS &amp; email</small>
+                  </div>
+                  <time>1d ago</time>
+                </li>
+              </ul>
+            </section>
 
-    </main>
-  </div>
-</div>
-</body>
+            <aside class="dash-side">
+              <!-- quick actions -->
+              <section class="card panel">
+                <header class="panel-head"><h2 class="panel-title">Quick Actions</h2></header>
+                <div class="qa-list">
+                  <button class="qa-btn">
+                    <svg class="ic"><use href="#i-plus" /></svg>Add New Member
+                  </button>
+                  <button class="qa-btn">
+                    <svg class="ic"><use href="#i-calendar" /></svg>Create Event
+                  </button>
+                  <button class="qa-btn">
+                    <svg class="ic"><use href="#i-send" /></svg>Send Message
+                  </button>
+                  <button class="qa-btn">
+                    <svg class="ic"><use href="#i-users" /></svg>Manage Societies
+                  </button>
+                  <button class="qa-btn">
+                    <svg class="ic"><use href="#i-file" /></svg>View Reports
+                  </button>
+                </div>
+              </section>
+
+              <!-- parish card -->
+              <section class="card parish-card">
+                <div class="parish-media">
+                  <svg
+                    viewBox="0 0 320 150"
+                    preserveAspectRatio="xMidYMid slice"
+                    role="img"
+                    aria-label="St. Anthony's Parish building at dusk"
+                  >
+                    <defs>
+                      <linearGradient id="ag1" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#4A3357" />
+                        <stop offset=".65" stop-color="#B06A4A" />
+                        <stop offset="1" stop-color="#E0A866" />
+                      </linearGradient>
+                    </defs>
+                    <rect width="320" height="150" fill="url(#ag1)" />
+                    <circle cx="256" cy="106" r="26" fill="#FBE3AE" />
+                    <rect y="118" width="320" height="32" fill="#2E1A28" />
+                    <g fill="#241322">
+                      <rect x="52" y="66" width="26" height="52" />
+                      <polygon points="52,66 65,38 78,66" />
+                      <rect x="64.5" y="24" width="3" height="16" />
+                      <rect x="60.5" y="28" width="11" height="3" />
+                      <rect x="78" y="84" width="92" height="34" />
+                      <polygon points="72,84 124,62 176,84" />
+                      <rect x="170" y="66" width="26" height="52" />
+                      <polygon points="170,66 183,38 196,66" />
+                      <rect x="182.5" y="24" width="3" height="16" />
+                      <rect x="178.5" y="28" width="11" height="3" />
+                    </g>
+                    <g fill="#F0C878" opacity=".8">
+                      <rect x="60" y="82" width="9" height="16" rx="4.5" />
+                      <rect x="176" y="82" width="9" height="16" rx="4.5" />
+                      <rect x="102" y="96" width="9" height="14" rx="4.5" />
+                      <rect x="120" y="96" width="9" height="14" rx="4.5" />
+                      <rect x="138" y="96" width="9" height="14" rx="4.5" />
+                    </g>
+                  </svg>
+                </div>
+                <div class="parish-body">
+                  <b>St. Anthony's Parish</b>
+                  <small>Accra, Ghana &middot; Archdiocese of Accra</small>
+                  <a class="link" href="#"
+                    >View Church Profile <svg class="ic"><use href="#i-arrow-r" /></svg
+                  ></a>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
 </html>

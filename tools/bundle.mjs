@@ -16,8 +16,27 @@ import { dirname, join, normalize, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SKIP_DIRS = new Set(["node_modules", "dist", "build", ".turbo", "coverage", ".git", ".next", ".expo", "out"]);
-const SKIP_FILES = [/^pnpm-lock\.yaml$/, /^\.env$/, /^\.env\.(?!example$)/, /^ecclesios-bundle.*\.md$/, /\.log$/, /^\.DS_Store$/];
+const SKIP_DIRS = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  ".turbo",
+  "coverage",
+  ".git",
+  ".next",
+  ".expo",
+  "out",
+  // Bible USFM downloads etc. — large, licensed separately, never part of the source
+  "downloads",
+]);
+const SKIP_FILES = [
+  /^pnpm-lock\.yaml$/,
+  /^\.env$/,
+  /^\.env\.(?!example$)/,
+  /^ecclesios-bundle.*\.md$/,
+  /\.log$/,
+  /^\.DS_Store$/,
+];
 const BINARY_EXT = /\.(png|jpe?g|gif|webp|ico|pdf|zip|gz|mp3|mid|midi|woff2?|ttf|otf|eot)$/i;
 const BEGIN = "<<<<<< FILE: ";
 const END = "<<<<<< END FILE: ";
@@ -44,7 +63,8 @@ function pack(outFile = "ecclesios-bundle.md") {
   let bytes = 0;
   for (const f of ordered) {
     const body = readFileSync(join(ROOT, f), "utf8");
-    if (body.includes(BEGIN) && f !== self) throw new Error(`${f} contains the bundle marker; cannot pack`);
+    if (body.includes(BEGIN) && f !== self)
+      throw new Error(`${f} contains the bundle marker; cannot pack`);
     bytes += body.length;
     parts.push(`${BEGIN}${f}${TAIL}\n${body}${body.endsWith("\n") ? "" : "\n"}${END}${f}${TAIL}\n`);
   }
@@ -106,6 +126,8 @@ if (cmd === "pack") pack(a);
 else if (cmd === "unpack" && a) unpack(a, b);
 else if (cmd === "list" && a) parse(a).forEach((f) => console.log(f.path));
 else {
-  console.error("Usage: node tools/bundle.mjs pack [out.md] | unpack <bundle.md> [dir] | list <bundle.md>");
+  console.error(
+    "Usage: node tools/bundle.mjs pack [out.md] | unpack <bundle.md> [dir] | list <bundle.md>",
+  );
   process.exit(1);
 }

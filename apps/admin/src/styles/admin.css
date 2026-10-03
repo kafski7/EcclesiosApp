@@ -1,0 +1,278 @@
+/* ==========================================================================
+   CMS additions on top of the kit (D-019)
+   - CoreUI variables mapped to the kit tokens so CoreUI components match.
+   - Shell open/close driven by React state (.shell.nav-open) instead of the kit's checkbox.
+   ========================================================================== */
+:root {
+  --cui-primary: #5a0e17;
+  --cui-primary-rgb: 90, 14, 23;
+  --cui-link-color: #5a0e17;
+  --cui-link-hover-color: #6e1520;
+  --cui-body-font-family: var(--font-sans);
+  --cui-body-color: #1a1a1a;
+  --cui-body-bg: #faf9f6;
+  --cui-border-color: #e7e2d8;
+  --cui-border-radius: 10px;
+  --cui-focus-ring-color: rgba(197, 155, 39, 0.3);
+}
+.btn-primary {
+  --cui-btn-bg: #5a0e17;
+  --cui-btn-border-color: #5a0e17;
+  --cui-btn-hover-bg: #6e1520;
+  --cui-btn-hover-border-color: #6e1520;
+  --cui-btn-active-bg: #470a11;
+  --cui-btn-disabled-bg: #c7beb2;
+  --cui-btn-disabled-border-color: #c7beb2;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-sans);
+}
+
+@media (max-width: 980px) {
+  .shell.nav-open .sidebar {
+    transform: none;
+  }
+  .shell.nav-open .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(22, 16, 10, 0.5);
+    backdrop-filter: blur(2px);
+  }
+}
+.nav-item {
+  width: 100%;
+  text-align: left;
+}
+.group-switch {
+  width: calc(100% - 12px);
+  text-align: left;
+  border: 0;
+}
+.group-switch .ic:last-child {
+  margin-left: auto;
+}
+.sidebar-user button {
+  color: inherit;
+}
+
+/* context menu (switcher) */
+.ctx-menu {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 128px;
+  z-index: 70;
+  padding: 6px;
+  background: var(--sidebar-2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+  max-height: 60vh;
+  overflow: auto;
+}
+.ctx-menu button {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 9px;
+  text-align: left;
+  color: #f2ede3;
+}
+.ctx-menu button:hover,
+.ctx-menu button[aria-current="true"] {
+  background: rgba(255, 255, 255, 0.07);
+}
+.ctx-menu small {
+  font-size: 11px;
+  color: var(--sidebar-text);
+}
+
+/* banners */
+.cms-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  font-size: 13.5px;
+}
+.cms-banner.warn {
+  background: var(--accent-soft);
+  color: #5c460c;
+  border: 1px solid rgba(197, 155, 39, 0.35);
+}
+.cms-banner.danger {
+  background: rgba(180, 35, 24, 0.07);
+  color: #8a1c13;
+  border: 1px solid rgba(180, 35, 24, 0.2);
+}
+.cms-banner .btn {
+  margin-left: auto;
+}
+
+/* auth */
+.cms-auth {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(197, 155, 39, 0.12), transparent 55%), var(--surface);
+}
+.cms-auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+}
+.cms-auth-card .brand {
+  padding: 0 0 22px;
+}
+.cms-auth-card .brand-name {
+  color: var(--text);
+}
+.cms-auth-card .brand-sub {
+  color: var(--text-3);
+}
+.cms-auth-card h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+.cms-auth-card .lede {
+  color: var(--text-2);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+.cms-auth-switch {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+.cms-auth-switch a {
+  color: var(--primary);
+  font-weight: 600;
+}
+.otp-input {
+  font-size: 22px;
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* plans */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.plan {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.plan h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+.plan .price {
+  font-size: 24px;
+  font-weight: 700;
+}
+.plan ul {
+  font-size: 13px;
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0 12px;
+}
+.plan .btn {
+  margin-top: auto;
+}
+.plan.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* tables */
+.cms-table {
+  width: 100%;
+  font-size: 13.5px;
+}
+.cms-table th {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 700;
+}
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.state-ACTIVE {
+  background: rgba(30, 123, 79, 0.11);
+  color: var(--success);
+}
+.state-TRIAL {
+  background: rgba(47, 95, 168, 0.11);
+  color: var(--info);
+}
+.state-EXPIRED {
+  background: rgba(180, 35, 24, 0.1);
+  color: var(--danger);
+}
+.state-NONE {
+  background: var(--line-soft);
+  color: var(--text-3);
+}
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+}
+.empty h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.empty p {
+  color: var(--text-2);
+  max-width: 520px;
+  margin: 0 auto 18px;
+}
+
+/* CoreUI and the kit both style .card / .nav / .btn — keep the kit's layout where they collide. */
+.card.stat {
+  flex-direction: row;
+}
+.sidebar .nav {
+  flex-wrap: nowrap;
+  padding: 0;
+  margin: 0;
+}
+.btn {
+  --cui-btn-padding-y: 11px;
+  --cui-btn-padding-x: 22px;
+  --cui-btn-border-radius: 999px;
+}
+.modal-content {
+  border-radius: var(--radius);
+}

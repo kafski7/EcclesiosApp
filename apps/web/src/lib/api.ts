@@ -29,7 +29,12 @@ export interface ApiClientOptions {
 export function createApiClient(opts: ApiClientOptions) {
   const doFetch = opts.fetch ?? fetch;
 
-  async function request<T>(method: string, path: string, schema: ZodType<T> | null, body?: unknown): Promise<T> {
+  async function request<T>(
+    method: string,
+    path: string,
+    schema: ZodType<T> | null,
+    body?: unknown,
+  ): Promise<T> {
     const headers: Record<string, string> = { accept: "application/json" };
     if (body !== undefined) headers["content-type"] = "application/json";
     const token = opts.getToken?.();
@@ -55,20 +60,30 @@ export function createApiClient(opts: ApiClientOptions) {
         const e = env.data.error;
         throw new ApiClientError(res.status, e.code, e.message, e.details, e.requestId);
       }
-      throw new ApiClientError(res.status, `HTTP_${res.status}`, "Something went wrong. Please try again.");
+      throw new ApiClientError(
+        res.status,
+        `HTTP_${res.status}`,
+        "Something went wrong. Please try again.",
+      );
     }
 
     if (schema === null) return undefined as T;
     const parsed = schema.safeParse(json);
     if (!parsed.success) {
-      throw new ApiClientError(res.status, "CONTRACT_MISMATCH", "Unexpected response from the server.", parsed.error.issues);
+      throw new ApiClientError(
+        res.status,
+        "CONTRACT_MISMATCH",
+        "Unexpected response from the server.",
+        parsed.error.issues,
+      );
     }
     return parsed.data;
   }
 
   return {
     get: <T>(path: string, schema: ZodType<T>) => request("GET", path, schema),
-    post: <T>(path: string, body: unknown, schema: ZodType<T>) => request("POST", path, schema, body),
+    post: <T>(path: string, body: unknown, schema: ZodType<T>) =>
+      request("POST", path, schema, body),
     postVoid: (path: string, body: unknown) => request<void>("POST", path, null, body),
   };
 }

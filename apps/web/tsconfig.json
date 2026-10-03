@@ -2,9 +2,7 @@
   "extends": "@ecclesios/config/tsconfig/react.json",
   "compilerOptions": {
     "types": ["vite/client", "vite-plugin-pwa/react", "node"],
-    "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] },
-    "ignoreDeprecations": "6.0"
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src", "vite.config.ts", "vitest.config.mts"]
 }

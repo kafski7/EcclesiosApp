@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ACCESS_LEVELS } from "../domain/access.js";
-import { HierarchyLevelSchema, MemberRoleSchema, PlatformRoleSchema } from "../enums.js";
+import { MEMBER_ACCESS_ORDER } from "../domain/memberships.js";
+import { PlatformRoleSchema } from "../enums.js";
 
 /** functionality §2 — login identifier is an email or an E.164 telephone. */
 export const IdentifierSchema = z
@@ -46,14 +46,14 @@ export type VerifyOtpRequest = z.infer<typeof VerifyOtpRequestSchema>;
 export const AccountKindSchema = z.enum(["member", "user"]);
 export type AccountKind = z.infer<typeof AccountKindSchema>;
 
-/** What the access token says about the caller (todo Phase 2: id, role, group_id, hierarchy_level). */
+/**
+ * What the access token says about the caller. A member token names the PERSON only:
+ * churches and roles come from their memberships, checked per request (D-015).
+ */
 export const PrincipalSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("member"),
     id: z.string().uuid(),
-    role: MemberRoleSchema,
-    groupId: z.string().uuid(),
-    hierarchyLevel: HierarchyLevelSchema,
   }),
   z.object({
     kind: z.literal("user"),
@@ -92,10 +92,13 @@ export const RefreshRequestSchema = z.object({ refreshToken: z.string().min(10).
 export type RefreshRequest = z.infer<typeof RefreshRequestSchema>;
 
 /** GET /api/groups/:groupId/access — what the caller may do in a group (drives the CMS context switcher). */
+export const MemberAccessSchema = z.enum(MEMBER_ACCESS_ORDER);
 export const GroupAccessResponseSchema = z.object({
   groupId: z.string().uuid(),
-  access: z.enum(ACCESS_LEVELS),
+  /** Every access the caller holds on this group via their memberships, strongest first. */
+  access: z.array(MemberAccessSchema),
   can: z.object({
+    memberContent: z.boolean(),
     write: z.boolean(),
     approve: z.boolean(),
     readRecords: z.boolean(),
@@ -110,6 +113,8 @@ export const AUTH_ERROR_CODES = [
   "INVALID_CREDENTIALS",
   "ACCOUNT_LOCKED",
   "ACCOUNT_DISABLED",
+  "ACCOUNT_EXISTS",
+  "CHURCH_NOT_FOUND",
   "INVALID_CHALLENGE",
   "OTP_EXPIRED",
   "INVALID_OTP",

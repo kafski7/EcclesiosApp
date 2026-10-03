@@ -18,7 +18,12 @@ export function parseOpaque(
   const parts = token.split(".");
   if (parts.length !== 4) return null;
   const [p, kind, id, secret] = parts as [string, string, string, string];
-  if (p !== prefix || (kind !== "member" && kind !== "user") || !UUID.test(id) || secret.length < 20)
+  if (
+    p !== prefix ||
+    (kind !== "member" && kind !== "user") ||
+    !UUID.test(id) ||
+    secret.length < 20
+  )
     return null;
   return { kind, id, secret };
 }

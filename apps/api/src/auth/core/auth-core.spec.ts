@@ -8,35 +8,37 @@ const THERESA = "theresa.pastor@dev.ecclesios.local";
 const KOFI = "kofi.asante@dev.ecclesios.local";
 const PW = "Ecclesios#2026";
 
-async function signIn(h: Awaited<ReturnType<typeof makeHarness>>, kind: "member" | "user", id: string) {
+async function signIn(
+  h: Awaited<ReturnType<typeof makeHarness>>,
+  kind: "member" | "user",
+  id: string,
+) {
   const ch = await h.core.login(kind, id, PW, META);
   const code = h.sent.at(-1)!.code;
   return { ch, res: await h.core.verifyOtp(ch.challengeToken, code, META) };
 }
 
 describe("login → OTP → tokens (functionality §2)", () => {
-  it("member happy path issues tokens with role, group and level", async () => {
+  it("member happy path issues tokens naming the person only (D-015)", async () => {
     const h = await makeHarness();
     const { ch, res } = await signIn(h, "member", THERESA);
     expect(ch.expiresInSeconds).toBe(600);
     expect(ch.delivery.destination).toBe("t***@dev.ecclesios.local");
     expect(res.status).toBe("AUTHENTICATED");
     if (res.status !== "AUTHENTICATED") return;
-    expect(res.principal).toEqual({
-      kind: "member",
-      id: "00000000-0000-4000-8000-000000000507",
-      role: "ADMINISTRATOR",
-      groupId: "00000000-0000-4000-8000-000000000107",
-      hierarchyLevel: "PARISH",
-    });
+    expect(res.principal).toEqual({ kind: "member", id: "00000000-0000-4000-8000-000000000507" });
     expect(h.core.verifyAccessToken(res.accessToken)).toEqual(res.principal);
   });
 
   it("platform user signs in through the users store only", async () => {
     const h = await makeHarness();
     const { res } = await signIn(h, "user", "superadmin@dev.ecclesios.local");
-    expect(res.status === "AUTHENTICATED" && res.principal.role).toBe("SUPER_ADMIN");
-    const e = await caught(() => h.core.login("member", "superadmin@dev.ecclesios.local", PW, META));
+    expect(
+      res.status === "AUTHENTICATED" && res.principal.kind === "user" && res.principal.role,
+    ).toBe("SUPER_ADMIN");
+    const e = await caught(() =>
+      h.core.login("member", "superadmin@dev.ecclesios.local", PW, META),
+    );
     expect(e.code).toBe("INVALID_CREDENTIALS");
   });
 
@@ -66,20 +68,42 @@ describe("credential failures", () => {
   });
 
   it("locks after 5 bad passwords, then refuses even the right one until the lock expires", async () => {
-    const h = await makeHarness({ rate: { ipLimit: 100, identifierLimit: 100, windowMs: 900_000 } });
+    const h = await makeHarness({
+      rate: { ipLimit: 100, identifierLimit: 100, windowMs: 900_000 },
+    });
     for (let i = 0; i < 4; i++)
-      expect((await caught(() => h.core.login("member", THERESA, "bad-password-0", META))).code).toBe("INVALID_CREDENTIALS");
-    expect((await caught(() => h.core.login("member", THERESA, "bad-password-0", META))).code).toBe("ACCOUNT_LOCKED");
-    expect((await caught(() => h.core.login("member", THERESA, PW, META))).code).toBe("ACCOUNT_LOCKED");
+      expect(
+        (await caught(() => h.core.login("member", THERESA, "bad-password-0", META))).code,
+      ).toBe("INVALID_CREDENTIALS");
+    expect((await caught(() => h.core.login("member", THERESA, "bad-password-0", META))).code).toBe(
+      "ACCOUNT_LOCKED",
+    );
+    expect((await caught(() => h.core.login("member", THERESA, PW, META))).code).toBe(
+      "ACCOUNT_LOCKED",
+    );
     h.advance(15 * 60 + 1);
     const ch = await h.core.login("member", THERESA, PW, META);
     expect(typeof ch.challengeToken).toBe("string");
   });
 
+  it("a person whose church membership is still pending signs in normally (D-015)", async () => {
+    const h = await makeHarness();
+    const { res } = await signIn(h, "member", "pending@dev.ecclesios.local");
+    expect(res.status).toBe("AUTHENTICATED");
+  });
+
   it("disabled accounts are only revealed after a correct password", async () => {
     const h = await makeHarness();
-    expect((await caught(() => h.core.login("member", "inactive@dev.ecclesios.local", "nope-nope-1", META))).code).toBe("INVALID_CREDENTIALS");
-    expect((await caught(() => h.core.login("member", "inactive@dev.ecclesios.local", PW, META))).code).toBe("ACCOUNT_DISABLED");
+    expect(
+      (
+        await caught(() =>
+          h.core.login("member", "inactive@dev.ecclesios.local", "nope-nope-1", META),
+        )
+      ).code,
+    ).toBe("INVALID_CREDENTIALS");
+    expect(
+      (await caught(() => h.core.login("member", "inactive@dev.ecclesios.local", PW, META))).code,
+    ).toBe("ACCOUNT_DISABLED");
   });
 });
 
@@ -89,7 +113,9 @@ describe("OTP rules", () => {
     const ch = await h.core.login("member", THERESA, PW, META);
     const code = h.sent[0]!.code;
     await h.core.verifyOtp(ch.challengeToken, code, META);
-    expect((await caught(() => h.core.verifyOtp(ch.challengeToken, code, META))).code).toBe("INVALID_CHALLENGE");
+    expect((await caught(() => h.core.verifyOtp(ch.challengeToken, code, META))).code).toBe(
+      "INVALID_CHALLENGE",
+    );
   });
 
   it("expires after 10 minutes", async () => {
@@ -109,15 +135,21 @@ describe("OTP rules", () => {
       expect(e.code).toBe("INVALID_OTP");
       expect((e.details as { attemptsLeft: number }).attemptsLeft).toBe(left);
     }
-    expect((await caught(() => h.core.verifyOtp(ch.challengeToken, wrong, META))).code).toBe("OTP_ATTEMPTS_EXCEEDED");
-    expect((await caught(() => h.core.verifyOtp(ch.challengeToken, h.sent[0]!.code, META))).code).toBe("INVALID_CHALLENGE");
+    expect((await caught(() => h.core.verifyOtp(ch.challengeToken, wrong, META))).code).toBe(
+      "OTP_ATTEMPTS_EXCEEDED",
+    );
+    expect(
+      (await caught(() => h.core.verifyOtp(ch.challengeToken, h.sent[0]!.code, META))).code,
+    ).toBe("INVALID_CHALLENGE");
   });
 
   it("rejects a tampered challenge token", async () => {
     const h = await makeHarness();
     const ch = await h.core.login("member", THERESA, PW, META);
     const t = ch.challengeToken.slice(0, -2) + (ch.challengeToken.endsWith("A") ? "BB" : "AA");
-    expect((await caught(() => h.core.verifyOtp(t, h.sent[0]!.code, META))).code).toBe("INVALID_CHALLENGE");
+    expect((await caught(() => h.core.verifyOtp(t, h.sent[0]!.code, META))).code).toBe(
+      "INVALID_CHALLENGE",
+    );
   });
 
   it("a challenge token is not an access token", async () => {
@@ -141,11 +173,13 @@ describe("first login → set password", () => {
     if (res.status !== "PASSWORD_SETUP_REQUIRED") return;
     expect(res.expiresInSeconds).toBe(900);
     const pair = await h.core.setPassword(res.tempToken, "NewPassword2026", META);
-    expect(pair.principal.role).toBe("PARISHIONER");
+    expect(pair.principal.kind).toBe("member");
     const row = h.stores.member.rows.get("00000000-0000-4000-8000-000000000517")!;
     expect(row.firstLogin !== null && row.tempTokenHash === null).toBe(true);
     // temp token is single use
-    expect((await caught(() => h.core.setPassword(res.tempToken, "Another2026pw", META))).code).toBe("INVALID_TEMP_TOKEN");
+    expect(
+      (await caught(() => h.core.setPassword(res.tempToken, "Another2026pw", META))).code,
+    ).toBe("INVALID_TEMP_TOKEN");
     // new password works; next login goes straight to tokens
     const ch = await h.core.login("member", KOFI, "NewPassword2026", META);
     const r2 = await h.core.verifyOtp(ch.challengeToken, h.sent.at(-1)!.code, META);
@@ -157,7 +191,9 @@ describe("first login → set password", () => {
     const { res } = await signIn(h, "member", KOFI);
     if (res.status !== "PASSWORD_SETUP_REQUIRED") throw new Error("expected setup");
     h.advance(901);
-    expect((await caught(() => h.core.setPassword(res.tempToken, "NewPassword2026", META))).code).toBe("INVALID_TEMP_TOKEN");
+    expect(
+      (await caught(() => h.core.setPassword(res.tempToken, "NewPassword2026", META))).code,
+    ).toBe("INVALID_TEMP_TOKEN");
   });
 });
 
@@ -168,9 +204,13 @@ describe("refresh rotation & logout", () => {
     if (res.status !== "AUTHENTICATED") throw new Error("expected tokens");
     const second = await h.core.refresh(res.refreshToken, META);
     expect(second.refreshToken === res.refreshToken).toBe(false);
-    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe("INVALID_REFRESH_TOKEN");
+    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe(
+      "INVALID_REFRESH_TOKEN",
+    );
     // reuse detection revoked the live token too
-    expect((await caught(() => h.core.refresh(second.refreshToken, META))).code).toBe("INVALID_REFRESH_TOKEN");
+    expect((await caught(() => h.core.refresh(second.refreshToken, META))).code).toBe(
+      "INVALID_REFRESH_TOKEN",
+    );
   });
 
   it("logout revokes and is idempotent", async () => {
@@ -180,7 +220,9 @@ describe("refresh rotation & logout", () => {
     await h.core.logout(res.refreshToken, META);
     await h.core.logout(res.refreshToken, META);
     await h.core.logout("garbage", META);
-    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe("INVALID_REFRESH_TOKEN");
+    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe(
+      "INVALID_REFRESH_TOKEN",
+    );
   });
 
   it("refresh token expires", async () => {
@@ -188,14 +230,17 @@ describe("refresh rotation & logout", () => {
     const { res } = await signIn(h, "member", THERESA);
     if (res.status !== "AUTHENTICATED") throw new Error("expected tokens");
     h.advance(30 * 86400 + 1);
-    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe("INVALID_REFRESH_TOKEN");
+    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe(
+      "INVALID_REFRESH_TOKEN",
+    );
   });
 });
 
 describe("rate limiting (functionality §6)", () => {
   it("per identifier: 6th login attempt in the window is refused with Retry-After", async () => {
     const h = await makeHarness();
-    for (let i = 0; i < 5; i++) await caught(() => h.core.login("member", "nobody@x.org", "whatever-1", META));
+    for (let i = 0; i < 5; i++)
+      await caught(() => h.core.login("member", "nobody@x.org", "whatever-1", META));
     const e = await caught(() => h.core.login("member", "nobody@x.org", "whatever-1", META));
     expect(e.code).toBe("RATE_LIMITED");
     expect(e.status).toBe(429);
@@ -204,11 +249,19 @@ describe("rate limiting (functionality §6)", () => {
 
   it("per IP across all auth endpoints", async () => {
     const h = await makeHarness({ rate: { ipLimit: 3, identifierLimit: 100, windowMs: 60_000 } });
-    for (let i = 0; i < 3; i++) await caught(() => h.core.login("member", `u${i}@x.org`, "whatever-1", META));
-    expect((await caught(() => h.core.verifyOtp("x".repeat(20), "123456", META))).code).toBe("RATE_LIMITED");
-    expect((await caught(() => h.core.login("member", "z@x.org", "whatever-1", { ip: "198.51.100.1" }))).code).toBe("INVALID_CREDENTIALS");
+    for (let i = 0; i < 3; i++)
+      await caught(() => h.core.login("member", `u${i}@x.org`, "whatever-1", META));
+    expect((await caught(() => h.core.verifyOtp("x".repeat(20), "123456", META))).code).toBe(
+      "RATE_LIMITED",
+    );
+    expect(
+      (await caught(() => h.core.login("member", "z@x.org", "whatever-1", { ip: "198.51.100.1" })))
+        .code,
+    ).toBe("INVALID_CREDENTIALS");
     h.advance(61);
-    expect((await caught(() => h.core.login("member", "z@x.org", "whatever-1", META))).code).toBe("INVALID_CREDENTIALS");
+    expect((await caught(() => h.core.login("member", "z@x.org", "whatever-1", META))).code).toBe(
+      "INVALID_CREDENTIALS",
+    );
   });
 });
 
@@ -217,7 +270,11 @@ describe("audit trail", () => {
     const h = await makeHarness();
     await caught(() => h.core.login("member", THERESA, "bad-password-0", META));
     await signIn(h, "member", THERESA);
-    expect(h.audits.map((a) => a.action)).toEqual(["auth.login.failed", "auth.otp.sent", "auth.login.succeeded"]);
+    expect(h.audits.map((a) => a.action)).toEqual([
+      "auth.login.failed",
+      "auth.otp.sent",
+      "auth.login.succeeded",
+    ]);
     expect(h.audits[0]!.ip).toBe(META.ip);
   });
 });
@@ -238,9 +295,13 @@ describe("primitives", () => {
     };
     expect(reason(() => verifyJwt(t, "s2", opts, now))).toBe("signature");
     expect(reason(() => verifyJwt(t, "s1", { issuer: "i", audience: "b" }, now))).toBe("claims");
-    expect(reason(() => verifyJwt(t, "s1", opts, new Date(now.getTime() + 61_000)))).toBe("expired");
+    expect(reason(() => verifyJwt(t, "s1", opts, new Date(now.getTime() + 61_000)))).toBe(
+      "expired",
+    );
     const none = Buffer.from('{"alg":"none","typ":"JWT"}').toString("base64url");
-    expect(reason(() => verifyJwt(`${none}.${t.split(".")[1]}.`, "s1", opts, now))).toBe("malformed");
+    expect(reason(() => verifyJwt(`${none}.${t.split(".")[1]}.`, "s1", opts, now))).toBe(
+      "malformed",
+    );
   });
 
   it("parses durations and masks destinations", () => {

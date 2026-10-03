@@ -1,5 +1,13 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
+import { SubscriptionGuard } from "./subscription.guard";
+import { SubscriptionsController } from "./subscriptions.controller";
+import { SubscriptionsService } from "./subscriptions.service";
 
-/** Platform billing & subscription gate (Phase 4). Module boundary reserved now so the layout matches blueprint §5. */
-@Module({})
+/** Platform billing & the CMS subscription gate (Phase 4, functionality §4.11, §6). */
+@Global()
+@Module({
+  controllers: [SubscriptionsController],
+  providers: [SubscriptionsService, SubscriptionGuard],
+  exports: [SubscriptionsService, SubscriptionGuard],
+})
 export class SubscriptionsModule {}

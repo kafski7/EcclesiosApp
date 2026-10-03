@@ -5,7 +5,7 @@ import type {
   TokenPair,
   VerifyOtpResponse,
 } from "@ecclesios/shared";
-import { HIERARCHY_LEVELS, MEMBER_ROLES, PLATFORM_ROLES } from "@ecclesios/shared/domain";
+import { PLATFORM_ROLES } from "@ecclesios/shared/domain";
 import { generateOtp, hmac, maskDestination, randomToken, safeEqual } from "./crypto";
 import { authError } from "./errors";
 import { JwtError, signJwt, verifyJwt } from "./jwt";
@@ -45,9 +45,8 @@ interface AccessClaims {
   typ: "access";
   sub: string;
   knd: AccountKind;
-  role: string;
-  gid?: string;
-  lvl?: string;
+  /** Platform role (users only). Members carry no church claims (D-015). */
+  role?: string;
 }
 
 const CHALLENGE_AUDIENCE_SUFFIX = ":otp";
@@ -69,8 +68,16 @@ export class AuthCore {
   async login(kind: AccountKind, identifier: string, password: string, meta: RequestMeta) {
     const id = identifier.trim().toLowerCase();
     await this.d.rateLimiter.consume([
-      { key: `ip:${meta.ip}`, limit: this.d.config.rate.ipLimit, windowMs: this.d.config.rate.windowMs },
-      { key: `id:${kind}:${id}`, limit: this.d.config.rate.identifierLimit, windowMs: this.d.config.rate.windowMs },
+      {
+        key: `ip:${meta.ip}`,
+        limit: this.d.config.rate.ipLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
+      {
+        key: `id:${kind}:${id}`,
+        limit: this.d.config.rate.identifierLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
     ]);
 
     const store = this.d.stores[kind];
@@ -120,7 +127,9 @@ export class AuthCore {
 
     const destination = account.email ?? account.telephone ?? "";
     await this.d.otpSender.send({ kind, accountId: account.id, destination, code, expiresAt });
-    await this.audit(kind, account.id, "auth.otp.sent", meta, { channel: this.d.otpSender.channel });
+    await this.audit(kind, account.id, "auth.otp.sent", meta, {
+      channel: this.d.otpSender.channel,
+    });
 
     const challengeToken = signJwt(
       { typ: "otp", sub: account.id, knd: kind } satisfies ChallengeClaims,
@@ -137,9 +146,17 @@ export class AuthCore {
   }
 
   // ------------------------------------------------------------------ verify OTP (step 2)
-  async verifyOtp(challengeToken: string, otp: string, meta: RequestMeta): Promise<VerifyOtpResponse> {
+  async verifyOtp(
+    challengeToken: string,
+    otp: string,
+    meta: RequestMeta,
+  ): Promise<VerifyOtpResponse> {
     await this.d.rateLimiter.consume([
-      { key: `ip:${meta.ip}`, limit: this.d.config.rate.ipLimit, windowMs: this.d.config.rate.windowMs },
+      {
+        key: `ip:${meta.ip}`,
+        limit: this.d.config.rate.ipLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
     ]);
 
     let claims: ChallengeClaims;
@@ -205,7 +222,11 @@ export class AuthCore {
   // ------------------------------------------------------------------ set password (first login)
   async setPassword(tempToken: string, newPassword: string, meta: RequestMeta): Promise<TokenPair> {
     await this.d.rateLimiter.consume([
-      { key: `ip:${meta.ip}`, limit: this.d.config.rate.ipLimit, windowMs: this.d.config.rate.windowMs },
+      {
+        key: `ip:${meta.ip}`,
+        limit: this.d.config.rate.ipLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
     ]);
     const parsed = parseOpaque(tempToken, "tmp1");
     if (!parsed) throw authError.invalidTempToken();
@@ -217,7 +238,10 @@ export class AuthCore {
       !account.tempTokenHash ||
       !account.tempTokenExpiresAt ||
       account.tempTokenExpiresAt <= now ||
-      !safeEqual(account.tempTokenHash, this.tokenHash("tmp", parsed.kind, account.id, parsed.secret))
+      !safeEqual(
+        account.tempTokenHash,
+        this.tokenHash("tmp", parsed.kind, account.id, parsed.secret),
+      )
     ) {
       throw authError.invalidTempToken();
     }
@@ -235,7 +259,11 @@ export class AuthCore {
   // ------------------------------------------------------------------ refresh (rotating) & logout
   async refresh(refreshToken: string, meta: RequestMeta): Promise<TokenPair> {
     await this.d.rateLimiter.consume([
-      { key: `ip:${meta.ip}`, limit: this.d.config.rate.ipLimit, windowMs: this.d.config.rate.windowMs },
+      {
+        key: `ip:${meta.ip}`,
+        limit: this.d.config.rate.ipLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
     ]);
     const parsed = parseOpaque(refreshToken, "rft1");
     if (!parsed) throw authError.invalidRefreshToken();
@@ -269,7 +297,10 @@ export class AuthCore {
     const account = await store.findById(parsed.id);
     if (
       account?.refreshTokenHash &&
-      safeEqual(account.refreshTokenHash, this.tokenHash("rft", parsed.kind, account.id, parsed.secret))
+      safeEqual(
+        account.refreshTokenHash,
+        this.tokenHash("rft", parsed.kind, account.id, parsed.secret),
+      )
     ) {
       await store.update(account.id, { refreshTokenHash: null, refreshTokenExpiresAt: null });
       await this.audit(parsed.kind, account.id, "auth.logout", meta);
@@ -279,14 +310,14 @@ export class AuthCore {
   // ------------------------------------------------------------------ access tokens
   /** Verifies a Bearer token and returns the caller. Throws JwtError on anything unexpected. */
   verifyAccessToken(token: string): Principal {
-    const c = verifyJwt<AccessClaims>(token, this.d.config.accessSecret, this.accessOpts(), this.now());
+    const c = verifyJwt<AccessClaims>(
+      token,
+      this.d.config.accessSecret,
+      this.accessOpts(),
+      this.now(),
+    );
     if (c.typ !== "access" || typeof c.sub !== "string") throw new JwtError("claims");
-    if (c.knd === "member") {
-      const role = MEMBER_ROLES.find((r) => r === c.role);
-      const level = HIERARCHY_LEVELS.find((l) => l === c.lvl);
-      if (!role || !level || typeof c.gid !== "string") throw new JwtError("claims");
-      return { kind: "member", id: c.sub, role, groupId: c.gid, hierarchyLevel: level };
-    }
+    if (c.knd === "member") return { kind: "member", id: c.sub };
     const role = PLATFORM_ROLES.find((r) => r === c.role);
     if (c.knd !== "user" || !role) throw new JwtError("claims");
     return { kind: "user", id: c.sub, role };
@@ -294,12 +325,15 @@ export class AuthCore {
 
   private async issueTokens(account: AccountRecord, now: Date): Promise<TokenPair> {
     const principal = toPrincipal(account);
-    const claims: AccessClaims = { typ: "access", sub: account.id, knd: account.kind, role: principal.role };
-    if (principal.kind === "member") {
-      claims.gid = principal.groupId;
-      claims.lvl = principal.hierarchyLevel;
-    }
-    const accessToken = signJwt({ ...claims }, this.d.config.accessSecret, this.d.config.accessTtlSec, this.accessOpts(), now);
+    const claims: AccessClaims = { typ: "access", sub: account.id, knd: account.kind };
+    if (principal.kind === "user") claims.role = principal.role;
+    const accessToken = signJwt(
+      { ...claims },
+      this.d.config.accessSecret,
+      this.d.config.accessTtlSec,
+      this.accessOpts(),
+      now,
+    );
     const secret = randomToken();
     await this.d.stores[account.kind].update(account.id, {
       refreshTokenHash: this.tokenHash("rft", account.kind, account.id, secret),
@@ -325,7 +359,10 @@ export class AuthCore {
     return { issuer: this.d.config.issuer, audience: this.d.config.audience };
   }
   private challengeOpts() {
-    return { issuer: this.d.config.issuer, audience: this.d.config.audience + CHALLENGE_AUDIENCE_SUFFIX };
+    return {
+      issuer: this.d.config.issuer,
+      audience: this.d.config.audience + CHALLENGE_AUDIENCE_SUFFIX,
+    };
   }
   private getDummyHash() {
     this.dummyHash ??= this.d.hasher.hash(randomToken(16));
@@ -352,6 +389,6 @@ const clearOtp = (): Partial<AuthState> => ({ otpHash: null, otpExpiresAt: null,
 
 export function toPrincipal(a: AccountRecord): Principal {
   return a.claims.kind === "member"
-    ? { kind: "member", id: a.id, role: a.claims.role, groupId: a.claims.groupId, hierarchyLevel: a.claims.hierarchyLevel }
+    ? { kind: "member", id: a.id }
     : { kind: "user", id: a.id, role: a.claims.role };
 }

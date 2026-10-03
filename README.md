@@ -6,13 +6,19 @@ build plan [docs/todo.md](docs/todo.md) · decisions [docs/decisions.md](docs/de
 
 ## Status
 
-| Phase | State |
-|---|---|
-| 0 — Foundations | ✅ built |
-| 1 — Database layer | ✅ built |
-| 2 — API core (auth, RBAC scope guard, health) | ✅ built |
-| 3 — Social platform skeleton | 🚧 slice 1 built (shell, routing, PWA, API client); slice 2 = sign-in + register |
-| 4+ | not started |
+| Phase                                               | State                                                      |
+| --------------------------------------------------- | ---------------------------------------------------------- |
+| 0 — Foundations                                     | ✅ built                                                   |
+| 1 — Database layer                                  | ✅ built                                                   |
+| 2 — API core (auth, RBAC scope guard, health)       | ✅ built                                                   |
+| 3 — Social platform skeleton                        | ✅ built (shell, routing, PWA, sign-in, self-registration) |
+| 3.5 — People & memberships refactor (D-014 – D-018) | ✅ built (migration `0001`)                                |
+| 4 — CMS shell + subscriptions (D-019 – D-021) | ✅ built |
+| 5.1 — Readings (D-022) | ✅ built |
+| 5.2 — Bible (D-023, D-024) | ✅ built |
+| 5.3 — Saints (D-025) | ✅ built |
+| 5.4 — Hymnal + media (D-026) | ✅ built — run `pnpm db:generate` once (migration `0005`) |
+| 5.5+ | not started |
 
 ## Prerequisites
 
@@ -53,9 +59,38 @@ curl -X POST localhost:4000/api/auth/verify-otp -H 'content-type: application/js
 curl localhost:4000/api/groups/00000000-0000-4000-8000-000000000110/access -H 'authorization: Bearer <accessToken>'
 ```
 
+Readings: `curl localhost:4000/api/public/readings/today` · web `/readings`.
+
+Bible: the seed only has sample verses. To load the real text, download the USFM files of the
+World English Bible (Catholic edition) and the Douay-Rheims (e.g. from eBible.org), unzip each into a folder, then:
+
+```bash
+pnpm bible:import -- --translation WEBC --dir ./downloads/webc
+pnpm bible:import -- --translation DRA  --dir ./downloads/dra
+```
+Re-run after `pnpm db:seed` (seeding wipes the database). Web: `/bible`, or from a reading's citation.
+Keep the downloads in `./downloads/` — it is git-ignored and left out of `pnpm bundle`.
+
+Saints: `curl 'localhost:4000/api/public/saints/today?date=2026-10-04'` · web `/saints`.
+
+Hymnal: `curl 'localhost:4000/api/public/hymnal/hymns?q=NCH%2056'` · web `/hymnal`. Upload recordings, MIDI and
+notation in the console (`/admin-login` → Platform → Hymnal). Files go straight from the browser to MinIO
+(`docker compose up -d minio minio-init`); the MinIO console is at http://localhost:9001.
+
 API e2e tests (need a seeded DB): `pnpm --filter @ecclesios/api test:e2e`. Contract: functionality §2.3.
 
-## Web app (apps/web)
+## CMS (`apps/admin`)
+
+```bash
+pnpm --filter @ecclesios/admin dev     # http://localhost:5174
+```
+
+- `/login`: church staff (e.g. `theresa.pastor@…`) → Church Management for the churches they manage.
+- `/admin-login`: platform accounts (`superadmin@…`) → platform console (overview, subscriptions, activation).
+- Subscription states to try: St Theresa (active), Christ the King (trial, `christ.pastor@…`),
+  St Anthony (expired, `anthony.pastor@…`; also blocks its outstation, `agnes.catechist@…`), deans (not gated).
+
+## Web app (`apps/web`)
 
 ```bash
 pnpm --filter @ecclesios/web dev       # http://localhost:5173
@@ -67,15 +102,18 @@ client and CORS are wired.
 
 ## Dev seed
 
-| Account | Login | Where |
-|---|---|---|
-| Super-Admin | superadmin@dev.ecclesios.local | /admin-login (users) |
-| Creator (podcasts + Explore) | creator@dev.ecclesios.local | /admin-login (users) |
-| Parish Administrator | theresa.pastor@dev.ecclesios.local | /login (members) — St Theresa Parish |
-| Outstation Administrator | michael.catechist@dev.ecclesios.local | /login — St Michael Outstation |
-| Dean | joseph.dean@dev.ecclesios.local | /login — St Joseph Deanery |
-| Archdiocese Administrator | archdiocese.admin@dev.ecclesios.local | /login |
-| First-login test (must set password) | kofi.asante@dev.ecclesios.local | /login |
+| Account                                                       | Login                                 | Where                                |
+| ------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
+| Super-Admin                                                   | superadmin@dev.ecclesios.local        | /admin-login (users)                 |
+| Creator (podcasts + Explore)                                  | creator@dev.ecclesios.local           | /admin-login (users)                 |
+| Parish Administrator                                          | theresa.pastor@dev.ecclesios.local    | /login (members) — St Theresa Parish |
+| Outstation Administrator                                      | michael.catechist@dev.ecclesios.local | /login — St Michael Outstation       |
+| Dean                                                          | joseph.dean@dev.ecclesios.local       | /login — St Joseph Deanery           |
+| Archdiocese Administrator                                     | archdiocese.admin@dev.ecclesios.local | /login                               |
+| First-login test (must set password)                          | kofi.asante@dev.ecclesios.local       | /login                               |
+| Pending home membership (can sign in; church features locked) | esi.mensah@dev.ecclesios.local        | /login                               |
+| Member of two churches (parish + outstation)                  | kofi.asante@dev.ecclesios.local       | /login                               |
+| Member content creator (may post on Explore)                  | akosua.boateng@dev.ecclesios.local    | /login                               |
 
 Password for all: `Ecclesios#2026` (change with `SEED_DEV_PASSWORD`). Every group has an Administrator
 named `<first>.<last>@dev.ecclesios.local` — see `packages/db/src/seed/data.ts`.
@@ -89,7 +127,7 @@ Subscriptions cover every gate state (active / trial / expired); pending collect
 ```
 apps/api         NestJS API                                   (Phase 2 ✅)
 apps/web         Social platform — React + Tailwind + shadcn  (Phase 3)
-apps/admin       CMS — React + CoreUI v5                      (Phase 4)
+apps/admin       CMS + platform console — CoreUI v5 in the kit shell (Phase 4)
 apps/mobile      Expo placeholder — not a workspace yet       (Phase 11)
 packages/shared  Zod contracts + domain rules (resolveAccess, hierarchy, collections)
 packages/db      Drizzle schema, migrations, dev seed
@@ -100,14 +138,14 @@ docs/            specs — the contract
 
 ## Scripts
 
-| Command | Does |
-|---|---|
-| `pnpm dev` / `build` / `lint` / `typecheck` / `test` | across the workspace (Turborepo) |
-| `pnpm db:generate` | schema → new SQL migration in `packages/db/drizzle` |
-| `pnpm db:migrate` / `db:seed` / `db:setup` / `db:reset` | apply migrations / seed / both / wipe |
-| `pnpm db:studio` | Drizzle Studio |
-| `pnpm infra:up` / `infra:down` / `infra:reset` | Docker services (reset wipes volumes) |
-| `pnpm bundle` | write `ecclesios-bundle.md` (all source in one file) |
+| Command                                                 | Does                                                 |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `pnpm dev` / `build` / `lint` / `typecheck` / `test`    | across the workspace (Turborepo)                     |
+| `pnpm db:generate`                                      | schema → new SQL migration in `packages/db/drizzle`  |
+| `pnpm db:migrate` / `db:seed` / `db:setup` / `db:reset` | apply migrations / seed / both / wipe                |
+| `pnpm db:studio`                                        | Drizzle Studio                                       |
+| `pnpm infra:up` / `infra:down` / `infra:reset`          | Docker services (reset wipes volumes)                |
+| `pnpm bundle`                                           | write `ecclesios-bundle.md` (all source in one file) |
 
 ## Working with the chat assistant
 

@@ -11,6 +11,11 @@ export class ZodPipe<S extends ZodTypeAny> implements PipeTransform<unknown, z.i
   transform(value: unknown): z.infer<S> {
     const r = this.schema.safeParse(value);
     if (r.success) return r.data;
-    throw new DomainError(400, "VALIDATION_FAILED", "Some fields are missing or invalid.", r.error.flatten());
+    throw new DomainError(
+      400,
+      "VALIDATION_FAILED",
+      "Some fields are missing or invalid.",
+      r.error.flatten(),
+    );
   }
 }

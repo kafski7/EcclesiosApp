@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Social platform (React + Vite + Tailwind + shadcn/ui) — Phase 3",
+  "description": "Social platform (React + Vite + Tailwind + shadcn/ui) \u2014 Phase 3",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -26,7 +26,8 @@
     "tailwind-merge": "^2.5.4",
     "workbox-window": "^7.4.1",
     "zod": "^3.23.8",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.0",
+    "dexie": "^4.0.9"
   },
   "devDependencies": {
     "@ecclesios/config": "workspace:*",

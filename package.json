@@ -23,7 +23,8 @@
     "db:studio": "pnpm --filter @ecclesios/shared build && pnpm --filter @ecclesios/db studio",
     "bundle": "node tools/bundle.mjs pack",
     "db:reset": "pnpm --filter @ecclesios/shared build && pnpm --filter @ecclesios/db reset",
-    "db:setup": "pnpm db:migrate && pnpm --filter @ecclesios/db seed"
+    "db:setup": "pnpm db:migrate && pnpm --filter @ecclesios/db seed",
+    "bible:import": "pnpm --filter @ecclesios/shared build && pnpm --filter @ecclesios/db bible:import"
   },
   "devDependencies": {
     "@ecclesios/config": "workspace:*",

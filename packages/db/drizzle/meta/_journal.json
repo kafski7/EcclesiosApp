@@ -8,6 +8,41 @@
       "when": 1790796611653,
       "tag": "0000_gifted_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790953884837,
+      "tag": "0001_panoramic_vision",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790983257536,
+      "tag": "0002_opposite_phalanx",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790985517192,
+      "tag": "0003_common_big_bertha",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791013839975,
+      "tag": "0004_lucky_johnny_blaze",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791019254953,
+      "tag": "0005_mysterious_war_machine",
+      "breakpoints": true
     }
   ]
 }

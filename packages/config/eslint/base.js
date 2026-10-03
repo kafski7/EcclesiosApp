@@ -5,7 +5,17 @@ const prettier = require("eslint-config-prettier");
 
 module.exports = tseslint.config(
   // eslint.config.js files are plain CJS consumed by ESLint itself, not app code.
-  { ignores: ["dist/**", "coverage/**", ".turbo/**", "node_modules/**", "drizzle/**", "eslint.config.js", "eslint.config.cjs"] },
+  {
+    ignores: [
+      "dist/**",
+      "coverage/**",
+      ".turbo/**",
+      "node_modules/**",
+      "drizzle/**",
+      "eslint.config.js",
+      "eslint.config.cjs",
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,

@@ -1,18 +1,32 @@
 import { LogIn, LogOut } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { MORE_ITEM, PRIMARY_NAV } from "@/nav";
+import { signOut } from "@/lib/auth";
+import { useMe } from "@/lib/me";
+import type { MeResponse } from "@ecclesios/shared";
 import { useSession } from "@/stores/session";
 import { useUi } from "@/stores/ui";
 import { Brand } from "./brand";
 
 const initials = (s: string) =>
-  s.split(/[\s.@]+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("");
+  s
+    .split(/[\s.@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
+
+const homeLabel = (me: MeResponse | undefined) => {
+  const home = me?.memberships.find((m) => m.isHome);
+  if (!home) return "Ecclesios member";
+  return home.status === "PENDING" ? `${home.church.name} · pending` : home.church.name;
+};
 
 /** Kit .sidebar: brand, the 9 sections, More, and the signed-in user at the bottom. */
 export function Sidebar() {
   const { setNavOpen, setMoreOpen } = useUi();
   const principal = useSession((s) => s.principal);
-  const clear = useSession((s) => s.clear);
+  const me = useMe();
   const close = () => setNavOpen(false);
   const MoreIcon = MORE_ITEM.icon;
 
@@ -52,13 +66,13 @@ export function Sidebar() {
         {principal ? (
           <>
             <span className="avatar av-36 av-brand" aria-hidden>
-              {initials(principal.role)}
+              {initials(me.data ? `${me.data.firstName} ${me.data.lastName}` : "Me")}
             </span>
             <span className="s-user-meta">
-              <b>Signed in</b>
-              <small>{principal.role.replace(/_/g, " ").toLowerCase()}</small>
+              <b>{me.data ? `${me.data.firstName} ${me.data.lastName}` : "Signed in"}</b>
+              <small>{homeLabel(me.data)}</small>
             </span>
-            <button type="button" onClick={clear} aria-label="Sign out">
+            <button type="button" onClick={() => void signOut()} aria-label="Sign out">
               <LogOut className="ic" />
             </button>
           </>

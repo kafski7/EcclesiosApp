@@ -1,21 +1,11 @@
 import { SetMetadata } from "@nestjs/common";
-import { canApprove, canReadAggregates, canReadRecords, canReadSummaries, canWrite, type Access } from "@ecclesios/shared/domain";
+import type { Capability } from "@ecclesios/shared/domain";
 
 /**
- * What a route needs in the target group (blueprint §3.3 / §3.5).
- * Decision D-008: the decorator names a *capability*; the hierarchy level that grants it
- * lives in resolveAccess, so routes never hard-code levels.
+ * What a route needs in the target group (D-008, D-015). The decorator names a capability;
+ * which memberships and hierarchy levels grant it is decided by resolveMemberAccess in @ecclesios/shared.
  */
-export const SCOPE_NEEDS = ["write", "approve", "readRecords", "readSummaries", "readAggregates"] as const;
-export type ScopeNeed = (typeof SCOPE_NEEDS)[number];
-
-export const CAPABILITY: Record<ScopeNeed, (a: Access) => boolean> = {
-  write: canWrite,
-  approve: canApprove,
-  readRecords: canReadRecords,
-  readSummaries: canReadSummaries,
-  readAggregates: canReadAggregates,
-};
+export type ScopeNeed = Capability;
 
 export interface ScopeOptions {
   need: ScopeNeed;

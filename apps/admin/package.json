@@ -2,17 +2,37 @@
   "name": "@ecclesios/admin",
   "version": "0.0.0",
   "private": true,
-  "description": "CMS (React + Vite + CoreUI v5) — scaffolded in Phase 4",
+  "type": "module",
+  "description": "Church Management (CMS) + platform console — React + Vite + CoreUI v5, styled with the Ecclesios UI kit (D-019). Phase 4.",
   "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "echo \"@ecclesios/admin: lint wired when scaffolded\"",
-    "test": "echo \"@ecclesios/admin: no tests yet\""
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@ecclesios/shared": "workspace:*"
+    "@coreui/coreui": "^5.2.0",
+    "@coreui/react": "^5.4.0",
+    "@ecclesios/shared": "workspace:*",
+    "@tanstack/react-query": "^5.59.0",
+    "lucide-react": "^0.454.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0",
+    "zod": "^3.23.8",
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@ecclesios/config": "workspace:*",
-    "typescript": "^5.6.3"
+    "@types/node": "^22.7.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "eslint": "^9.12.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.3"
   }
 }

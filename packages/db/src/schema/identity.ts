@@ -3,7 +3,6 @@ import {
   boolean,
   date,
   index,
-  integer,
   pgTable,
   primaryKey,
   text,
@@ -13,9 +12,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { authColumns, id, timestamps } from "./_common";
-import { genderEnum, memberStatusEnum, platformPrivilegeEnum, platformRoleEnum } from "./enums";
-import { groups } from "./hierarchy";
-import { roles } from "./rbac";
+import { genderEnum, platformPrivilegeEnum, platformRoleEnum } from "./enums";
 
 /** Platform accounts: Super-Admins and Creators (functionality §2.1). */
 export const users = pgTable(
@@ -32,8 +29,12 @@ export const users = pgTable(
     ...timestamps(),
   },
   (t) => [
-    uniqueIndex("users_email_uq").on(sql`lower(${t.email})`).where(sql`${t.email} IS NOT NULL`),
-    uniqueIndex("users_telephone_uq").on(t.telephone).where(sql`${t.telephone} IS NOT NULL`),
+    uniqueIndex("users_email_uq")
+      .on(sql`lower(${t.email})`)
+      .where(sql`${t.email} IS NOT NULL`),
+    uniqueIndex("users_telephone_uq")
+      .on(t.telephone)
+      .where(sql`${t.telephone} IS NOT NULL`),
   ],
 );
 
@@ -50,18 +51,16 @@ export const userPrivileges = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.privilege] })],
 );
 
-/** Church people at any hierarchy level (functionality §2.2, §4.2). */
+/**
+ * A person (functionality §2.2, §4.2): identity, sign-in and sacramental records.
+ * Which churches they belong to, and with what role, is in `memberships` (D-014).
+ */
 export const members = pgTable(
   "members",
   {
     id: id(),
-    groupId: uuid("group_id")
-      .notNull()
-      .references(() => groups.id, { onDelete: "restrict" }),
-    roleId: integer("role_id")
-      .notNull()
-      .references(() => roles.id),
-    status: memberStatusEnum("status").notNull().default("ACTIVE"),
+    /** Account standing. Church membership lives in `memberships` (D-014). */
+    isActive: boolean("is_active").notNull().default(true),
 
     // personal
     firstName: varchar("first_name", { length: 100 }).notNull(),
@@ -92,16 +91,17 @@ export const members = pgTable(
     ...timestamps(),
   },
   (t) => [
-    index("members_group_idx").on(t.groupId),
-    index("members_group_status_idx").on(t.groupId, t.status),
-    index("members_group_lastname_idx").on(t.groupId, t.lastName),
-    // Birthdays module: today's celebrants per group (functionality §4.3)
-    index("members_group_birthday_idx").on(
-      t.groupId,
+    index("members_lastname_idx").on(t.lastName),
+    // Birthdays module: today's celebrants (joined to memberships per group — functionality §4.3)
+    index("members_birthday_idx").on(
       sql`extract(month from ${t.dateOfBirth})`,
       sql`extract(day from ${t.dateOfBirth})`,
     ),
-    uniqueIndex("members_email_uq").on(sql`lower(${t.email})`).where(sql`${t.email} IS NOT NULL`),
-    uniqueIndex("members_telephone_uq").on(t.telephone).where(sql`${t.telephone} IS NOT NULL`),
+    uniqueIndex("members_email_uq")
+      .on(sql`lower(${t.email})`)
+      .where(sql`${t.email} IS NOT NULL`),
+    uniqueIndex("members_telephone_uq")
+      .on(t.telephone)
+      .where(sql`${t.telephone} IS NOT NULL`),
   ],
 );

@@ -11,10 +11,16 @@ import { ConfigModule } from "./config/config.module";
 import { ENV, type Env } from "./config/env";
 import { DbModule } from "./db/db.module";
 import { HealthModule } from "./health/health.module";
+import { HymnalModule } from "./hymnal/hymnal.module";
 import { MediaModule } from "./media/media.module";
 import { RbacModule } from "./rbac/rbac.module";
+import { MembershipsModule } from "./memberships/memberships.module";
+import { RegistrationModule } from "./registration/registration.module";
 import { ScopeGuard } from "./rbac/scope.guard";
+import { PlatformModule } from "./platform/platform.module";
+import { PlatformRoleGuard } from "./platform/platform-role";
 import { SocialModule } from "./social/social.module";
+import { SubscriptionGuard } from "./subscriptions/subscription.guard";
 import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
 
 @Module({
@@ -27,7 +33,10 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
           level: env.LOG_LEVEL,
           genReqId: (req, res) => {
             const incoming = req.headers["x-request-id"];
-            const id = typeof incoming === "string" && /^[\w-]{8,64}$/.test(incoming) ? incoming : randomUUID();
+            const id =
+              typeof incoming === "string" && /^[\w-]{8,64}$/.test(incoming)
+                ? incoming
+                : randomUUID();
             res.setHeader("x-request-id", id);
             return id;
           },
@@ -36,6 +45,9 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
               "req.headers.authorization",
               "req.headers.cookie",
               "req.body.password",
+              "req.body.email",
+              "req.body.telephone",
+              "req.body.dateOfBirth",
               "req.body.newPassword",
               "req.body.otp",
               "req.body.refreshToken",
@@ -45,7 +57,9 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
             censor: "[redacted]",
           },
           transport:
-            env.NODE_ENV === "development" ? { target: "pino-pretty", options: { singleLine: true } } : undefined,
+            env.NODE_ENV === "development"
+              ? { target: "pino-pretty", options: { singleLine: true } }
+              : undefined,
           autoLogging: { ignore: (req) => req.url === "/api/health" },
         },
       }),
@@ -54,17 +68,24 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
     AuditModule,
     AuthModule,
     RbacModule,
+    MembershipsModule,
+    RegistrationModule,
     HealthModule,
     CmsModule,
     SocialModule,
     SubscriptionsModule,
+    PlatformModule,
     MediaModule,
+    HymnalModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
-    // Order matters: authenticate first, then check hierarchy scope.
+    // Order matters: authenticate first, then check hierarchy scope…
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: ScopeGuard },
+    // …then the platform-role check, then the subscription gate (D-020).
+    { provide: APP_GUARD, useClass: PlatformRoleGuard },
+    { provide: APP_GUARD, useClass: SubscriptionGuard },
   ],
 })
 export class AppModule {}

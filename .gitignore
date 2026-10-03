@@ -16,3 +16,6 @@ ecclesios-bundle*.md
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Bible / content downloads (imported with pnpm bible:import, not committed)
+downloads/

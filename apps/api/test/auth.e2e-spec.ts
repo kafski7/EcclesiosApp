@@ -9,7 +9,15 @@ import { createTestApp, type CapturingOtpSender } from "./app";
 // Seed fixtures (packages/db/src/seed/data.ts — deterministic ids)
 const PW = process.env.SEED_DEV_PASSWORD || "Ecclesios#2026";
 const G = (n: number) => `00000000-0000-4000-8000-${n.toString().padStart(12, "0")}`;
-const GROUP = { arch: G(101), dio: G(104), deanA: G(105), parA1: G(107), parA2: G(108), outA1a: G(110), outA2a: G(112) };
+const GROUP = {
+  arch: G(101),
+  dio: G(104),
+  deanA: G(105),
+  parA1: G(107),
+  parA2: G(108),
+  outA1a: G(110),
+  outA2a: G(112),
+};
 const THERESA = "theresa.pastor@dev.ecclesios.local"; //  parA1 Administrator
 const MICHAEL = "michael.catechist@dev.ecclesios.local"; // outA1a Administrator
 const DEAN = "joseph.dean@dev.ecclesios.local"; //        deanA Administrator
@@ -25,19 +33,36 @@ const handle = createDb(process.env.DATABASE_URL, { max: 2 });
 async function resetAccounts() {
   const passwordHash = await hash(PW);
   const clean = {
-    otpHash: null, otpExpiresAt: null, otpAttempts: 0, tempTokenHash: null, tempTokenExpiresAt: null,
-    refreshTokenHash: null, refreshTokenExpiresAt: null, failedLoginCount: 0, lockedUntil: null, passwordHash,
+    otpHash: null,
+    otpExpiresAt: null,
+    otpAttempts: 0,
+    tempTokenHash: null,
+    tempTokenExpiresAt: null,
+    refreshTokenHash: null,
+    refreshTokenExpiresAt: null,
+    failedLoginCount: 0,
+    lockedUntil: null,
+    passwordHash,
   };
   await handle.db
     .update(members)
     .set({ ...clean, firstLogin: new Date() })
     .where(inArray(sql`lower(${members.email})`, [THERESA, MICHAEL, DEAN, ARCH]));
-  await handle.db.update(members).set({ ...clean, firstLogin: null }).where(sql`lower(${members.email}) = ${KOFI}`);
-  await handle.db.update(users).set({ ...clean, firstLogin: new Date() }).where(eq(users.email, SUPER));
+  await handle.db
+    .update(members)
+    .set({ ...clean, firstLogin: null })
+    .where(sql`lower(${members.email}) = ${KOFI}`);
+  await handle.db
+    .update(users)
+    .set({ ...clean, firstLogin: new Date() })
+    .where(eq(users.email, SUPER));
 }
 
 async function signIn(path: "login" | "admin-login", identifier: string, password = PW) {
-  const r1 = await request(app.getHttpServer()).post(`/api/auth/${path}`).send({ identifier, password }).expect(200);
+  const r1 = await request(app.getHttpServer())
+    .post(`/api/auth/${path}`)
+    .send({ identifier, password })
+    .expect(200);
   const r2 = await request(app.getHttpServer())
     .post("/api/auth/verify-otp")
     .send({ challengeToken: r1.body.challengeToken, otp: otp.last() })
@@ -58,31 +83,44 @@ afterAll(async () => {
 describe("health", () => {
   it("GET /api/health → ok with database up", async () => {
     const r = await request(app.getHttpServer()).get("/api/health").expect(200);
-    expect(r.body).toMatchObject({ status: "ok", service: "ecclesios-api", checks: { database: "up" } });
+    expect(r.body).toMatchObject({
+      status: "ok",
+      service: "ecclesios-api",
+      checks: { database: "up" },
+    });
     expect(r.headers["x-request-id"]).toBeTruthy();
   });
 });
 
 describe("auth — members (/api/auth/login)", () => {
-  it("password → OTP → tokens carrying role, group and level", async () => {
+  it("password → OTP → tokens naming the person (D-015)", async () => {
     const body = await signIn("login", THERESA);
     expect(body.status).toBe("AUTHENTICATED");
-    expect(body.principal).toEqual({ kind: "member", id: G(507), role: "ADMINISTRATOR", groupId: GROUP.parA1, hierarchyLevel: "PARISH" });
+    expect(body.principal).toEqual({ kind: "member", id: G(507) });
   });
 
   it("wrong password → 401 INVALID_CREDENTIALS in the error envelope", async () => {
-    const r = await request(app.getHttpServer()).post("/api/auth/login").send({ identifier: THERESA, password: "not-the-password-1" }).expect(401);
+    const r = await request(app.getHttpServer())
+      .post("/api/auth/login")
+      .send({ identifier: THERESA, password: "not-the-password-1" })
+      .expect(401);
     expect(r.body.error.code).toBe("INVALID_CREDENTIALS");
     expect(r.body.error.requestId).toBeTruthy();
   });
 
   it("validation errors → 400 VALIDATION_FAILED", async () => {
-    const r = await request(app.getHttpServer()).post("/api/auth/login").send({ identifier: "x" }).expect(400);
+    const r = await request(app.getHttpServer())
+      .post("/api/auth/login")
+      .send({ identifier: "x" })
+      .expect(400);
     expect(r.body.error.code).toBe("VALIDATION_FAILED");
   });
 
   it("a platform account cannot use the member login", async () => {
-    const r = await request(app.getHttpServer()).post("/api/auth/login").send({ identifier: SUPER, password: PW }).expect(401);
+    const r = await request(app.getHttpServer())
+      .post("/api/auth/login")
+      .send({ identifier: SUPER, password: PW })
+      .expect(401);
     expect(r.body.error.code).toBe("INVALID_CREDENTIALS");
   });
 });
@@ -98,13 +136,16 @@ describe("first login → set password", () => {
   it("returns PASSWORD_SETUP_REQUIRED, then set-password signs in", async () => {
     const body = await signIn("login", KOFI);
     expect(body.status).toBe("PASSWORD_SETUP_REQUIRED");
-    const weak = await request(app.getHttpServer()).post("/api/auth/set-password").send({ tempToken: body.tempToken, newPassword: "short" }).expect(400);
+    const weak = await request(app.getHttpServer())
+      .post("/api/auth/set-password")
+      .send({ tempToken: body.tempToken, newPassword: "short" })
+      .expect(400);
     expect(weak.body.error.code).toBe("VALIDATION_FAILED");
     const r = await request(app.getHttpServer())
       .post("/api/auth/set-password")
       .send({ tempToken: body.tempToken, newPassword: "KofiNewPass2026" })
       .expect(200);
-    expect(r.body.principal.role).toBe("PARISHIONER");
+    expect(r.body.principal.kind).toBe("member");
     const again = await signIn("login", KOFI, "KofiNewPass2026");
     expect(again.status).toBe("AUTHENTICATED");
   });
@@ -113,10 +154,19 @@ describe("first login → set password", () => {
 describe("refresh & logout", () => {
   it("rotates refresh tokens and revokes on logout", async () => {
     const s = await signIn("login", THERESA);
-    const r = await request(app.getHttpServer()).post("/api/auth/refresh").send({ refreshToken: s.refreshToken }).expect(200);
+    const r = await request(app.getHttpServer())
+      .post("/api/auth/refresh")
+      .send({ refreshToken: s.refreshToken })
+      .expect(200);
     expect(r.body.refreshToken).not.toBe(s.refreshToken);
-    await request(app.getHttpServer()).post("/api/auth/logout").send({ refreshToken: r.body.refreshToken }).expect(204);
-    const after = await request(app.getHttpServer()).post("/api/auth/refresh").send({ refreshToken: r.body.refreshToken }).expect(401);
+    await request(app.getHttpServer())
+      .post("/api/auth/logout")
+      .send({ refreshToken: r.body.refreshToken })
+      .expect(204);
+    const after = await request(app.getHttpServer())
+      .post("/api/auth/refresh")
+      .send({ refreshToken: r.body.refreshToken })
+      .expect(401);
     expect(after.body.error.code).toBe("INVALID_REFRESH_TOKEN");
   });
 });
@@ -125,14 +175,20 @@ describe("rate limiting", () => {
   it("6th login for the same identifier → 429 with Retry-After", async () => {
     const id = `ratelimit-${Date.now()}@nowhere.test`;
     for (let i = 0; i < 5; i++)
-      await request(app.getHttpServer()).post("/api/auth/login").send({ identifier: id, password: "whatever-123" }).expect(401);
-    const r = await request(app.getHttpServer()).post("/api/auth/login").send({ identifier: id, password: "whatever-123" }).expect(429);
+      await request(app.getHttpServer())
+        .post("/api/auth/login")
+        .send({ identifier: id, password: "whatever-123" })
+        .expect(401);
+    const r = await request(app.getHttpServer())
+      .post("/api/auth/login")
+      .send({ identifier: id, password: "whatever-123" })
+      .expect(429);
     expect(r.body.error.code).toBe("RATE_LIMITED");
     expect(Number(r.headers["retry-after"])).toBeGreaterThan(0);
   });
 });
 
-describe("RBAC scope guard (blueprint §3.5) — GET /api/groups/:id/access", () => {
+describe("RBAC scope guard (blueprint §3.5, D-015) — GET /api/groups/:id/access", () => {
   const access = (token: string | null, groupId: string) => {
     const req = request(app.getHttpServer()).get(`/api/groups/${groupId}/access`);
     return token ? req.set("Authorization", `Bearer ${token}`) : req;
@@ -145,9 +201,9 @@ describe("RBAC scope guard (blueprint §3.5) — GET /api/groups/:id/access", ()
 
   it("parish: OWN on itself, OVERSIGHT on its outstation, denied on the neighbour", async () => {
     const t = (await signIn("login", THERESA)).accessToken;
-    expect((await access(t, GROUP.parA1).expect(200)).body.access).toBe("OWN");
+    expect((await access(t, GROUP.parA1).expect(200)).body.access).toEqual(["OWN"]);
     const o = await access(t, GROUP.outA1a).expect(200);
-    expect(o.body).toMatchObject({ access: "OVERSIGHT", can: { write: false, approve: true } });
+    expect(o.body).toMatchObject({ access: ["OVERSIGHT"], can: { write: false, approve: true } });
     expect((await access(t, GROUP.outA2a).expect(403)).body.error.code).toBe("SCOPE_DENIED");
     await access(t, GROUP.parA2).expect(403);
     await access(t, GROUP.deanA).expect(403); // no upward access
@@ -160,9 +216,11 @@ describe("RBAC scope guard (blueprint §3.5) — GET /api/groups/:id/access", ()
 
   it("dean monitors parishes in detail; archdiocese sees the suffragan as aggregates", async () => {
     const dean = (await signIn("login", DEAN)).accessToken;
-    expect((await access(dean, GROUP.parA1).expect(200)).body.access).toBe("MONITOR_DETAILED");
+    expect((await access(dean, GROUP.parA1).expect(200)).body.access).toEqual(["MONITOR_DETAILED"]);
     const arch = (await signIn("login", ARCH)).accessToken;
-    expect((await access(arch, GROUP.parA1).expect(200)).body.access).toBe("MONITOR_AGGREGATE");
+    expect((await access(arch, GROUP.parA1).expect(200)).body.access).toEqual([
+      "MONITOR_AGGREGATE",
+    ]);
   });
 
   it("platform accounts have no church scope", async () => {
@@ -177,6 +235,17 @@ describe("RBAC scope guard (blueprint §3.5) — GET /api/groups/:id/access", ()
       sql`select count(*)::int as n from audit_logs where action = 'access.denied' and entity_id = ${GROUP.outA2a}`,
     );
     expect(Number((rows as unknown as { n: number }[])[0]?.n)).toBeGreaterThan(0);
+  });
+
+  it("a parishioner has member access to their church but no CMS access", async () => {
+    const t = (await signIn("login", KOFI, "KofiNewPass2026")).accessToken;
+    await access(t, GROUP.parA1).expect(403);
+    const r = await request(app.getHttpServer())
+      .get(`/api/groups/${GROUP.parA1}/member-access`)
+      .set("Authorization", `Bearer ${t}`)
+      .expect(200);
+    expect(r.body.access).toEqual(["MEMBER"]);
+    expect(r.body.can).toMatchObject({ memberContent: true, readRecords: false });
   });
 
   it("malformed group id → 400", async () => {

@@ -19,6 +19,6 @@ import { ConsoleOtpSender, OTP_SENDER } from "./otp-sender";
     // In-memory = one API instance only. Redis store before scaling out (todo Phase 9).
     { provide: RATE_LIMIT_STORE, useFactory: () => new MemoryRateLimitStore() },
   ],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, ArgonHasher, RATE_LIMIT_STORE],
 })
 export class AuthModule {}

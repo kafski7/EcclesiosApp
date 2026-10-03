@@ -38,12 +38,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof DomainError) {
       status = exception.status;
-      body = { code: exception.code, message: exception.message, details: exception.details, requestId };
+      body = {
+        code: exception.code,
+        message: exception.message,
+        details: exception.details,
+        requestId,
+      };
       if (exception.retryAfterSec) res.setHeader("Retry-After", String(exception.retryAfterSec));
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const r = exception.getResponse();
-      const message = typeof r === "string" ? r : ((r as { message?: unknown }).message ?? exception.message);
+      const message =
+        typeof r === "string" ? r : ((r as { message?: unknown }).message ?? exception.message);
       body = {
         code: STATUS_CODES[status] ?? `HTTP_${status}`,
         message: Array.isArray(message) ? message.join("; ") : String(message),
@@ -55,7 +61,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (status >= 500 && !(exception instanceof DomainError)) {
       // never leak internals
-      body = { code: body.code === "INTERNAL" ? "INTERNAL" : body.code, message: "Something went wrong.", requestId };
+      body = {
+        code: body.code === "INTERNAL" ? "INTERNAL" : body.code,
+        message: "Something went wrong.",
+        requestId,
+      };
     }
     res.status(status).json({ error: body } satisfies ApiError);
   }

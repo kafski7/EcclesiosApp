@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/kit.css";
+@import "./styles/auth.css";
 
 /* Tailwind theme mapped onto the kit tokens, so utilities and shadcn/ui use the same palette. */
 @theme inline {
@@ -24,5 +25,7 @@
 }
 
 @layer base {
-  * { border-color: var(--line); }
+  * {
+    border-color: var(--line);
+  }
 }

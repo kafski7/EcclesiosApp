@@ -4,7 +4,15 @@ import { MORE_ITEM, PRIMARY_NAV } from "./nav";
 describe("primary navigation (blueprint §2.1)", () => {
   it("has the 9 sections in the documented order", () => {
     expect([...PRIMARY_NAV, MORE_ITEM].map((n) => n.label)).toEqual([
-      "Home", "Readings", "Saints", "Explore", "Podcasts", "Hymnal", "Teachings", "Bible", "More",
+      "Home",
+      "Readings",
+      "Saints",
+      "Explore",
+      "Podcasts",
+      "Hymnal",
+      "Teachings",
+      "Bible",
+      "More",
     ]);
   });
   it("uses unique routes", () => {

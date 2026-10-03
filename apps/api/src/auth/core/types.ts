@@ -1,9 +1,4 @@
-import type {
-  AccountKind,
-  HierarchyLevel,
-  MemberRole,
-  PlatformRole,
-} from "@ecclesios/shared";
+import type { AccountKind, PlatformRole } from "@ecclesios/shared";
 
 /** Auth-state columns shared by `users` and `members` (packages/db schema/_common.ts). Names match the Drizzle properties. */
 export interface AuthState {
@@ -22,12 +17,13 @@ export interface AuthState {
 }
 
 export type AccountClaims =
-  | { kind: "member"; role: MemberRole; groupId: string; hierarchyLevel: HierarchyLevel }
+  | { kind: "member" } // churches + roles come from memberships, per request (D-015)
   | { kind: "user"; role: PlatformRole };
 
 export interface AccountRecord extends AuthState {
   id: string;
   kind: AccountKind;
+  /** Account standing only. A pending church membership never blocks sign-in (D-015). */
   active: boolean;
   email: string | null;
   telephone: string | null;

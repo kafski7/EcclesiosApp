@@ -1,5 +1,8 @@
 {
-  "extends": "@ecclesios/config/tsconfig/base.json",
-  "compilerOptions": { "module": "ESNext", "moduleResolution": "Bundler", "noEmit": true },
-  "include": ["src"]
+  "extends": "@ecclesios/config/tsconfig/react.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"],
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.mts"]
 }

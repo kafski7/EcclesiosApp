@@ -1,10 +1,13 @@
 ## What & why
+
 <!-- One or two sentences. Link the todo.md item(s): e.g. "Phase 2 — Auth module: verify-otp" -->
 
 ## Type
-- [ ] feat  - [ ] fix  - [ ] refactor  - [ ] docs  - [ ] chore  - [ ] test
+
+- [ ] feat - [ ] fix - [ ] refactor - [ ] docs - [ ] chore - [ ] test
 
 ## Checklist (Standing Rules — docs/todo.md)
+
 - [ ] Docs updated first if this changes behaviour described in blueprint.md / functionality.md (and a row added to docs/decisions.md)
 - [ ] API contract changes made in `packages/shared` (Zod) before consumers
 - [ ] Schema changes are drizzle-kit migrations (no manual/live edits)
@@ -14,4 +17,5 @@
 - [ ] No secrets committed; `.env.example` updated for any new variable
 
 ## How to test
+
 <!-- Steps / commands -->

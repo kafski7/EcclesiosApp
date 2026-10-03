@@ -1,5 +1,7 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
+import { MediaService } from "./media.service";
 
-/** Presigned object-storage URLs (Phase 5.4). Module boundary reserved now so the layout matches blueprint §5. */
-@Module({})
+/** Presigned object-storage URLs (blueprint §5). Used by the hymnal, saints and later podcasts/photos. */
+@Global()
+@Module({ providers: [MediaService], exports: [MediaService] })
 export class MediaModule {}

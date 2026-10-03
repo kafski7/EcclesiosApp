@@ -11,12 +11,16 @@ describe("dev seed data", () => {
 
   it("matches todo Phase 1 shape: province → metropolitan archdiocese → suffragan → 2 deaneries → 3 parishes → outstations", () => {
     const count = (level: string, parent?: string) =>
-      [...groups.values()].filter((g) => g.level === level && (!parent || g.parentKey === parent)).length;
+      [...groups.values()].filter((g) => g.level === level && (!parent || g.parentKey === parent))
+        .length;
     expect(count("PROVINCE")).toBe(1);
     expect(count("ARCHDIOCESE")).toBe(1);
     expect(count("DIOCESE", "arch")).toBe(1);
     expect(count("DEANERY", "dio")).toBe(2);
-    expect([...groups.values()].filter((g) => g.level === "PARISH" && g.path.includes(d.seedId(104))).length).toBe(3);
+    expect(
+      [...groups.values()].filter((g) => g.level === "PARISH" && g.path.includes(d.seedId(104)))
+        .length,
+    ).toBe(3);
     expect(count("OUTSTATION")).toBeGreaterThanOrEqual(3);
     expect(count("DEANERY", "arch")).toBe(1); // archdiocese's own deanery
   });
@@ -33,17 +37,43 @@ describe("dev seed data", () => {
 
   it("gives every operational group exactly one Administrator", () => {
     for (const g of groups.values()) {
-      expect(d.MEMBERS.filter((m) => m.groupKey === g.key && m.role === "ADMINISTRATOR").length).toBe(1);
+      expect(
+        d.MEMBERS.filter((m) => m.groupKey === g.key && m.role === "ADMINISTRATOR").length,
+      ).toBe(1);
     }
   });
 
+  it("includes one self-registered member awaiting approval (D-011)", () => {
+    const pending = d.MEMBERS.filter((x) => x.status === "PENDING");
+    expect(pending.length).toBe(1);
+    expect(groups.get(pending[0]!.groupKey)!.level).toBe("PARISH");
+  });
+
+  it("extra memberships, follows and creator grants point at real people and joinable churches (D-014–D-017)", () => {
+    for (const x of d.EXTRA_MEMBERSHIPS) {
+      const person = d.memberByFirst(x.first);
+      expect(person.groupKey === x.groupKey).toBe(false); // not a duplicate of the home membership
+      expect(["PARISH", "OUTSTATION"].includes(groups.get(x.groupKey)!.level)).toBe(true);
+    }
+    for (const f of d.FOLLOWS) expect(groups.has(f.groupKey)).toBe(true);
+    expect(
+      d.MEMBER_PRIVILEGES.every((p) => d.memberByFirst(p.first).role !== "ADMINISTRATOR"),
+    ).toBe(true);
+  });
+
   it("seeds 4 church roles and no platform roles in `roles` (D-003)", () => {
-    expect(d.ROLES.map((r) => r.code)).toEqual(["ADMINISTRATOR", "MANAGER", "SOCIETY_LEADER", "PARISHIONER"]);
+    expect(d.ROLES.map((r) => r.code)).toEqual([
+      "ADMINISTRATOR",
+      "MANAGER",
+      "SOCIETY_LEADER",
+      "PARISHIONER",
+    ]);
   });
 
   it("only grants permissions that exist", () => {
     const codes = new Set(d.PERMISSIONS.map(([c]) => c));
-    for (const list of Object.values(d.ROLE_PERMISSIONS)) for (const c of list) expect(codes.has(c)).toBe(true);
+    for (const list of Object.values(d.ROLE_PERMISSIONS))
+      for (const c of list) expect(codes.has(c)).toBe(true);
   });
 
   it("stages collections only for outstations, each with a parish parent, and covers every status", () => {

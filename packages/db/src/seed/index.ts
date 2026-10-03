@@ -12,15 +12,23 @@ import { createDb } from "../client";
 import { loadEnv } from "../env";
 import * as s from "../schema";
 import * as d from "./data";
+import { BIBLE_TRANSLATIONS, sampleVerses } from "./bible";
+import { sampleReadingDays } from "./readings";
+import { SEED_SAINTS } from "./saints";
+import { HYMN_BOOKS, SEED_HYMNS } from "./hymnal";
+import { hymnNumberKey, normalizeHymnNumber, slugify } from "@ecclesios/shared/domain";
 
 loadEnv();
 
 function assertSafeTarget(url: string) {
-  if (process.env.NODE_ENV === "production") throw new Error("Refusing to seed: NODE_ENV=production");
+  if (process.env.NODE_ENV === "production")
+    throw new Error("Refusing to seed: NODE_ENV=production");
   const host = new URL(url).hostname;
   const local = ["localhost", "127.0.0.1", "::1", "postgres"].includes(host);
   if (!local && process.env.SEED_ALLOW_REMOTE !== "1")
-    throw new Error(`Refusing to wipe non-local database host "${host}". Set SEED_ALLOW_REMOTE=1 to override.`);
+    throw new Error(
+      `Refusing to wipe non-local database host "${host}". Set SEED_ALLOW_REMOTE=1 to override.`,
+    );
 }
 
 const daysFromNow = (days: number) => new Date(Date.now() + days * 86_400_000);
@@ -69,11 +77,16 @@ async function main() {
       .values(d.PERMISSIONS.map(([code, module]) => ({ code, module })))
       .returning();
     const roleId = (code: string) => roleRows.find((r) => r.code === code)!.id;
-    await tx.insert(s.rolePermissions).values(
-      Object.entries(d.ROLE_PERMISSIONS).flatMap(([role, codes]) =>
-        codes.map((c) => ({ roleId: roleId(role), permissionId: permRows.find((p) => p.code === c)!.id })),
-      ),
-    );
+    await tx
+      .insert(s.rolePermissions)
+      .values(
+        Object.entries(d.ROLE_PERMISSIONS).flatMap(([role, codes]) =>
+          codes.map((c) => ({
+            roleId: roleId(role),
+            permissionId: permRows.find((p) => p.code === c)!.id,
+          })),
+        ),
+      );
 
     // hierarchy (parents first — resolveGroups preserves order)
     for (const g of groups.values()) {
@@ -101,17 +114,21 @@ async function main() {
       const { privileges, ...row } = u;
       await tx.insert(s.users).values({ ...row, passwordHash, firstLogin: new Date() });
       if (privileges.length)
-        await tx.insert(s.userPrivileges).values(
-          privileges.map((p) => ({ userId: u.id, privilege: p, grantedByUserId: d.PLATFORM_USERS[0]!.id })),
-        );
+        await tx
+          .insert(s.userPrivileges)
+          .values(
+            privileges.map((p) => ({
+              userId: u.id,
+              privilege: p,
+              grantedByUserId: d.PLATFORM_USERS[0]!.id,
+            })),
+          );
     }
 
     // members — Kofi Asante is left with first_login = NULL to exercise the Set-Password path
     await tx.insert(s.members).values(
       d.MEMBERS.map((m) => ({
         id: m.id,
-        groupId: gid(m.groupKey),
-        roleId: roleId(m.role),
         firstName: m.firstName,
         lastName: m.lastName,
         gender: m.gender,
@@ -124,6 +141,42 @@ async function main() {
         passwordHash: m.canLogin ? passwordHash : null,
         firstLogin: m.canLogin && m.firstName !== "Kofi" ? new Date() : null,
       })),
+    );
+
+    // memberships (D-014): every person's home church, plus extra churches and pending requests
+    const decided = (status: "PENDING" | "ACTIVE") =>
+      status === "ACTIVE" ? { decidedAt: daysFromNow(-30) } : { decidedAt: null };
+    await tx.insert(s.memberships).values([
+      ...d.MEMBERS.map((m) => ({
+        memberId: m.id,
+        groupId: gid(m.groupKey),
+        roleId: roleId(m.role),
+        status: m.status ?? "ACTIVE",
+        isHome: true,
+        ...decided(m.status ?? "ACTIVE"),
+      })),
+      ...d.EXTRA_MEMBERSHIPS.map((x) => ({
+        memberId: d.memberByFirst(x.first).id,
+        groupId: gid(x.groupKey),
+        roleId: roleId(x.role),
+        status: x.status,
+        isHome: false,
+        ...decided(x.status),
+      })),
+    ]);
+    await tx
+      .insert(s.follows)
+      .values(
+        d.FOLLOWS.map((f) => ({ memberId: d.memberByFirst(f.first).id, groupId: gid(f.groupKey) })),
+      );
+    await tx.insert(s.memberPrivileges).values(
+      d.MEMBER_PRIVILEGES.flatMap((p) =>
+        p.privileges.map((privilege) => ({
+          memberId: d.memberByFirst(p.first).id,
+          privilege,
+          grantedByUserId: d.PLATFORM_USERS[0]!.id,
+        })),
+      ),
     );
 
     // societies & committees
@@ -140,15 +193,45 @@ async function main() {
           .map((first) => d.MEMBERS.find((x) => x.firstName === first)!.id)
           .concat(d.leaderOf(soc.leader)?.id ?? []),
       );
-      await tx.insert(s.societyMembers).values([...ids].map((memberId) => ({ societyId: soc.id, memberId })));
+      await tx
+        .insert(s.societyMembers)
+        .values([...ids].map((memberId) => ({ societyId: soc.id, memberId })));
     }
 
     // subscriptions: one of each state for gate testing
     await tx.insert(s.subscriptions).values([
-      { groupId: gid("parA1"), subscriptionTypeId: plan("PREMIUM"), status: "ACTIVE", startsAt: daysFromNow(-60), expiresAt: daysFromNow(305), smsBalance: 1850 },
-      { groupId: gid("parA2"), subscriptionTypeId: plan("BASIC"), status: "TRIAL", startsAt: daysFromNow(-5), expiresAt: daysFromNow(25), smsBalance: 100 },
-      { groupId: gid("parB1"), subscriptionTypeId: plan("BASIC"), status: "EXPIRED", startsAt: daysFromNow(-400), expiresAt: daysFromNow(-35), smsBalance: 0 },
-      { groupId: gid("archPar"), subscriptionTypeId: plan("ULTIMATE"), status: "ACTIVE", startsAt: daysFromNow(-10), expiresAt: daysFromNow(355), smsBalance: 10000 },
+      {
+        groupId: gid("parA1"),
+        subscriptionTypeId: plan("PREMIUM"),
+        status: "ACTIVE",
+        startsAt: daysFromNow(-60),
+        expiresAt: daysFromNow(305),
+        smsBalance: 1850,
+      },
+      {
+        groupId: gid("parA2"),
+        subscriptionTypeId: plan("BASIC"),
+        status: "TRIAL",
+        startsAt: daysFromNow(-5),
+        expiresAt: daysFromNow(25),
+        smsBalance: 100,
+      },
+      {
+        groupId: gid("parB1"),
+        subscriptionTypeId: plan("BASIC"),
+        status: "EXPIRED",
+        startsAt: daysFromNow(-400),
+        expiresAt: daysFromNow(-35),
+        smsBalance: 0,
+      },
+      {
+        groupId: gid("archPar"),
+        subscriptionTypeId: plan("ULTIMATE"),
+        status: "ACTIVE",
+        startsAt: daysFromNow(-10),
+        expiresAt: daysFromNow(355),
+        smsBalance: 10000,
+      },
     ]);
 
     // accounting linkage
@@ -189,6 +272,62 @@ async function main() {
         };
       }),
     );
+
+    // Bible (D-023): two public-domain translations, sample verses only
+    const translations = await tx.insert(s.bibleTranslations).values([...BIBLE_TRANSLATIONS]).returning();
+    for (const t of translations) {
+      await tx.insert(s.bibleVerses).values(sampleVerses(t.code).map((v) => ({ ...v, translationId: t.id })));
+    }
+
+    // hymnal (D-026): NCH + CH books, public-domain hymns, no media files
+    const bookRows = await tx.insert(s.hymnBooks).values([...HYMN_BOOKS]).returning();
+    const bookId = (code: string) => bookRows.find((b) => b.code === code)!.id;
+    for (const h of SEED_HYMNS) {
+      const [row] = await tx
+        .insert(s.hymns)
+        .values({ slug: h.slug, title: h.title, firstLine: h.firstLine, author: h.author, verses: h.verses, source: "Public domain" })
+        .returning({ id: s.hymns.id });
+      if (h.numbers.length)
+        await tx.insert(s.hymnNumbers).values(
+          h.numbers.map((n) => ({
+            hymnId: row!.id,
+            bookId: bookId(n.book),
+            number: normalizeHymnNumber(n.number),
+            sortKey: hymnNumberKey(n.number),
+          })),
+        );
+      if (h.tags.length) await tx.insert(s.hymnTags).values(h.tags.map((tag) => ({ hymnId: row!.id, tag })));
+      await tx.insert(s.hymnTunes).values(h.tunes.map((t, position) => ({ ...t, position, hymnId: row!.id })));
+    }
+
+    // saints (D-025): original short biographies
+    await tx.insert(s.saints).values(
+      SEED_SAINTS.map((x) => ({
+        slug: slugify(x.name),
+        name: x.name,
+        title: x.title,
+        feastMonth: x.feast[0],
+        feastDay: x.feast[1],
+        rank: x.rank,
+        summary: x.summary,
+        patronage: x.patronage,
+        born: x.born,
+        died: x.died,
+        biography: x.biography,
+        source: "Ecclesios",
+      })),
+    );
+
+    // readings (D-022): placeholder text around today
+    for (const day of sampleReadingDays()) {
+      const [row] = await tx
+        .insert(s.readingDays)
+        .values({ date: day.date, celebration: day.celebration, source: day.source })
+        .returning({ id: s.readingDays.id });
+      await tx
+        .insert(s.readings)
+        .values(day.readings.map((r, position) => ({ ...r, position, readingDayId: row!.id })));
+    }
 
     // a notification + audit entry so those screens aren't empty
     await tx.insert(s.notifications).values({

@@ -13,7 +13,8 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 60_000,
       // Retry network failures and 5xx only; a 4xx won't change on retry.
-      retry: (count, err) => count < 2 && !(err instanceof ApiClientError && err.status >= 400 && err.status < 500),
+      retry: (count, err) =>
+        count < 2 && !(err instanceof ApiClientError && err.status >= 400 && err.status < 500),
       refetchOnWindowFocus: false,
     },
   },
