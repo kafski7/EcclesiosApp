@@ -218,7 +218,7 @@ Binary media never passes through the API process — clients upload/download di
 
 - **PostgreSQL 16+** (Docker) — hierarchy tree, enums, RBAC joins, full-text search (`tsvector`/`pg_trgm`) for saints/hymns/teachings/Bible.
 - **Redis** — BullMQ queues (SMS/email blasts, notifications, digests) + caching.
-- **S3-compatible object storage** — MinIO locally, Cloudflare R2/S3 in production; presigned URLs for hymn audio, MIDI, notation PDFs, podcast episodes, member photos.
+- **S3-compatible object storage** — MinIO locally, Cloudflare R2/S3 in production; presigned URLs for hymn audio, MIDI, notation PDFs, podcast episodes and handouts, member photos. Hosted video, when added, goes through a managed video service rather than plain object storage (D-029).
 - **Docker Compose** for dev (postgres + redis + minio); the API deploys as a container, the frontends as static builds.
 
 **External services**
@@ -272,10 +272,12 @@ The database is designed to be normalized and efficient, with each feature area 
 - `readings` / `reading_days` — daily Mass readings mapped to the liturgical calendar (first reading, psalm, second reading, gospel; season & feast metadata).
 - `saints` — saint directory (feast day, patronage, biography) with a "saint of the day" schedule.
 - `hymn_books`, `hymns`, `hymn_numbers` (book × number), `hymn_tags`, `hymn_tunes`, `hymn_media` (recordings, MIDI, staff/sol-fa PDFs as object keys; YouTube ids), each media item Free or Subscriber (D-026).
-- `podcasts` — podcast series; `podcast_episodes` — episodes with audio attachments and publisher (platform or privileged account).
-- `teachings` — catechesis articles with topic taxonomy; `teaching_topics`.
+- `podcasts` — podcast series with one owner (platform account or member holding `POST_PODCASTS`) and a cover key; `podcast_episodes` — DRAFT/PUBLISHED episodes with a primary media kind (AUDIO / YOUTUBE; VIDEO reserved), audio object key, YouTube id, access level, transcript, duration and show notes; `podcast_attachments` (PDF handouts); `podcast_follows` (D-027, D-029).
+- `teaching_topics`, `teachings` (lesson source in the D-030 text format + plain text for search, reading time, reviewed-by, DRAFT/PUBLISHED), `teaching_topic_links`, `teaching_relations` (D-030).
+- `news` — Ecclesios announcements (draft / scheduled / live, pinned, expiry) (D-032); `hymn_picks` — Super-Admin choice of hymn of the day per date (D-033).
+- `reactions` — likes and saves by members on posts, teachings, episodes and hymns (D-035).
 - `bible_translations`, `bible_verses` — Bible reader data (the canon and book names live in `packages/shared`, D-023). GNB text is copyrighted, so structured verses come from a licensed provider (e.g. API.Bible); development starts with a public-domain translation behind the same schema, and GNB is enabled once licensed.
-- `posts` / `events` — Explore content: church/priest profiles, events, educational posts; moderation state.
+- `posts` — Explore articles and events (DRAFT/PENDING/APPROVED/REJECTED/REMOVED), author = person or church; `post_comments` + `comment_reports`; `church_profiles` (D-031).
 - Media columns (hymn recordings, MIDI, notation PDFs, podcast audio, member photos) store **object-storage keys**, with binaries in S3-compatible storage — never in the database or on the API server's disk.
 
 **Out of scope (accounting):**

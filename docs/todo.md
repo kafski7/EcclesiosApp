@@ -157,30 +157,73 @@
 - [ ] Personal (listener) subscriptions, paywall on, **playlists and play queues** _(later phase — D-026)_
 - [ ] Links from saints and feasts to hymns
 
-### 5.5 Podcasts _(functionality §3.5)_
+### 5.5 Podcasts _(functionality §3.5, D-027)_
 
-- [ ] Schema: `podcasts` (series), `podcast_episodes` (audio object key, show notes, publisher ref)
-- [ ] **Privilege grant**: "can post podcasts" flag/grant on `users` accounts, assignable by Super-Admin _(functionality §1 note)_
-- [ ] API: list/stream episodes; publish endpoints gated to platform admin + granted accounts; follow-series + new-episode notification fan-out (BullMQ)
-- [ ] Web: podcast browser, series pages, episode player, follow buttons
+- [x] Shared: podcast rules (`podcasts.ts`: who may publish, who manages a series, publish needs audio, durations) with tests; podcast contracts
+- [x] Schema: `podcasts` (one owner: user or member, cover key), `podcast_episodes` (DRAFT/PUBLISHED, audio key, duration, notes, number unique per series), `podcast_follows` — migration `0006` generated on your machine
+- [x] **Privilege grant**: `POST_PODCASTS` on users or members (`user_privileges` / `member_privileges`, D-017); revoking freezes the owner's series
+- [x] API: public list/search, series page, short-lived stream URLs; member follow/unfollow; studio CRUD with presigned cover + audio uploads, publish/unpublish; first publish notifies followers (one INSERT … SELECT)
+- [x] Web: podcast browser with search, series page with follow button, episode player
+- [x] Console: Platform → Podcasts for Super-Admins; Creator studio for creator accounts
+- [x] Seed: two series (Ecclesios, sample creator) with draft episodes; `PODCAST_EPISODE` notification type
+- [x] API e2e: who may publish, drafts vs published, audio required, upload type check, one notification per first publish, follows
+- [x] Social ↔ CMS links use `VITE_ADMIN_URL`; `/cms-login` placeholder removed (D-028)
+- [x] **Episode media (D-029):** primary media AUDIO or YOUTUBE (both allowed), VIDEO reserved; transcript; PDF handouts; per-episode FREE/SUBSCRIBER access under one `LISTENER_PAYWALL` switch — migration `0007` generated on your machine
+- [x] Web **mini-player**: persists across pages and reloads, refreshes expired URLs, lock-screen controls; Watch (embedded YouTube), Transcript and handout links on episodes
+- [x] Console: episode editor for primary media, access, transcript, YouTube link and handouts
+- [ ] Hosted video through a managed video service (Cloudflare Stream / Mux) — enable `VIDEO` _(later)_
+- [ ] Move follower fan-out to a BullMQ worker _(Phase 7)_
+- [ ] Studio for member creators (profile → My podcasts) and grant/revoke UI _(Phase 8)_
+- [ ] Verify on a real machine: `pnpm db:generate` (0006), `db:setup`, typecheck, unit tests, API e2e; upload and play an episode
 
-### 5.6 Teachings _(functionality §3.7)_
+### 5.6 Teachings _(functionality §3.7, D-030)_
 
-- [ ] Schema: `teaching_topics`, `teachings` (long-form, cross-linked)
-- [ ] API: topic taxonomy, search, related-teaching links; admin CRUD
-- [ ] Web: topic browsing, search, reading view
+- [x] Shared: lesson format (`teachings.ts`: `parseLesson`, inline references to Bible / CCC / teachings, `lessonReferences`, `readingMinutes`, `lintLesson`) with tests; teaching contracts
+- [x] Schema: `teaching_topics`, `teachings` (weighted full-text index), `teaching_topic_links`, `teaching_relations` — migration `0008` generated on your machine
+- [x] Seed: 7 topics, 5 short original lessons (sacraments, Baptism, Eucharist, prayer, human dignity)
+- [x] API: topics, search / topic filter, lesson with related teachings; Super-Admin CRUD, publish blocked while the lesson has problems, topic management
+- [x] Web: topic tiles, search, lesson reader (Bible links into the reader, CCC chips, related teachings)
+- [x] Console: Platform → Teachings — list, topics, editor with toolbar, live preview and problems list
+- [ ] Have a priest review the seeded lessons; fill in "Reviewed by" _(before launch)_
+- [ ] Offline reading of saved teachings _(Phase 9, PWA)_
 
-### 5.7 Explore _(functionality §3.4)_
+### 5.7 Explore _(functionality §3.4, D-031)_
 
-- [ ] Schema: `posts`, `events` (types: church profile, priest profile, event, educational content; moderation state); author = person or church (D-017); `comments`
-- [ ] API: authoring endpoints gated by `canPostAsSelf` / `canPostAsChurch` (D-017); comments for any signed-in person; moderation queue endpoints for Super-Admin
-- [ ] Web: authoring UI (for churches/priests/PYC executives); public browsing of approved content
-- [ ] Super-Admin: moderation queue (approve/reject with audit logging) _(functionality §6)_
+- [x] Shared: post workflow (`nextPostStatus`, `canManagePost`, `postProblems`, `submitSkipsQueue`), comment rules; contracts
+- [x] Schema: `posts` (article/event, author person or church, review fields, full-text index), `post_comments`, `comment_reports`, `church_profiles` — migration `0009` generated on your machine
+- [x] API: public feed (all / events upcoming-past / articles / church / following / search), post page, comments, church page; authoring gated by `canPostAsSelf` / `canPostAsChurch` (D-017) with drafts, submit, edit-returns-to-draft, cover upload; Super-Admin queue, approve / reject / remove, reported comments — all audited
+- [x] Notifications: author on review; church followers once on first approval (one INSERT … SELECT)
+- [x] Web: Explore feed with tabs, post page with comments (report / hide / delete), church pages with follow and inline editing, "My posts" and the editor with live preview
+- [x] Console: Platform → Explore moderation (queue with preview, reported comments); Explore posts for platform accounts (creators, Super-Admins)
+- [x] Seed: church posts (events + article), a pending creator post, a draft, a church profile, a comment
+- [x] API e2e: who may post, drafts and submit, incomplete events, review, edit-takes-down, followers notified once, creators, Super-Admin direct publish, comments (hide / report once / delete own), church page editing
+- [ ] Trust levels (experienced authors skip the queue) and image moderation _(Phase 9)_
+- [ ] Move follower fan-out to a worker _(Phase 7)_
+- [ ] Creator applications (members apply for `AUTHOR_EXPLORE`) _(Phase 8)_
+- [ ] Verify on a real machine: `pnpm db:generate` (0009), `db:setup`, typecheck, unit tests, API e2e; write → review → publish → comment
 
-### 5.8 Home feed _(functionality §3.1)_
+### 5.8 News + Home _(functionality §3.1, D-032, D-033)_
 
-- [ ] API: blended feed endpoint (events, saint of the day, hymn highlights, new teachings, latest episodes, approved Explore posts); personalised for signed-in members (church/society content)
-- [ ] Web: Home landing assembling section cards with deep links
+- [x] **Fix**: correlated subqueries now qualify outer columns (`qcol`) — topic counts, hymn tune/media counts, podcast order; e2e checks added
+- [x] Shared: `news.ts` (live / current / pinned order) and `home.ts` (`hymnOfDay`, `rankTrending`, `mergeFeed`) with tests; news and home contracts
+- [x] Schema: `news` (draft / scheduled / live, pinned, expiry, link), `hymn_picks` — migration `0010` generated on your machine
+- [x] Seed: two live news items (one pinned) and a draft; three non-seasonal public-domain hymns so Ordinary Time has a hymn of the day
+- [x] API: public news list / item; Super-Admin news CRUD, publish now / schedule / back to draft; home summary (today, saint, hymn of the day, news, trending, events); blended feed (For you / Following); pin the hymn of the day
+- [x] Web: Home with today card, feed tabs, blended feed cards (posts, teachings, episodes with Listen, news), Twitter-style sticky rail; `/news` and `/news/:slug`; More → Ecclesios news; Explore accepts `?q=`
+- [x] Console: Platform → News (list, editor with preview, publish / schedule) and the hymn-of-the-day picker
+- [x] **Watch row** on Home (D-034): newest YouTube videos from episodes, Explore posts and hymns; swipeable strip, pop-up player; e2e check
+- [ ] Hashtags on Explore posts → real "trending topics" _(later — D-033)_
+- [ ] Personalise For you with the member's own church and societies _(Phase 6, after CMS notices)_
+- [ ] Cache the home summary per date (Redis) once traffic needs it _(Phase 9)_
+
+### 5.9 Likes, saves, shares, comment rules _(functionality §3.4a, D-035)_
+
+- [x] Shared: `engagement.ts` (keys, paths, compact counts, `containsLink`, mention tokens / encode / segments / caret query) with tests; trending counts likes
+- [x] Schema: `reactions` (member × kind × item × LIKE/SAVE) — migration `0011` generated on your machine; `COMMENT_MENTION` notification type
+- [x] API: public like counts + own state (batched), like / unlike / save / unsave, Saved list; comments refuse links; mention suggestions (conversation + own churches), mention check and notification; reactions deleted with their item
+- [x] Web: like · comment · save · share bar on post, teaching, episode and hymn cards and pages; Saved page (More menu); comment box with @ suggestions and a link warning; mentions shown as names
+- [x] e2e: likes / saves / Saved, guests and platform accounts refused, links refused, mentions allowed / refused / notified
+- [ ] `@username` handles _(Phase 8, member profiles)_
 
 ## Phase 6 — CMS Operational Modules (API + admin)
 
@@ -233,7 +276,7 @@
 - [ ] **`sessions` table** for multi-device refresh tokens (D-007)
 - [ ] Move the web refresh token from localStorage to an httpOnly, SameSite cookie (D-012)
 - [ ] **PWA polish**: offline app shell, offline readings/Bible/hymns via IndexedDB, update prompts _(functionality §6)_
-- [ ] Full-text search audit (`tsvector`/`pg_trgm`) across saints, hymns, teachings, Bible _(blueprint §6)_
+- [ ] **Global search**: one search box in the top bar opening a results page across every section — readings, saints, hymns, Bible, teachings, podcasts, Explore, news; full-text audit (`tsvector`/`pg_trgm`) _(blueprint §6)_
 - [ ] Audit-trail coverage check: logins, oversight actions, moderation, messaging all recorded
 - [ ] Performance pass: feed pagination, N+1 audit on group-scoped queries, DB indexes verified under realistic seed volume
 - [ ] Accessibility pass on the social platform (keyboard nav, contrast, screen-reader labels)
@@ -246,6 +289,7 @@
 - [ ] Database migration strategy for prod (drizzle-kit `migrate` in release pipeline; backups + restore rehearsal)
 - [ ] Monitoring: pino log aggregation, error tracking (e.g. Sentry), uptime checks, BullMQ queue depth alerts
 - [ ] Domain + TLS; CORS/origins per app (`web`, `admin`); PWA install banners verified on prod
+- [ ] **Link previews for shared links** (Open Graph / Twitter meta tags rendered on the server for posts, teachings, episodes, hymns, saints, news, readings) _(D-035)_
 - [ ] Seed production reference data: roles, themes, currencies, **first real province → diocese → deanery → parish hierarchy**
 - [ ] **Bible licensing in place (GNB) before public launch** or launch with the public-domain translation clearly labelled _(blueprint §7)_
 - [ ] Pilot: onboard one parish + its outstations end-to-end (subscribe → create users → members → societies → messaging → approval queue)

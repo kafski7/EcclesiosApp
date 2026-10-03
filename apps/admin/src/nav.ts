@@ -5,7 +5,11 @@ import {
   Cake,
   CreditCard,
   FileStack,
+  GraduationCap,
   LayoutDashboard,
+  Megaphone,
+  Compass,
+  Mic,
   Music,
   ListChecks,
   Mail,
@@ -75,7 +79,16 @@ export const PLATFORM_NAV: readonly NavItem[] = [
   { to: "/platform", label: "Overview", icon: LayoutDashboard },
   { to: "/platform/subscriptions", label: "Subscriptions", icon: CreditCard },
   { to: "/platform/hymnal", label: "Hymnal", icon: Music },
-  { to: "/platform/moderation", label: "Moderation", icon: ShieldCheck },
+  { to: "/platform/podcasts", label: "Podcasts", icon: Mic },
+  { to: "/platform/teachings", label: "Teachings", icon: GraduationCap },
+  { to: "/platform/news", label: "News", icon: Megaphone },
+  { to: "/platform/explore", label: "Explore moderation", icon: ShieldCheck },
   { to: "/platform/creators", label: "Creators", icon: Users },
   { to: "/platform/reference", label: "Reference data", icon: FileStack },
+];
+
+/** Creator accounts (D-027, D-031): their own podcasts and Explore posts. */
+export const CREATOR_NAV: readonly NavItem[] = [
+  { to: "/platform/podcasts", label: "Podcasts", icon: Mic },
+  { to: "/platform/explore/mine", label: "Explore posts", icon: Compass },
 ];

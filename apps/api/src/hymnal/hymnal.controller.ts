@@ -27,7 +27,7 @@ const AdminListQuery = z.object({ q: z.string().trim().max(100).default("") });
 
 /**
  * Public signed-out viewer. Personal subscriptions don't exist yet, so the public API sees everyone
- * as a non-subscriber; with HYMNAL_PAYWALL off (default) every item is open anyway (D-026).
+ * as a non-subscriber; with LISTENER_PAYWALL off (default) every item is open anyway (D-026).
  */
 const PUBLIC_VIEWER = { staff: false, subscribed: false };
 

@@ -115,6 +115,14 @@ The main application is what every user sees. It has a fixed primary navigation 
 - A blended feed that "shows a bit of all the posts": upcoming events, saint of the day, hymn highlights, new teachings, latest podcast episodes, and featured Explore content.
 - Sections are ordered by relevance/recency; signed-in users additionally see content from their church and societies.
 - Entry cards deep-link into each dedicated section.
+- **Implemented (Phase 5.8, D-032, D-033):**
+  - **Today card:** the liturgical day and the day's Gospel, linking to Readings.
+  - **Watch row (D-034):** a horizontal, swipeable row of the newest videos — podcast episodes, Explore posts and hymns with YouTube links. Tapping one plays it in a pop-up player with a link to its page.
+  - **Feed tabs:** *For you* — new Explore posts, new teachings, new podcast episodes and Ecclesios news, newest first; *Following* — posts from churches and episodes from podcasts the member follows.
+  - **Right rail (sticky, like Twitter's):** **Ecclesios news** (pinned first), **saint of the day**, **hymn of the day** (chosen for the season, or pinned by the Ecclesios team for a feast), **trending on Explore** (posts with the most recent comments, weighed against age), **upcoming events**.
+  - The "Write" box appears only for people who may post on Explore (D-017).
+  - API: `GET /api/public/home?date=` · `GET /api/public/home/feed?tab=for-you|following&page=`.
+- **Ecclesios news (D-032):** official announcements from the Ecclesios team — published at once or scheduled, optionally pinned, optionally leaving Home after a date. `/news`, `/news/:slug`; `GET /api/public/news`, `GET /api/public/news/:slug`; Super-Admin `/api/platform/news`.
 
 ### 3.2. Readings
 
@@ -137,12 +145,24 @@ The main application is what every user sees. It has a fixed primary navigation 
 - Content types: **church profiles, priest profiles, events, and educational content** (articles, catechetical resources, media posts).
 - Authored content enters a **moderation queue**; Super-Admins approve before it appears publicly.
 - Public users browse approved content: upcoming events across churches, educational posts, church and priest profiles.
+- **Implemented (Phase 5.7, D-031):** posts are **articles** or **events**; drafts are submitted for review; any edit takes a post back to draft until it is reviewed again. Members comment (post-moderated: visible at once, hidden after 3 reports or by the post's church/author; Super-Admins review reports). Church pages show the church's about text, Mass times and contact details (edited by its Administrators) with its posts and a Follow button; "Churches I follow" lists their posts. API: `GET /api/public/explore/posts?kind=&church=&following=1&past=1&q=` · `GET /api/public/explore/posts/:id` (+ `/comments`) · `GET /api/public/explore/churches/:id` · authoring under `/api/explore/my-posts` · comments under `/api/explore/…` · moderation under `/api/platform/explore` (Super-Admin). Web: `/explore`, `/explore/posts/:id`, `/explore/churches/:id`, `/explore/mine`, `/explore/write/:id`. Console: Platform → Explore moderation; creators: Explore posts.
+
+### 3.4a. Likes, saves, shares and comments (D-035)
+
+- **Like (♥), Save and Share** on Explore posts, teachings, podcast episodes and hymns. Like counts show on every card; what you save is private and listed under **Saved** (More menu).
+- **Share** opens the phone's share menu (WhatsApp, SMS…) or copies the link on a computer.
+- **Comments** are on Explore posts only. They **cannot contain links**. Type **@** to mention someone from the conversation or from your own church; they are notified. (Personal @usernames come with member profiles.)
 
 ### 3.5. Podcasts
 
-- A podcast library of **series** and their **episodes** (audio, with show notes).
+- A podcast library of **series** and their **episodes**. Each episode leads with **uploaded audio** or a **YouTube / YouTube Music video** (embedded player), and may carry both; show notes, an optional **transcript** and **PDF handouts** (D-029).
+- **Video later:** self-hosted video is reserved for a managed video service (smaller versions for mobile data); until then video comes from YouTube links. The section may be renamed (e.g. "Listen & Watch") once hosted video exists.
+- **Access:** each episode is free or subscribers-only; everything stays open until listener subscriptions launch (D-026, D-029).
+- **Mini-player:** audio keeps playing in a bar at the bottom while you browse, resumes where you left off, and works with lock-screen controls.
 - **Platform admins** are the primary publishers. Churches, priests, PYC executives, etc. **who have been granted the privilege** can also post episodes/series.
 - Users browse, search, stream episodes, and follow series; new-episode notifications for followers.
+- **Implemented (Phase 5.5, D-027):** `GET /api/public/podcasts?q=&category=&page=` · `GET /api/public/podcasts/:slug` (published episodes, newest first) · `GET /api/public/podcasts/episodes/:id/url` (short-lived stream link). Members: `GET /api/podcasts/following`, `PUT|DELETE /api/podcasts/:slug/follow`. Publishing studio for Super-Admins and `POST_PODCASTS` holders: `/api/studio/podcasts` (series, cover upload, episodes, presigned audio upload, publish / unpublish, delete). A series belongs to one owner; episodes are drafts until their audio is uploaded and they are published; followers are notified on the first publish. Web: `/podcasts`, `/podcasts/:slug`. Console: Platform → Podcasts (Super-Admins) and the Creator studio (creator accounts).
+- **Added in D-029:** `GET /api/public/podcasts/episodes/:id/transcript` · `GET /api/public/podcasts/attachments/:id/url`; studio `PUT …/episodes/:id/youtube`, `POST …/episodes/:id/attachment-upload`, `POST …/episodes/:id/attachments`, `DELETE …/attachments/:attachmentId`; episodes carry `mediaKind`, `access`, `transcript`.
 
 ### 3.6. Hymnal
 
@@ -166,6 +186,8 @@ The main application is what every user sees. It has a fixed primary navigation 
 - A dedicated catechesis library: teachings about the Catholic Church and the faith.
 - Organised by **topic** (sacraments, morality, prayer, liturgy, Church history, social teaching, apologetics, etc.).
 - Users search for topics and read structured, long-form lessons; related teachings are cross-linked.
+- **Official content (D-030):** written and published by Ecclesios administrators, with an optional "Reviewed by" line (e.g. a priest). Lessons cite the Bible (links open the reader) and the Catechism by paragraph number (e.g. CCC 1324).
+- **Implemented (Phase 5.6):** `GET /api/public/teachings/topics` · `GET /api/public/teachings?q=&topic=&page=` · `GET /api/public/teachings/:slug` (lesson source, topics, reading time, related). Super-Admin: `/api/platform/teachings` (create, edit, publish / unpublish — refused while the lesson has problems — delete) and `/api/platform/teachings/topics`. Web: `/teachings`, `/teachings/:slug`. Console: Platform → Teachings, with a live preview.
 
 ### 3.8. Bible
 

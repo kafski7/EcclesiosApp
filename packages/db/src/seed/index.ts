@@ -16,7 +16,11 @@ import { BIBLE_TRANSLATIONS, sampleVerses } from "./bible";
 import { sampleReadingDays } from "./readings";
 import { SEED_SAINTS } from "./saints";
 import { HYMN_BOOKS, SEED_HYMNS } from "./hymnal";
-import { hymnNumberKey, normalizeHymnNumber, slugify } from "@ecclesios/shared/domain";
+import { SEED_PODCASTS } from "./podcasts";
+import { SEED_CHURCH_PROFILES, SEED_COMMENTS, SEED_POSTS } from "./explore";
+import { SEED_TEACHINGS, TEACHING_TOPICS } from "./teachings";
+import { SEED_NEWS } from "./news";
+import { hymnNumberKey, lessonText, normalizeHymnNumber, parseLesson, readingMinutes, slugify } from "@ecclesios/shared/domain";
 
 loadEnv();
 
@@ -298,6 +302,89 @@ async function main() {
         );
       if (h.tags.length) await tx.insert(s.hymnTags).values(h.tags.map((tag) => ({ hymnId: row!.id, tag })));
       await tx.insert(s.hymnTunes).values(h.tunes.map((t, position) => ({ ...t, position, hymnId: row!.id })));
+    }
+
+    // podcasts (D-027): series + draft episodes (no audio in dev)
+    for (const p of SEED_PODCASTS) {
+      const { episodes, owner, ...series } = p;
+      const [row] = await tx
+        .insert(s.podcasts)
+        .values({
+          ...series,
+          ownerUserId: owner === "SUPER" ? d.seedId(900) : d.seedId(901),
+        })
+        .returning({ id: s.podcasts.id });
+      await tx.insert(s.podcastEpisodes).values(episodes.map((e) => ({ ...e, podcastId: row!.id })));
+    }
+
+    // explore (D-031): church posts, a pending creator post, a profile, a comment
+    const postIds = new Map<string, string>();
+    for (const p of SEED_POSTS) {
+      const author = p.church ? d.memberBy(p.church, "ADMINISTRATOR") : d.memberByFirst(p.author!);
+      const startsAt = p.startsInDays !== undefined ? daysFromNow(p.startsInDays) : null;
+      const [row] = await tx
+        .insert(s.posts)
+        .values({
+          kind: p.kind,
+          status: p.status,
+          authorMemberId: author.id,
+          churchId: p.church ? gid(p.church) : null,
+          title: p.title,
+          summary: p.summary,
+          body: p.body,
+          startsAt,
+          endsAt: startsAt && p.durationHours ? new Date(startsAt.getTime() + p.durationHours * 3_600_000) : null,
+          place: p.place ?? null,
+          submittedAt: p.status === "DRAFT" ? null : daysFromNow(-2),
+          publishedAt: p.status === "APPROVED" ? daysFromNow(-1) : null,
+          reviewedByUserId: p.status === "APPROVED" ? d.PLATFORM_USERS[0]!.id : null,
+        })
+        .returning({ id: s.posts.id });
+      postIds.set(p.title, row!.id);
+    }
+    await tx.insert(s.churchProfiles).values(SEED_CHURCH_PROFILES.map(({ church, ...x }) => ({ ...x, groupId: gid(church) })));
+    await tx.insert(s.postComments).values(
+      SEED_COMMENTS.map((c) => ({ postId: postIds.get(c.post)!, memberId: d.memberByFirst(c.author).id, body: c.body })),
+    );
+
+    // teachings (D-030): topics + short original lessons (published, for review)
+    const topicRows = await tx.insert(s.teachingTopics).values([...TEACHING_TOPICS]).returning();
+    const teachingIds = new Map<string, string>();
+    for (const t of SEED_TEACHINGS) {
+      const blocks = parseLesson(t.body);
+      const [row] = await tx
+        .insert(s.teachings)
+        .values({
+          slug: t.slug,
+          title: t.title,
+          summary: t.summary,
+          body: t.body,
+          plain: lessonText(blocks),
+          readingMinutes: readingMinutes(blocks),
+          source: "Ecclesios",
+          status: "PUBLISHED",
+          publishedAt: new Date(),
+        })
+        .returning({ id: s.teachings.id });
+      teachingIds.set(t.slug, row!.id);
+      await tx.insert(s.teachingTopicLinks).values(
+        t.topics.map((slug, position) => ({ teachingId: row!.id, topicId: topicRows.find((x) => x.slug === slug)!.id, position })),
+      );
+    }
+    for (const t of SEED_TEACHINGS)
+      if (t.related.length)
+        await tx.insert(s.teachingRelations).values(
+          t.related.map((r, position) => ({ fromId: teachingIds.get(t.slug)!, toId: teachingIds.get(r)!, position })),
+        );
+
+    // platform news (D-032)
+    for (const n of SEED_NEWS) {
+      const { daysAgo, ...values } = n;
+      await tx.insert(s.news).values({
+        ...values,
+        publishedAt: n.status === "PUBLISHED" ? daysFromNow(-daysAgo) : null,
+        authorUserId: d.PLATFORM_USERS[0]!.id,
+      });
     }
 
     // saints (D-025): original short biographies

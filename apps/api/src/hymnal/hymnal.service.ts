@@ -29,8 +29,9 @@ import { and, asc, count, desc, eq, ilike, inArray, or, sql } from "drizzle-orm"
 import type { z } from "zod";
 import { AuditService } from "../audit/audit.service";
 import { DomainError } from "../auth/core/errors";
-import { ENV, type Env } from "../config/env";
+import { ENV, listenerPaywall, type Env } from "../config/env";
 import { DB, type Database } from "../db/db.module";
+import { qcol } from "../db/qualified";
 import { MediaService } from "../media/media.service";
 
 const PAGE = 30;
@@ -51,7 +52,7 @@ export class HymnalService {
   ) {}
 
   private get paywall() {
-    return this.env.HYMNAL_PAYWALL;
+    return listenerPaywall(this.env);
   }
 
   // ------------------------------------------------------------------ books
@@ -63,7 +64,7 @@ export class HymnalService {
         name: hymnBooks.name,
         country: hymnBooks.country,
         publisher: hymnBooks.publisher,
-        hymnCount: sql<number>`(select count(*)::int from ${hymnNumbers} where ${hymnNumbers.bookId} = ${hymnBooks.id})`,
+        hymnCount: sql<number>`(select count(*)::int from ${hymnNumbers} n where n.book_id = ${qcol(hymnBooks, hymnBooks.id)})`,
       })
       .from(hymnBooks)
       .where(eq(hymnBooks.isActive, true))
@@ -90,7 +91,7 @@ export class HymnalService {
     const offset = (opts.page - 1) * PAGE;
 
     const conditions = [eq(hymns.isPublished, true)];
-    if (opts.tag) conditions.push(sql`exists (select 1 from ${hymnTags} where ${hymnTags.hymnId} = ${hymns.id} and ${hymnTags.tag} = ${opts.tag.toLowerCase()})`);
+    if (opts.tag) conditions.push(sql`exists (select 1 from ${hymnTags} tg where tg.hymn_id = ${qcol(hymns, hymns.id)} and tg.tag = ${opts.tag.toLowerCase()})`);
 
     let ids: string[];
     if (parsed.number) {
@@ -112,7 +113,7 @@ export class HymnalService {
         .where(
           and(
             ...conditions,
-            bookId ? sql`exists (select 1 from ${hymnNumbers} where ${hymnNumbers.hymnId} = ${hymns.id} and ${hymnNumbers.bookId} = ${bookId})` : undefined,
+            bookId ? sql`exists (select 1 from ${hymnNumbers} n where n.hymn_id = ${qcol(hymns, hymns.id)} and n.book_id = ${bookId})` : undefined,
             or(sql`${doc} @@ ${query}`, ilike(hymns.firstLine, like), ilike(hymns.title, like)),
           ),
         )
@@ -172,6 +173,7 @@ export class HymnalService {
       .map((r) => {
         const kinds = media.filter((m) => m.hymnId === r.id).map((m) => m.kind);
         return {
+          id: r.id,
           slug: r.slug,
           title: hymnDisplayTitle(r.title, r.firstLine),
           firstLine: r.firstLine,
@@ -288,8 +290,8 @@ export class HymnalService {
         title: hymns.title,
         firstLine: hymns.firstLine,
         isPublished: hymns.isPublished,
-        tunes: sql<number>`(select count(*)::int from ${hymnTunes} where ${hymnTunes.hymnId} = ${hymns.id})`,
-        media: sql<number>`(select count(*)::int from ${hymnMedia} m join ${hymnTunes} t on t.id = m.tune_id where t.hymn_id = ${hymns.id})`,
+        tunes: sql<number>`(select count(*)::int from ${hymnTunes} t where t.hymn_id = ${qcol(hymns, hymns.id)})`,
+        media: sql<number>`(select count(*)::int from ${hymnMedia} m join ${hymnTunes} t on t.id = m.tune_id where t.hymn_id = ${qcol(hymns, hymns.id)})`,
       })
       .from(hymns)
       .where(q.trim() ? or(ilike(hymns.firstLine, like), ilike(hymns.title, like)) : undefined)

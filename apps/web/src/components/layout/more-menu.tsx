@@ -1,7 +1,8 @@
-import { Bell, Building2, FileText, Info, LogIn, ShieldCheck, UserPlus } from "lucide-react";
+import { Bell, Bookmark, Building2, FileText, Info, LogIn, Megaphone, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SheetClose } from "@/components/ui/sheet";
+import { env } from "@/lib/env";
 import { useSession } from "@/stores/session";
 
 /**
@@ -16,23 +17,28 @@ export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
     icon,
     label,
     hint,
+    external = false,
   }: {
     to: string;
     icon: ReactNode;
     label: string;
     hint?: string;
+    /** Another site (the CMS, D-028): a plain link, not a router link. */
+    external?: boolean;
   }) => {
+    const cls =
+      "flex items-center gap-3 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-[var(--primary-soft)]";
+    const Tag = external
+      ? (p: { children: ReactNode }) => <a href={to} className={cls}>{p.children}</a>
+      : (p: { children: ReactNode }) => <Link to={to} className={cls}>{p.children}</Link>;
     const link = (
-      <Link
-        to={to}
-        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-[var(--primary-soft)]"
-      >
+      <Tag>
         <span className="text-[var(--accent-600)] [&_svg]:size-[18px]">{icon}</span>
         <span className="flex flex-col">
           <span className="text-[14px] font-semibold text-[var(--text)]">{label}</span>
           {hint ? <span className="small muted">{hint}</span> : null}
         </span>
-      </Link>
+      </Tag>
     );
     return <li>{inSheet ? <SheetClose asChild>{link}</SheetClose> : link}</li>;
   };
@@ -47,7 +53,8 @@ export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
           hint="Basic, Premium or Ultimate"
         />
         <Item
-          to="/cms-login"
+          to={`${env.VITE_ADMIN_URL}/login`}
+          external
           icon={<ShieldCheck />}
           label="Church Management login"
           hint="For subscribed churches"
@@ -55,6 +62,7 @@ export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
       </Section>
       <Section title="You">
         <Item to="/notifications" icon={<Bell />} label="Notifications" />
+        {principal?.kind === "member" ? <Item to="/saved" icon={<Bookmark />} label="Saved" /> : null}
         {principal ? null : (
           <>
             <Item to="/login" icon={<LogIn />} label="Sign in" />
@@ -63,6 +71,7 @@ export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
         )}
       </Section>
       <Section title="Ecclesios">
+        <Item to="/news" icon={<Megaphone />} label="Ecclesios news" />
         <Item to="/about" icon={<Info />} label="About" />
         <Item to="/privacy" icon={<FileText />} label="Privacy" />
         <Item to="/terms" icon={<FileText />} label="Terms" />

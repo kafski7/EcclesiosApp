@@ -23,6 +23,8 @@ export const BookNumberSchema = z.object({ book: BookCodeSchema, bookName: z.str
 export type BookNumber = z.infer<typeof BookNumberSchema>;
 
 export const HymnSummarySchema = z.object({
+  /** For likes / saves (D-035). */
+  id: z.string().uuid(),
   slug: HymnSlugSchema,
   title: z.string(),
   firstLine: z.string(),

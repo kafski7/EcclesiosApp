@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cmsNav, PLATFORM_NAV } from "./nav";
+import { cmsNav, CREATOR_NAV, PLATFORM_NAV } from "./nav";
 
 const labels = (n: ReturnType<typeof cmsNav>) => [...n.main, ...n.footer].map((i) => i.label);
 
@@ -39,6 +39,9 @@ describe("CMS sidebar per role × level (blueprint §3.3)", () => {
   });
   it("Parishioners get nothing", () => {
     expect(labels(cmsNav("PARISHIONER", "PARISH"))).toEqual([]);
+  });
+  it("creators only see their studio", () => {
+    expect(CREATOR_NAV.map((i) => i.label)).toEqual(["Podcasts", "Explore posts"]);
   });
   it("platform nav routes are unique", () => {
     expect(new Set(PLATFORM_NAV.map((i) => i.to)).size).toBe(PLATFORM_NAV.length);

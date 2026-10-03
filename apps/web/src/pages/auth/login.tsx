@@ -6,6 +6,7 @@ import { AuthLayout, Field, FormAlert } from "@/components/auth/auth-layout";
 import { ApiClientError } from "@/lib/api";
 import { authErrorMessage, restartsSignIn } from "@/lib/auth-errors";
 import { setFirstPassword, startSignIn, verifyCode } from "@/lib/auth";
+import { env } from "@/lib/env";
 import { useSession } from "@/stores/session";
 
 type Step =
@@ -118,7 +119,7 @@ function CredentialsStep({
         New to Ecclesios? <Link to="/register">Create an account</Link>
       </p>
       <p className="auth-x-switch">
-        Church staff? <Link to="/cms-login">Church Management login</Link>
+        Church staff? <a href={`${env.VITE_ADMIN_URL}/login`}>Church Management login</a>
       </p>
     </>
   );

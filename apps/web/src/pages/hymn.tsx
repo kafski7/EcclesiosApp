@@ -4,6 +4,7 @@ import { ArrowLeft, Download, FileText, Headphones, Lock, Music, Play, Youtube }
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiClientError } from "@/lib/api";
+import { EngageBar } from "@/components/engage/engage-bar";
 import { formatDuration, MEDIA_LABEL, mediaUrl, useHymn } from "@/lib/hymnal";
 
 /** One hymn (functionality §3.6): numbers in each book, lyrics, and every tune with its media (D-026). */
@@ -41,6 +42,7 @@ export function HymnPage() {
         <h1>{h.title}</h1>
         {h.author ? <p className="small muted">Words: {h.author}</p> : null}
         {h.tags.length ? <p className="small muted mt-1">{h.tags.join(" · ")}</p> : null}
+        <EngageBar kind="HYMN" id={h.id} title={h.title} href={`/hymnal/${h.slug}`} size="md" />
       </header>
 
       <article className="card hymn-verses" aria-label="Words">

@@ -21,7 +21,7 @@ export function Topbar() {
         <Menu className="ic" />
       </button>
 
-      {/* Search is wired to real results in Phase 9 (full-text search audit). */}
+      {/* One app-wide search → a results page across every section: Phase 9 (todo "Global search"). */}
       <form className="search" role="search" onSubmit={(e) => e.preventDefault()}>
         <Search className="ic" aria-hidden />
         <input type="search" placeholder="Search readings, saints, hymns…" aria-label="Search" />

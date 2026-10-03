@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { MiniPlayer } from "@/components/player/mini-player";
+import { usePlayer } from "@/stores/player";
 import { useUi } from "@/stores/ui";
 import { MembershipBanner } from "./membership-banner";
 import { MoreMenu } from "./more-menu";
@@ -15,6 +17,7 @@ import { UpdatePrompt } from "./update-prompt";
 export function AppShell() {
   const { navOpen, setNavOpen, moreOpen, setMoreOpen } = useUi();
   const { pathname } = useLocation();
+  const hasPlayer = usePlayer((s) => s.track !== null);
 
   useEffect(() => setNavOpen(false), [pathname, setNavOpen]);
 
@@ -26,7 +29,7 @@ export function AppShell() {
   }, [navOpen, setNavOpen]);
 
   return (
-    <div className={`shell${navOpen ? " nav-open" : ""}`}>
+    <div className={`shell${navOpen ? " nav-open" : ""}${hasPlayer ? " has-player" : ""}`}>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[70] focus:rounded focus:bg-white focus:px-3 focus:py-2"
@@ -50,6 +53,8 @@ export function AppShell() {
         </SheetContent>
       </Sheet>
 
+      {/* Mounted once so playback continues across pages (D-029). */}
+      <MiniPlayer />
       <UpdatePrompt />
     </div>
   );

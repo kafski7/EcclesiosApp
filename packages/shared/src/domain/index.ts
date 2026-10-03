@@ -10,3 +10,8 @@ export * from "./bible.js";
 export * from "./usfm.js";
 export * from "./saints.js";
 export * from "./hymnal.js";
+export * from "./podcasts.js";
+export * from "./teachings.js";
+export * from "./news.js";
+export * from "./home.js";
+export * from "./engagement.js";

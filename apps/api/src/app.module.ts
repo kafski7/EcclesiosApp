@@ -11,7 +11,12 @@ import { ConfigModule } from "./config/config.module";
 import { ENV, type Env } from "./config/env";
 import { DbModule } from "./db/db.module";
 import { HealthModule } from "./health/health.module";
+import { EngageModule } from "./engage/engage.module";
+import { HomeModule } from "./home/home.module";
+import { NewsModule } from "./news/news.module";
 import { HymnalModule } from "./hymnal/hymnal.module";
+import { PodcastsModule } from "./podcasts/podcasts.module";
+import { ExploreModule } from "./explore/explore.module";
 import { MediaModule } from "./media/media.module";
 import { RbacModule } from "./rbac/rbac.module";
 import { MembershipsModule } from "./memberships/memberships.module";
@@ -77,6 +82,11 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
     PlatformModule,
     MediaModule,
     HymnalModule,
+    NewsModule,
+    HomeModule,
+    EngageModule,
+    PodcastsModule,
+    ExploreModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

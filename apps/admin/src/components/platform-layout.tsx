@@ -1,35 +1,36 @@
-import { Link, Outlet } from "react-router-dom";
-import { PLATFORM_NAV } from "@/nav";
+import type { ReactNode } from "react";
+import { Link, Navigate, Outlet } from "react-router-dom";
+import { CREATOR_NAV, PLATFORM_NAV } from "@/nav";
 import { ROLE_LABEL } from "@/lib/cms";
 import { useSession } from "@/stores/session";
 import { Brand } from "./brand";
 import { Shell } from "./shell";
 
-/** Super-Admin console (functionality §2.1). Creators have no console yet (Phase 8). */
+const roleOf = (p: ReturnType<typeof useSession.getState>["principal"]) =>
+  p?.kind === "user" ? p.role : "SUPER_ADMIN";
+
+/** Platform console (functionality §2.1): full console for Super-Admins, the podcast studio for creators (D-027). */
 export function PlatformLayout() {
-  const principal = useSession((s) => s.principal);
-  const role = principal?.kind === "user" ? principal.role : "SUPER_ADMIN";
-  if (role !== "SUPER_ADMIN")
-    return (
-      <main className="cms-auth">
-        <div className="card cms-auth-card empty">
-          <h2>Creator tools are coming</h2>
-          <p>Podcast and Explore publishing for creator accounts arrives in a later release.</p>
-        </div>
-      </main>
-    );
+  const role = roleOf(useSession((s) => s.principal));
+  const creator = role === "CREATOR";
   return (
     <Shell
       sidebarTop={
         <Link to="/platform">
-          <Brand sub="Platform console" />
+          <Brand sub={creator ? "Creator studio" : "Platform console"} />
         </Link>
       }
-      nav={PLATFORM_NAV}
-      user={{ name: "Platform admin", role: ROLE_LABEL[role] ?? role }}
+      nav={creator ? CREATOR_NAV : PLATFORM_NAV}
+      user={{ name: creator ? "Creator" : "Platform admin", role: ROLE_LABEL[role] ?? role }}
       loginPath="/admin-login"
     >
       <Outlet />
     </Shell>
   );
+}
+
+/** /platform: the overview for Super-Admins; creators land in their studio. */
+export function PlatformHome({ overview }: { overview: ReactNode }) {
+  const role = roleOf(useSession((s) => s.principal));
+  return role === "CREATOR" ? <Navigate to="/platform/podcasts" replace /> : <>{overview}</>;
 }

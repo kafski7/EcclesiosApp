@@ -88,6 +88,7 @@ export function createApiClient(opts: ApiClientOptions) {
     put: <T>(path: string, body: unknown, schema: ZodType<T>) => request<T>("PUT", path, schema, body),
     patch: <T>(path: string, body: unknown, schema: ZodType<T>) => request<T>("PATCH", path, schema, body),
     del: <T>(path: string, schema: ZodType<T>) => request<T>("DELETE", path, schema),
+    delVoid: (path: string) => request<void>("DELETE", path, null),
   };
 }
 

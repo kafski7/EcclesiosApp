@@ -11,6 +11,15 @@ import { PlatformOverviewPage } from "@/pages/platform/overview";
 import { PlatformSubscriptionsPage } from "@/pages/platform/subscriptions";
 import { PlatformHymnalPage } from "@/pages/platform/hymnal";
 import { HymnEditPage } from "@/pages/platform/hymn-edit";
+import { PlatformTeachingsPage } from "@/pages/platform/teachings";
+import { TeachingEditPage } from "@/pages/platform/teaching-edit";
+import { PlatformNewsPage } from "@/pages/platform/news";
+import { NewsEditPage } from "@/pages/platform/news-edit";
+import { PlatformPodcastsPage } from "@/pages/platform/podcasts";
+import { PodcastEditPage } from "@/pages/platform/podcast-edit";
+import { ExploreModerationPage } from "@/pages/platform/explore";
+import { ExploreMinePage, ExploreWritePage } from "@/pages/platform/explore-write";
+import { PlatformHome } from "@/components/platform-layout";
 
 const soon = (path: string, title: string, when: string, about: string) => ({
   path,
@@ -65,11 +74,19 @@ export const router = createBrowserRouter([
     ),
     errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <PlatformOverviewPage /> },
+      { index: true, element: <PlatformHome overview={<PlatformOverviewPage />} /> },
       { path: "subscriptions", element: <PlatformSubscriptionsPage /> },
       { path: "hymnal", element: <PlatformHymnalPage /> },
       { path: "hymnal/:slug", element: <HymnEditPage /> },
-      soon("moderation", "Moderation", "Phase 5.7", "Explore posts waiting for approval."),
+      { path: "teachings", element: <PlatformTeachingsPage /> },
+      { path: "teachings/:slug", element: <TeachingEditPage /> },
+      { path: "news", element: <PlatformNewsPage /> },
+      { path: "news/:slug", element: <NewsEditPage /> },
+      { path: "podcasts", element: <PlatformPodcastsPage /> },
+      { path: "podcasts/:slug", element: <PodcastEditPage /> },
+      { path: "explore", element: <ExploreModerationPage /> },
+      { path: "explore/mine", element: <ExploreMinePage /> },
+      { path: "explore/write/:id", element: <ExploreWritePage /> },
       soon(
         "creators",
         "Creators",

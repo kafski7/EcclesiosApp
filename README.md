@@ -17,8 +17,13 @@ build plan [docs/todo.md](docs/todo.md) · decisions [docs/decisions.md](docs/de
 | 5.1 — Readings (D-022) | ✅ built |
 | 5.2 — Bible (D-023, D-024) | ✅ built |
 | 5.3 — Saints (D-025) | ✅ built |
-| 5.4 — Hymnal + media (D-026) | ✅ built — run `pnpm db:generate` once (migration `0005`) |
-| 5.5+ | not started |
+| 5.4 — Hymnal + media (D-026) | ✅ built |
+| 5.5 — Podcasts (D-027 – D-029) | ✅ built |
+| 5.6 — Teachings (D-030) | ✅ built |
+| 5.7 — Explore (D-031) | ✅ built |
+| 5.8 — News + Home (D-032 – D-034) | ✅ built |
+| 5.9 — Likes, saves, shares, comment rules (D-035) | ✅ built — run `pnpm db:generate` once (migration `0011`) |
+| 6+ | not started |
 
 ## Prerequisites
 
@@ -76,6 +81,14 @@ Saints: `curl 'localhost:4000/api/public/saints/today?date=2026-10-04'` · web `
 Hymnal: `curl 'localhost:4000/api/public/hymnal/hymns?q=NCH%2056'` · web `/hymnal`. Upload recordings, MIDI and
 notation in the console (`/admin-login` → Platform → Hymnal). Files go straight from the browser to MinIO
 (`docker compose up -d minio minio-init`); the MinIO console is at http://localhost:9001.
+
+Podcasts: `curl localhost:4000/api/public/podcasts` · web `/podcasts`. Publish in the console:
+`superadmin@…` → Platform → Podcasts, or `creator@…` (Creator studio). Add an episode, upload its
+audio (MinIO must be running), then Publish. Followers get a notification on the first publish.
+
+Explore: web `/explore`. Write as `theresa.pastor@…` (in St Theresa's name) or `akosua.boateng@…`
+(content creator) → My posts → New post → Submit. Approve in the console as `superadmin@…`
+→ Explore moderation. Comment as any member; church pages at `/explore/churches/<id>`.
 
 API e2e tests (need a seeded DB): `pnpm --filter @ecclesios/api test:e2e`. Contract: functionality §2.3.
 

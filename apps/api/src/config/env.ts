@@ -36,7 +36,11 @@ export const EnvSchema = z
       .default("1")
       .transform((v) => v === "1" || v === "true"),
     MEDIA_URL_TTL_SECONDS: z.coerce.number().int().min(30).max(3600).default(600),
-    /** Hymnal paywall for SUBSCRIBER media (D-026). Off until personal plans exist. */
+    /**
+     * Listener paywall for SUBSCRIBER media — hymnal items and podcast episodes (D-026, D-029).
+     * Off until personal plans exist. HYMNAL_PAYWALL is the older name and still works.
+     */
+    LISTENER_PAYWALL: bool,
     HYMNAL_PAYWALL: bool,
     CORS_ORIGINS: z
       .string()
@@ -91,3 +95,7 @@ export function loadDotEnv() {
     /* no .env file — CI / production inject variables directly */
   }
 }
+
+/** One switch for every SUBSCRIBER item (D-029). */
+export const listenerPaywall = (env: Pick<Env, "LISTENER_PAYWALL" | "HYMNAL_PAYWALL">) =>
+  env.LISTENER_PAYWALL || env.HYMNAL_PAYWALL;

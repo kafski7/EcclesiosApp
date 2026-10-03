@@ -1,6 +1,7 @@
 import { FileText, Headphones, Music, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { EngageBar } from "@/components/engage/engage-bar";
 import { useHymnBooks, useHymnSearch } from "@/lib/hymnal";
 
 const TAGS = ["advent", "christmas", "lent", "easter", "entrance", "offertory", "communion", "marian", "recessional"];
@@ -109,6 +110,7 @@ export function HymnalPage() {
                     {h.hasNotation ? <FileText className="ic" /> : null}
                   </span>
                 </Link>
+                <EngageBar kind="HYMN" id={h.id} title={h.title} href={`/hymnal/${h.slug}`} />
               </li>
             );
           })}

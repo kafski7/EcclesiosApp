@@ -72,6 +72,16 @@ describe("hymn page", () => {
   });
 });
 
+describe("console counts (D-033 subquery fix)", () => {
+  it("counts each hymn's own tunes and media", async () => {
+    const t = await token(SUPER, undefined, "admin-login");
+    const r = await http().get("/api/platform/hymnal/hymns?q=away").set({ Authorization: `Bearer ${t}` }).expect(200);
+    expect(r.body.items.find((h: { slug: string }) => h.slug === "away-in-a-manger")).toMatchObject({ tunes: 2 });
+    const books = await http().get("/api/public/hymnal/books").expect(200);
+    expect(books.body.items.find((b: { code: string }) => b.code === "NCH").hymnCount).toBeGreaterThanOrEqual(5);
+  });
+});
+
 describe("Super-Admin management", () => {
   const body = {
     firstLine: "E2E test hymn first line",

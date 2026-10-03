@@ -35,6 +35,10 @@ export const NOTIFICATION_TYPES = [
   { code: "COLLECTION_REVIEW", name: "Collection review", icon: "money" },
   { code: "SUBSCRIPTION", name: "Subscription", icon: "calendar" },
   { code: "MEMBER_REGISTRATION", name: "New member request", icon: "people" },
+  { code: "PODCAST_EPISODE", name: "New podcast episode", icon: "bell" },
+  { code: "EXPLORE_REVIEW", name: "Explore post reviewed", icon: "bell" },
+  { code: "CHURCH_POST", name: "New post from a church you follow", icon: "bell" },
+  { code: "COMMENT_MENTION", name: "Someone mentioned you in a comment", icon: "bell" },
 ];
 
 /** Placeholder prices — confirm before launch (Phase 10). */

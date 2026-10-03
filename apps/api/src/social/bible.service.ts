@@ -5,6 +5,7 @@ import { bookByCode, CANON, canonIndex } from "@ecclesios/shared/domain";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { DomainError } from "../auth/core/errors";
 import { DB, type Database } from "../db/db.module";
+import { qcol } from "../db/qualified";
 
 const notFound = (code: string, message: string) => new DomainError(404, code, message);
 
@@ -23,7 +24,7 @@ export class BibleService {
         isDefault: bibleTranslations.isDefault,
         offlineAllowed: bibleTranslations.offlineAllowed,
         psalmNumbering: bibleTranslations.psalmNumbering,
-        booksLoaded: sql<number>`(select count(distinct ${bibleVerses.book})::int from ${bibleVerses} where ${bibleVerses.translationId} = ${bibleTranslations.id})`,
+        booksLoaded: sql<number>`(select count(distinct v.book)::int from ${bibleVerses} v where v.translation_id = ${qcol(bibleTranslations, bibleTranslations.id)})`,
       })
       .from(bibleTranslations)
       .where(eq(bibleTranslations.isActive, true))

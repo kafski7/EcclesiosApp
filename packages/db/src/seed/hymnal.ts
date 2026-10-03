@@ -104,4 +104,43 @@ export const SEED_HYMNS: SeedHymn[] = [
     ],
     tunes: [{ name: "STILLE NACHT", composer: "Franz X. Gruber (1787–1863)", meter: "Irregular", isDefault: true }],
   },
+  // Non-seasonal hymns, so the hymn of the day has choices in Ordinary Time (D-033). No book numbers seeded.
+  {
+    slug: "holy-god-we-praise-thy-name",
+    title: null,
+    firstLine: "Holy God, we praise thy name",
+    author: "Ignaz Franz (1719–1790); tr. Clarence A. Walworth (1820–1900)",
+    numbers: [],
+    tags: ["entrance", "praise"],
+    verses: [
+      { label: "1", lines: ["Holy God, we praise thy name;", "Lord of all, we bow before thee;", "all on earth thy sceptre claim,", "all in heaven above adore thee.", "Infinite thy vast domain,", "everlasting is thy reign."] },
+    ],
+    tunes: [{ name: "GROSSER GOTT", composer: "Katholisches Gesangbuch, Vienna (c. 1774)", meter: "7 8 7 8 7 7", isDefault: true }],
+  },
+  {
+    slug: "faith-of-our-fathers",
+    title: null,
+    firstLine: "Faith of our fathers, living still",
+    author: "Frederick W. Faber (1814–1863)",
+    numbers: [],
+    tags: ["recessional"],
+    verses: [
+      { label: "1", lines: ["Faith of our fathers, living still", "in spite of dungeon, fire and sword;", "O how our hearts beat high with joy", "whene'er we hear that glorious word!"] },
+      { label: "R", lines: ["Faith of our fathers, holy faith!", "We will be true to thee till death."] },
+    ],
+    tunes: [{ name: "ST CATHERINE", composer: "Henri F. Hemy (1818–1888)", meter: "8 8 8 8 8 8", isDefault: true }],
+  },
+  {
+    slug: "immaculate-mary",
+    title: null,
+    firstLine: "Immaculate Mary, your praises we sing",
+    author: "Jeremiah Cummings (1814–1866)",
+    numbers: [],
+    tags: ["marian"],
+    verses: [
+      { label: "1", lines: ["Immaculate Mary, your praises we sing;", "you reign now in splendour with Jesus our King."] },
+      { label: "R", lines: ["Ave, ave, ave, Maria!", "Ave, ave, Maria!"] },
+    ],
+    tunes: [{ name: "LOURDES HYMN", composer: "Traditional French melody", meter: "11 11 with refrain", isDefault: true }],
+  },
 ];

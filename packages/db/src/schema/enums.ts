@@ -12,6 +12,16 @@ import {
   PLATFORM_PRIVILEGES,
   PLATFORM_ROLES,
   SUBSCRIPTION_STATUSES,
+  EPISODE_MEDIA_KINDS,
+  EPISODE_STATUSES,
+  TEACHING_STATUSES,
+  POST_KINDS,
+  POST_STATUSES,
+  COMMENT_STATUSES,
+  NEWS_CATEGORIES,
+  NEWS_STATUSES,
+  ENGAGE_KINDS,
+  REACTION_TYPES,
 } from "@ecclesios/shared/domain";
 
 // DB enums are generated from the shared constants, so TS types and Postgres can't drift.
@@ -45,3 +55,13 @@ export const readingKindEnum = pgEnum("reading_kind_enum", ["FIRST", "PSALM", "S
 export const celebrationRankEnum = pgEnum("celebration_rank_enum", CELEBRATION_RANKS);
 export const mediaKindEnum = pgEnum("media_kind_enum", MEDIA_KINDS);
 export const mediaAccessEnum = pgEnum("media_access_enum", ACCESS_LEVELS_MEDIA);
+export const episodeStatusEnum = pgEnum("episode_status_enum", EPISODE_STATUSES);
+export const episodeMediaKindEnum = pgEnum("episode_media_kind_enum", EPISODE_MEDIA_KINDS);
+export const teachingStatusEnum = pgEnum("teaching_status_enum", TEACHING_STATUSES);
+export const postKindEnum = pgEnum("post_kind_enum", POST_KINDS);
+export const postStatusEnum = pgEnum("post_status_enum", POST_STATUSES);
+export const commentStatusEnum = pgEnum("comment_status_enum", COMMENT_STATUSES);
+export const newsStatusEnum = pgEnum("news_status_enum", NEWS_STATUSES);
+export const newsCategoryEnum = pgEnum("news_category_enum", NEWS_CATEGORIES);
+export const engageKindEnum = pgEnum("engage_kind_enum", ENGAGE_KINDS);
+export const reactionTypeEnum = pgEnum("reaction_type_enum", REACTION_TYPES);

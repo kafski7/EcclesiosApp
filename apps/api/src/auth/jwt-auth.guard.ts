@@ -5,7 +5,10 @@ import { IS_PUBLIC } from "../common/public.decorator";
 import { DomainError } from "./core/errors";
 import { AuthService } from "./auth.service";
 
-/** Global guard: every route needs a valid Bearer access token unless marked @Public(). */
+/**
+ * Global guard: every route needs a valid Bearer access token unless marked @Public().
+ * On public routes a valid token is optional and, when present, identifies the caller (D-031).
+ */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
@@ -14,11 +17,21 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   canActivate(ctx: ExecutionContext): boolean {
-    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [ctx.getHandler(), ctx.getClass()]))
-      return true;
     const req = ctx.switchToHttp().getRequest<Request>();
     const header = req.headers.authorization ?? "";
     const [scheme, token] = header.split(" ");
+    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [ctx.getHandler(), ctx.getClass()])) {
+      // Public routes still learn who is asking when a valid token is sent (e.g. "following" feeds,
+      // comment moderation buttons). A bad or expired token is ignored: the caller is a guest.
+      if (scheme === "Bearer" && token) {
+        try {
+          req.principal = this.auth.verifyAccessToken(token);
+        } catch {
+          /* guest */
+        }
+      }
+      return true;
+    }
     if (scheme !== "Bearer" || !token)
       throw new DomainError(401, "UNAUTHENTICATED", "Sign in to continue.");
     try {
