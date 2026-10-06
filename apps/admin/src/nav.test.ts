@@ -41,7 +41,7 @@ describe("CMS sidebar per role × level (blueprint §3.3)", () => {
     expect(labels(cmsNav("PARISHIONER", "PARISH"))).toEqual([]);
   });
   it("creators only see their studio", () => {
-    expect(CREATOR_NAV.map((i) => i.label)).toEqual(["Podcasts", "Explore posts"]);
+    expect(CREATOR_NAV.map((i) => i.label)).toEqual(["Podcasts", "Explore posts", "My books"]);
   });
   it("platform nav routes are unique", () => {
     expect(new Set(PLATFORM_NAV.map((i) => i.to)).size).toBe(PLATFORM_NAV.length);

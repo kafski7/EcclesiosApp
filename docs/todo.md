@@ -225,6 +225,22 @@
 - [x] e2e: likes / saves / Saved, guests and platform accounts refused, links refused, mentions allowed / refused / notified
 - [ ] `@username` handles _(Phase 8, member profiles)_
 
+### 5.10 Books _(functionality §3.10, D-036)_
+
+- [x] Shared: `books.ts` (listing workflow, submit checks, who may sell, `splitSale`, price parse/format, order states and expiry, refund rules, seller balance) with tests; book contracts; `SELL_BOOKS` privilege; engage kind `BOOK`
+- [x] Schema: `books`, `book_orders`, `library_items`, `book_refunds`, `book_sellers`, `book_payouts`, `platform_settings` — migration `0012` generated on your machine
+- [x] Payments: `PaymentGateway` interface; **Hubtel** Online Checkout (initiate + status check) and a **test gateway** for development/e2e; production refuses the test gateway; orders paid only after the API verifies with the gateway (amount checked), idempotent callbacks, 60-minute expiry
+- [x] API: catalogue + search, book page (owned, refund state), sample, library, reading links (watermark for paid books), progress, add/remove free books, checkout, order status, refund requests; seller studio (CRUD, uploads, price, submit, unlist, delete-if-unsold, statement); Super-Admin review, unlist, commission setting, sellers' terms, payouts (≤ owed), refunds (approve / decline / refund any order) — all audited; seller and buyer notifications
+- [x] Web: **Books** in the sidebar, catalogue with category and price filters, book page (buy / add / read / sample / refund), reader (epub.js: pages, text size, night mode, resume; PDF viewer), My library, payment return page, development test checkout; Saved includes books
+- [x] Console: Platform → Books (review, all books, refunds, sellers & payouts, commission); **My books** studio for creators and Super-Admins (editor, uploads, price, submit / unlist, statement)
+- [x] Seed: 20 % commission, `SELL_BOOKS` for the sample creator, two draft catalogue entries (no files)
+- [x] e2e: who may list, review flow, checkout → test payment → read, callbacks don't pay, refund rules and approval, commission frozen per order, payouts ≤ owed, free books
+- [ ] **Hubtel go-live**: merchant account, API keys, whitelist the API server's IP for the status endpoint, set `PUBLIC_API_URL` callback, test in Hubtel's sandbox and confirm the request/response fields used in `hubtel.gateway.ts` _(before launch)_
+- [ ] Load public-domain classics (EPUB) as free books _(content)_
+- [ ] PDF page tracking and in-app PDF rendering with pdf.js (progress and refund rule for PDFs) _(Phase 9)_
+- [ ] Offline reading of owned books on phones _(Phase 9, PWA)_
+- [ ] Automatic payouts through Hubtel's transfer API _(later)_; highlights and notes in the reader _(later)_; print books and audiobooks _(later)_
+
 ## Phase 6 — CMS Operational Modules (API + admin)
 
 - [ ] **Groups/Branch management** _(functionality §4.13)_: create/edit groups in the hierarchy; **context switcher** that re-scopes the whole CMS (nav, dashboards, data) per selected group + hierarchy level
@@ -265,8 +281,10 @@
 
 - [ ] Platform reference-data management: themes, subscription plans, icons, currencies, languages _(blueprint §4 User Types)_
 - [ ] Creator/podcast privilege management UI (grant/revoke per account) — **members apply to become content creators**; Super-Admin approves into `member_privileges` (D-017)
+- [ ] **Book sellers**: members apply for `SELL_BOOKS`; Super-Admin grants/revokes; a **seller studio in the web app** for member sellers (the API already supports them; platform creators use the console) _(D-036)_
 - [ ] Explore moderation queue (full flow with audit trail)
 - [ ] Church subscription management: list churches, plans, expiries; manual interventions
+- [ ] **Online payment for church subscriptions** through the same Hubtel gateway (replaces manual activation, D-021) _(D-036)_
 - [ ] Platform audit-log browser _(functionality §6)_
 
 ## Phase 9 — Hardening, Offline & PWA Polish

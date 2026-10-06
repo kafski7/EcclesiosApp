@@ -22,7 +22,8 @@ build plan [docs/todo.md](docs/todo.md) · decisions [docs/decisions.md](docs/de
 | 5.6 — Teachings (D-030) | ✅ built |
 | 5.7 — Explore (D-031) | ✅ built |
 | 5.8 — News + Home (D-032 – D-034) | ✅ built |
-| 5.9 — Likes, saves, shares, comment rules (D-035) | ✅ built — run `pnpm db:generate` once (migration `0011`) |
+| 5.9 — Likes, saves, shares, comment rules (D-035) | ✅ built |
+| 5.10 — Books (D-036) | ✅ built — run `pnpm db:generate` once (migration `0012`) |
 | 6+ | not started |
 
 ## Prerequisites
@@ -89,6 +90,10 @@ audio (MinIO must be running), then Publish. Followers get a notification on the
 Explore: web `/explore`. Write as `theresa.pastor@…` (in St Theresa's name) or `akosua.boateng@…`
 (content creator) → My posts → New post → Submit. Approve in the console as `superadmin@…`
 → Explore moderation. Comment as any member; church pages at `/explore/churches/<id>`.
+
+Books: web `/books`. Sell as `creator@…` in the console → My books → New book → upload an EPUB → Submit;
+approve as `superadmin@…` → Platform → Books. Buy as a member: with `PAYMENTS_GATEWAY=test` (default) the
+checkout is a test page with *Pay (test)*. For Hubtel set `PAYMENTS_GATEWAY=hubtel` and the `HUBTEL_*` keys.
 
 API e2e tests (need a seeded DB): `pnpm --filter @ecclesios/api test:e2e`. Contract: functionality §2.3.
 

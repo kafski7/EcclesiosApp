@@ -20,6 +20,7 @@ import { SEED_PODCASTS } from "./podcasts";
 import { SEED_CHURCH_PROFILES, SEED_COMMENTS, SEED_POSTS } from "./explore";
 import { SEED_TEACHINGS, TEACHING_TOPICS } from "./teachings";
 import { SEED_NEWS } from "./news";
+import { SEED_BOOK_COMMISSION_BPS, SEED_BOOKS } from "./books";
 import { hymnNumberKey, lessonText, normalizeHymnNumber, parseLesson, readingMinutes, slugify } from "@ecclesios/shared/domain";
 
 loadEnv();
@@ -386,6 +387,16 @@ async function main() {
         authorUserId: d.PLATFORM_USERS[0]!.id,
       });
     }
+
+    // books (D-036): commission setting + draft catalogue entries (no files in the seed)
+    await tx.insert(s.platformSettings).values({ key: "books.commissionBps", value: SEED_BOOK_COMMISSION_BPS });
+    await tx.insert(s.books).values(
+      SEED_BOOKS.map(({ owner, ...b }) => ({
+        ...b,
+        sellerUserId: owner === "SUPER" ? d.PLATFORM_USERS[0]!.id : d.PLATFORM_USERS[1]!.id,
+        rightsConfirmed: true,
+      })),
+    );
 
     // saints (D-025): original short biographies
     await tx.insert(s.saints).values(

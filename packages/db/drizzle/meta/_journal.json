@@ -85,6 +85,13 @@
       "when": 1791041074424,
       "tag": "0011_faithful_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791221893740,
+      "tag": "0012_red_toad_men",
+      "breakpoints": true
     }
   ]
 }

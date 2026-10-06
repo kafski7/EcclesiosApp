@@ -7,6 +7,7 @@ import {
   FileStack,
   GraduationCap,
   LayoutDashboard,
+  Library,
   Megaphone,
   Compass,
   Mic,
@@ -82,13 +83,15 @@ export const PLATFORM_NAV: readonly NavItem[] = [
   { to: "/platform/podcasts", label: "Podcasts", icon: Mic },
   { to: "/platform/teachings", label: "Teachings", icon: GraduationCap },
   { to: "/platform/news", label: "News", icon: Megaphone },
+  { to: "/platform/books", label: "Books", icon: Library },
   { to: "/platform/explore", label: "Explore moderation", icon: ShieldCheck },
   { to: "/platform/creators", label: "Creators", icon: Users },
   { to: "/platform/reference", label: "Reference data", icon: FileStack },
 ];
 
-/** Creator accounts (D-027, D-031): their own podcasts and Explore posts. */
+/** Creator accounts (D-027, D-031, D-036): their own podcasts, Explore posts and books. */
 export const CREATOR_NAV: readonly NavItem[] = [
   { to: "/platform/podcasts", label: "Podcasts", icon: Mic },
   { to: "/platform/explore/mine", label: "Explore posts", icon: Compass },
+  { to: "/platform/books/mine", label: "My books", icon: Library },
 ];

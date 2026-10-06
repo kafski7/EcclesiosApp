@@ -39,6 +39,8 @@ export const NOTIFICATION_TYPES = [
   { code: "EXPLORE_REVIEW", name: "Explore post reviewed", icon: "bell" },
   { code: "CHURCH_POST", name: "New post from a church you follow", icon: "bell" },
   { code: "COMMENT_MENTION", name: "Someone mentioned you in a comment", icon: "bell" },
+  { code: "BOOK_REVIEW", name: "Your book was reviewed", icon: "bell" },
+  { code: "BOOK_REFUND", name: "Book refund update", icon: "money" },
 ];
 
 /** Placeholder prices — confirm before launch (Phase 10). */
@@ -367,7 +369,7 @@ export const FOLLOWS: { first: string; groupKey: string }[] = [
 /** Approved content creators among members (D-017). */
 export const MEMBER_PRIVILEGES: {
   first: string;
-  privileges: ("AUTHOR_EXPLORE" | "POST_PODCASTS")[];
+  privileges: ("AUTHOR_EXPLORE" | "POST_PODCASTS" | "SELL_BOOKS")[];
 }[] = [{ first: "Akosua", privileges: ["AUTHOR_EXPLORE"] }];
 
 export const memberByFirst = (first: string) => {
@@ -397,7 +399,7 @@ export const PLATFORM_USERS = [
     email: "creator@dev.ecclesios.local",
     telephone: "+233200000901",
     platformRole: "CREATOR" as const,
-    privileges: ["POST_PODCASTS", "AUTHOR_EXPLORE"] as const,
+    privileges: ["POST_PODCASTS", "AUTHOR_EXPLORE", "SELL_BOOKS"] as const,
   },
 ];
 

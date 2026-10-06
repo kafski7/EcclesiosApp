@@ -11,7 +11,9 @@ import { ConfigModule } from "./config/config.module";
 import { ENV, type Env } from "./config/env";
 import { DbModule } from "./db/db.module";
 import { HealthModule } from "./health/health.module";
+import { BooksModule } from "./books/books.module";
 import { EngageModule } from "./engage/engage.module";
+import { PaymentsModule } from "./payments/payments.module";
 import { HomeModule } from "./home/home.module";
 import { NewsModule } from "./news/news.module";
 import { HymnalModule } from "./hymnal/hymnal.module";
@@ -85,6 +87,8 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
     NewsModule,
     HomeModule,
     EngageModule,
+    PaymentsModule,
+    BooksModule,
     PodcastsModule,
     ExploreModule,
   ],

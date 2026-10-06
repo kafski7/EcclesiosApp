@@ -1,6 +1,11 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppShell } from "@/components/layout/app-shell";
 import { HomePage } from "@/pages/home";
+import { BookPage } from "@/pages/book";
+import { BookOrderPage, TestCheckoutPage } from "@/pages/book-order";
+import { BookReaderPage } from "@/pages/book-reader";
+import { BooksPage } from "@/pages/books";
+import { LibraryPage } from "@/pages/library";
 import { MorePage } from "@/pages/more";
 import { SavedPage } from "@/pages/saved";
 import { NewsItemPage, NewsPage } from "@/pages/news";
@@ -51,6 +56,12 @@ export const router = createBrowserRouter([
       { path: "bible/:book/:chapter", element: <BiblePage /> },
       { path: "news", element: <NewsPage /> },
       { path: "news/:slug", element: <NewsItemPage /> },
+      { path: "books", element: <BooksPage /> },
+      { path: "books/checkout/test", element: <TestCheckoutPage /> },
+      { path: "books/orders/:id", element: <BookOrderPage /> },
+      { path: "books/:slug", element: <BookPage /> },
+      { path: "books/:slug/read", element: <BookReaderPage /> },
+      { path: "library", element: <LibraryPage /> },
       { path: "saved", element: <SavedPage /> },
       { path: "more", element: <MorePage /> },
       { path: "subscribe", element: <S.SubscribePage /> },

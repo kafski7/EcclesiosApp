@@ -22,6 +22,11 @@ import {
   NEWS_STATUSES,
   ENGAGE_KINDS,
   REACTION_TYPES,
+  BOOK_CATEGORIES,
+  BOOK_FORMATS,
+  BOOK_STATUSES,
+  ORDER_STATUSES,
+  REFUND_STATUSES,
 } from "@ecclesios/shared/domain";
 
 // DB enums are generated from the shared constants, so TS types and Postgres can't drift.
@@ -65,3 +70,8 @@ export const newsStatusEnum = pgEnum("news_status_enum", NEWS_STATUSES);
 export const newsCategoryEnum = pgEnum("news_category_enum", NEWS_CATEGORIES);
 export const engageKindEnum = pgEnum("engage_kind_enum", ENGAGE_KINDS);
 export const reactionTypeEnum = pgEnum("reaction_type_enum", REACTION_TYPES);
+export const bookStatusEnum = pgEnum("book_status_enum", BOOK_STATUSES);
+export const bookFormatEnum = pgEnum("book_format_enum", BOOK_FORMATS);
+export const bookCategoryEnum = pgEnum("book_category_enum", BOOK_CATEGORIES);
+export const orderStatusEnum = pgEnum("order_status_enum", ORDER_STATUSES);
+export const refundStatusEnum = pgEnum("refund_status_enum", REFUND_STATUSES);

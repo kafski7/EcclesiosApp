@@ -15,3 +15,4 @@ export * from "./teachings.js";
 export * from "./news.js";
 export * from "./home.js";
 export * from "./engagement.js";
+export * from "./books.js";

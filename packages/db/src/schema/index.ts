@@ -15,3 +15,4 @@ export * from "./teachings";
 export * from "./explore";
 export * from "./news";
 export * from "./engagement";
+export * from "./books";

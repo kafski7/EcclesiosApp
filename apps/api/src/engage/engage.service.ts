@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { hymns, podcastEpisodes, podcasts, posts, reactions, teachings } from "@ecclesios/db";
+import { books, hymns, podcastEpisodes, podcasts, posts, reactions, teachings } from "@ecclesios/db";
 import type { EngageState, SavedItem } from "@ecclesios/shared";
 import {
   engageHref,
@@ -40,6 +40,9 @@ export class EngageService {
         break;
       case "HYMN":
         rows = await this.db.select({ id: hymns.id }).from(hymns).where(and(inArray(hymns.id, ids), eq(hymns.isPublished, true)));
+        break;
+      case "BOOK":
+        rows = await this.db.select({ id: books.id }).from(books).where(and(inArray(books.id, ids), eq(books.status, "PUBLISHED")));
         break;
     }
     return new Set(rows.map((r) => r.id));
@@ -98,7 +101,7 @@ export class EngageService {
       .orderBy(desc(reactions.createdAt))
       .limit(500);
     const ids = (k: EngageKind) => rows.filter((r) => r.kind === k).map((r) => r.itemId);
-    const [p, t, e, h] = await Promise.all([
+    const [p, t, e, h, bk] = await Promise.all([
       ids("POST").length
         ? this.db.select({ id: posts.id, title: posts.title, kind: posts.kind }).from(posts).where(and(inArray(posts.id, ids("POST")), eq(posts.status, "APPROVED")))
         : [],
@@ -115,6 +118,9 @@ export class EngageService {
       ids("HYMN").length
         ? this.db.select({ id: hymns.id, slug: hymns.slug, title: hymns.title, firstLine: hymns.firstLine }).from(hymns).where(and(inArray(hymns.id, ids("HYMN")), eq(hymns.isPublished, true)))
         : [],
+      ids("BOOK").length
+        ? this.db.select({ id: books.id, slug: books.slug, title: books.title, authorName: books.authorName }).from(books).where(and(inArray(books.id, ids("BOOK")), eq(books.status, "PUBLISHED")))
+        : [],
     ]);
     const out: SavedItem[] = [];
     for (const r of rows) {
@@ -128,6 +134,9 @@ export class EngageService {
       } else if (r.kind === "EPISODE") {
         const x = e.find((y) => y.id === r.itemId);
         if (x) out.push({ kind: "EPISODE", id: x.id, title: x.title, subtitle: x.podcastTitle, href: engageHref("EPISODE", x), savedAt: at });
+      } else if (r.kind === "BOOK") {
+        const x = bk.find((y) => y.id === r.itemId);
+        if (x) out.push({ kind: "BOOK", id: x.id, title: x.title, subtitle: x.authorName, href: engageHref("BOOK", x), savedAt: at });
       } else {
         const x = h.find((y) => y.id === r.itemId);
         if (x) out.push({ kind: "HYMN", id: x.id, title: hymnDisplayTitle(x.title, x.firstLine), subtitle: "Hymn", href: engageHref("HYMN", x), savedAt: at });

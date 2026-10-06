@@ -54,7 +54,8 @@ export const PLATFORM_ROLES = ["SUPER_ADMIN", "CREATOR"] as const;
 export type PlatformRole = (typeof PLATFORM_ROLES)[number];
 
 /** Creator privileges granted by a Super-Admin (functionality §1). */
-export const PLATFORM_PRIVILEGES = ["POST_PODCASTS", "AUTHOR_EXPLORE"] as const;
+/** SELL_BOOKS: may list e-books for sale or free (D-036). */
+export const PLATFORM_PRIVILEGES = ["POST_PODCASTS", "AUTHOR_EXPLORE", "SELL_BOOKS"] as const;
 export type PlatformPrivilege = (typeof PLATFORM_PRIVILEGES)[number];
 
 /** Suffragan → metropolitan visibility (blueprint §3.4, decision D-002). */

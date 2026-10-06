@@ -42,6 +42,18 @@ export const EnvSchema = z
      */
     LISTENER_PAYWALL: bool,
     HYMNAL_PAYWALL: bool,
+    /**
+     * Book payments (D-036). "test" = built-in test checkout (development and e2e only);
+     * "hubtel" = Hubtel Online Checkout. Production must use hubtel.
+     */
+    PAYMENTS_GATEWAY: z.enum(["test", "hubtel"]).default("test"),
+    HUBTEL_CLIENT_ID: z.string().optional(),
+    HUBTEL_CLIENT_SECRET: z.string().optional(),
+    /** Hubtel POS Sales / merchant account number. */
+    HUBTEL_MERCHANT_ACCOUNT: z.string().optional(),
+    /** Where buyers land after paying, and where Hubtel posts callbacks. */
+    PUBLIC_WEB_URL: z.string().url().default("http://localhost:5173"),
+    PUBLIC_API_URL: z.string().url().default("http://localhost:4000"),
     CORS_ORIGINS: z
       .string()
       .default("")
@@ -53,7 +65,12 @@ export const EnvSchema = z
       ),
   })
   .superRefine((env, ctx) => {
+    if (env.PAYMENTS_GATEWAY === "hubtel")
+      for (const key of ["HUBTEL_CLIENT_ID", "HUBTEL_CLIENT_SECRET", "HUBTEL_MERCHANT_ACCOUNT"] as const)
+        if (!env[key]) ctx.addIssue({ code: "custom", path: [key], message: "required when PAYMENTS_GATEWAY=hubtel" });
     if (env.NODE_ENV !== "production") return;
+    if (env.PAYMENTS_GATEWAY !== "hubtel")
+      ctx.addIssue({ code: "custom", path: ["PAYMENTS_GATEWAY"], message: "production must take real payments (hubtel)" });
     for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"] as const) {
       const v = env[key];
       if (v.length < 32 || v.startsWith("change-me"))

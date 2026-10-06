@@ -1,4 +1,4 @@
-import { Bell, Bookmark, Building2, FileText, Info, LogIn, Megaphone, ShieldCheck, UserPlus } from "lucide-react";
+import { Bell, Bookmark, Library, Building2, FileText, Info, LogIn, Megaphone, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SheetClose } from "@/components/ui/sheet";
@@ -63,6 +63,7 @@ export function MoreMenu({ inSheet = false }: { inSheet?: boolean }) {
       <Section title="You">
         <Item to="/notifications" icon={<Bell />} label="Notifications" />
         {principal?.kind === "member" ? <Item to="/saved" icon={<Bookmark />} label="Saved" /> : null}
+        {principal?.kind === "member" ? <Item to="/library" icon={<Library />} label="My library" /> : null}
         {principal ? null : (
           <>
             <Item to="/login" icon={<LogIn />} label="Sign in" />

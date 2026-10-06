@@ -197,12 +197,40 @@ The main application is what every user sees. It has a fixed primary navigation 
 - **Future versions:** additional translations, each optionally **downloadable** for offline use.
 - Deep-linked from Readings, Saints, and Teachings wherever scripture is cited.
 
+### 3.10. Books (D-036)
+
+Catholic writers — priests, religious, publishers and lay authors — can sell their e-books on Ecclesios, and readers buy and read them in the app. Ecclesios also offers public-domain Catholic classics free.
+
+**For readers**
+- **Books** in the sidebar: browse by category (Spirituality, Prayer & devotion, Theology, Scripture, Catechesis, Lives of the saints, Church history, Marriage & family, Youth, Children, Fiction, Catholic classics), filter free / paid, search by title or author.
+- Each book has a page with its cover, description, author, price, church approval (Nihil obstat / Imprimatur where given), and — if the seller added one — a **free sample** to read.
+- **Free books**: *Add to library* or *Read*.
+- **Paid books**: *Buy* opens **Hubtel's checkout** (mobile money or card). When Hubtel confirms the payment, the book is in **My library** (More menu, and on the Books page). Payment is never assumed from the browser: Ecclesios checks with Hubtel before giving access.
+- **Reading** happens in the app: EPUB books turn pages, remember where you stopped on every device, and have text size and night mode; PDF books open in the built-in viewer. There is no download button, and paid books show the buyer's name faintly on the page.
+- Books can be **liked, saved and shared** like other content (§3.4a).
+- **Refunds**: within **7 days** of buying, if you've read **less than 10 %**, you can ask for a refund once per book. Ecclesios reviews each request; if approved, the money is returned through Hubtel and the book leaves your library.
+
+**For sellers**
+- People approved to sell books (privilege `SELL_BOOKS`, granted by Ecclesios) list books in their studio: details, category, price (free, or from GH₵ 1.00), cover, the book file (EPUB or PDF, up to 100 MB) and an optional sample file. They confirm they hold the rights.
+- Every book is **reviewed by Ecclesios** before it appears; a rejected book comes back with a reason.
+- While a book is on the shelf, only its price and sample can change. To change anything else, the seller **unlists** it (buyers keep reading), edits it and submits it again. A book that has sold can't be deleted.
+- The **statement** shows sales, the seller's share, refunds, payouts and what they're owed.
+
+**For Ecclesios (Super-Admin)**
+- Review queue (approve / reject with a reason), take any book off the shelf with a reason.
+- **Commission**: a platform-wide rate set in the console, and an optional rate per seller. The rate in force at checkout is stored on the order. Hubtel's fees come out of Ecclesios's share.
+- **Refunds**: approve (after returning the money in Hubtel, with the reference) or decline; refund any order directly when needed.
+- **Payouts**: pay sellers by mobile money or bank, then record the amount and transfer reference; a payout can't exceed what the seller is owed.
+
+**Implemented (Phase 5.10):** public `GET /api/public/books`, `/api/public/books/:slug`, `/:slug/preview`; members `/api/books/library`, `/:slug/read`, `/:slug/progress`, `/:slug/library`, `/:slug/checkout`, `/orders/:id`, `/orders/:id/refund`; Hubtel callback `POST /api/public/payments/hubtel/callback`; studio `/api/studio/books…`; Super-Admin `/api/platform/books…`. Web: `/books`, `/books/:slug`, `/books/:slug/read`, `/books/orders/:id`, `/library`. Console: Platform → Books; My books (creators and Super-Admins).
+
 ### 3.9. More (Off-Canvas Menu)
 
 An off-canvas menu that connects the social platform to the Church Management application and the user's account:
 
 - **Subscribe** — a church (Administrator) subscribes to the Church Management application (chooses a plan: Basic/Premium/Ultimate; activates trial where applicable).
 - **Notifications** — the user's notification center (new content, events, society messages).
+- **Saved** and **My library** — saved items (D-035) and the member's books (D-036).
 - **Church Management Login** — shown for subscribed churches; logs staff into the CMS (same OTP flow, §2.2).
 - Account actions (sign in / register, profile) and platform links (about, privacy, terms).
 

@@ -15,6 +15,9 @@ import { PlatformTeachingsPage } from "@/pages/platform/teachings";
 import { TeachingEditPage } from "@/pages/platform/teaching-edit";
 import { PlatformNewsPage } from "@/pages/platform/news";
 import { NewsEditPage } from "@/pages/platform/news-edit";
+import { BookEditPage } from "@/pages/platform/book-edit";
+import { PlatformBooksPage } from "@/pages/platform/books";
+import { MyBooksPage } from "@/pages/platform/books-mine";
 import { PlatformPodcastsPage } from "@/pages/platform/podcasts";
 import { PodcastEditPage } from "@/pages/platform/podcast-edit";
 import { ExploreModerationPage } from "@/pages/platform/explore";
@@ -82,6 +85,9 @@ export const router = createBrowserRouter([
       { path: "teachings/:slug", element: <TeachingEditPage /> },
       { path: "news", element: <PlatformNewsPage /> },
       { path: "news/:slug", element: <NewsEditPage /> },
+      { path: "books", element: <PlatformBooksPage /> },
+      { path: "books/mine", element: <MyBooksPage /> },
+      { path: "books/mine/:slug", element: <BookEditPage /> },
       { path: "podcasts", element: <PlatformPodcastsPage /> },
       { path: "podcasts/:slug", element: <PodcastEditPage /> },
       { path: "explore", element: <ExploreModerationPage /> },

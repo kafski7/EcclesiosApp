@@ -19,3 +19,4 @@ export * from "./schemas/explore.js";
 export * from "./schemas/news.js";
 export * from "./schemas/home.js";
 export * from "./schemas/engagement.js";
+export * from "./schemas/books.js";

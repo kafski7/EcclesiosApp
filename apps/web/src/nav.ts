@@ -3,6 +3,7 @@ import {
   BookMarked,
   Compass,
   GraduationCap,
+  Library,
   Home,
   Menu,
   Mic,
@@ -26,6 +27,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { to: "/podcasts", label: "Podcasts", icon: Mic },
   { to: "/hymnal", label: "Hymnal", icon: Music },
   { to: "/teachings", label: "Teachings", icon: GraduationCap },
+  { to: "/books", label: "Books", icon: Library },
   { to: "/bible", label: "Bible", icon: BookMarked },
 ];
 

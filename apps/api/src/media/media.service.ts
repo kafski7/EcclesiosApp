@@ -14,6 +14,7 @@ const EXT: Record<string, string> = {
   "audio/midi": "mid",
   "audio/x-midi": "mid",
   "application/pdf": "pdf",
+  "application/epub+zip": "epub",
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",

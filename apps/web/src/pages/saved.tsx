@@ -1,5 +1,5 @@
 import type { SavedItem } from "@ecclesios/shared";
-import { Bookmark, BookOpen, GraduationCap, Mic, Music } from "lucide-react";
+import { Bookmark, BookOpen, GraduationCap, Library, Mic, Music } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EngageBar } from "@/components/engage/engage-bar";
 import { useSaved } from "@/lib/engage";
@@ -11,6 +11,7 @@ const GROUPS: { kind: SavedItem["kind"]; label: string; icon: typeof Bookmark }[
   { kind: "TEACHING", label: "Teachings", icon: GraduationCap },
   { kind: "EPISODE", label: "Podcast episodes", icon: Mic },
   { kind: "HYMN", label: "Hymns", icon: Music },
+  { kind: "BOOK", label: "Books", icon: Library },
 ];
 
 /** The member's saved posts, teachings, episodes and hymns (D-035). Private to them. */

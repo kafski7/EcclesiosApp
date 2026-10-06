@@ -3,7 +3,7 @@
  */
 
 /** What can be liked / saved / shared. Comments stay on Explore posts only (D-031). */
-export const ENGAGE_KINDS = ["POST", "TEACHING", "EPISODE", "HYMN"] as const;
+export const ENGAGE_KINDS = ["POST", "TEACHING", "EPISODE", "HYMN", "BOOK"] as const;
 export type EngageKind = (typeof ENGAGE_KINDS)[number];
 
 export const REACTION_TYPES = ["LIKE", "SAVE"] as const;
@@ -25,6 +25,8 @@ export function parseEngageKey(key: string): { kind: EngageKind; id: string } | 
 /** Web path of an item, for sharing and the Saved page. */
 export function engageHref(kind: EngageKind, ref: { id: string; slug?: string; podcastSlug?: string }): string {
   switch (kind) {
+    case "BOOK":
+      return `/books/${ref.slug ?? ""}`;
     case "POST":
       return `/explore/posts/${ref.id}`;
     case "TEACHING":
