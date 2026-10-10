@@ -9,7 +9,14 @@ export const EngageQuerySchema = z.object({
   items: z
     .string()
     .max(100 * 50)
-    .transform((s) => [...new Set(s.split(",").map((x) => x.trim()).filter(Boolean))])
+    .transform((s) => [
+      ...new Set(
+        s
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+      ),
+    ])
     .refine((keys) => keys.length > 0 && keys.length <= 100, "Between 1 and 100 items")
     .refine((keys) => keys.every((k) => parseEngageKey(k)), "Use KIND:id, e.g. POST:<uuid>"),
 });

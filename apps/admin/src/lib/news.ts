@@ -10,10 +10,15 @@ import { api } from "./query";
 
 const base = "/platform/news";
 
-export const useAdminNewsList = () => useQuery({ queryKey: ["platform", "news"], queryFn: () => api.get(base, AdminNewsListSchema) });
+export const useAdminNewsList = () =>
+  useQuery({ queryKey: ["platform", "news"], queryFn: () => api.get(base, AdminNewsListSchema) });
 
 export const useAdminNews = (slug: string | undefined) =>
-  useQuery({ queryKey: ["platform", "news", slug], queryFn: () => api.get(`${base}/${slug}`, AdminNewsSchema), enabled: !!slug });
+  useQuery({
+    queryKey: ["platform", "news", slug],
+    queryFn: () => api.get(`${base}/${slug}`, AdminNewsSchema),
+    enabled: !!slug,
+  });
 
 function useNewsMutation<V>(fn: (v: V) => Promise<AdminNews>) {
   const qc = useQueryClient();
@@ -27,25 +32,37 @@ function useNewsMutation<V>(fn: (v: V) => Promise<AdminNews>) {
 }
 
 export const useSaveNews = (slug: string | undefined) =>
-  useNewsMutation((b: UpsertNews) => (slug ? api.put(`${base}/${slug}`, b, AdminNewsSchema) : api.post(base, b, AdminNewsSchema)));
+  useNewsMutation((b: UpsertNews) =>
+    slug ? api.put(`${base}/${slug}`, b, AdminNewsSchema) : api.post(base, b, AdminNewsSchema),
+  );
 
 export const useNewsStatus = (slug: string) =>
-  useNewsMutation((v: { status: "DRAFT" | "PUBLISHED"; publishAt: string | null }) => api.post(`${base}/${slug}/status`, v, AdminNewsSchema));
+  useNewsMutation((v: { status: "DRAFT" | "PUBLISHED"; publishAt: string | null }) =>
+    api.post(`${base}/${slug}/status`, v, AdminNewsSchema),
+  );
 
 export function useDeleteNews() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: (slug: string) => api.delVoid(`${base}/${slug}`), onSuccess: () => qc.invalidateQueries({ queryKey: ["platform", "news"] }) });
+  return useMutation({
+    mutationFn: (slug: string) => api.delVoid(`${base}/${slug}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["platform", "news"] }),
+  });
 }
 
 // hymn of the day (D-033)
 const Pick = HymnOfDaySchema.nullable();
 export const useHymnOfDay = (date: string) =>
-  useQuery({ queryKey: ["platform", "hymn-of-day", date], queryFn: () => api.get(`/platform/hymn-of-day/${date}`, Pick), enabled: !!date });
+  useQuery({
+    queryKey: ["platform", "hymn-of-day", date],
+    queryFn: () => api.get(`/platform/hymn-of-day/${date}`, Pick),
+    enabled: !!date,
+  });
 
 export function usePinHymn(date: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (hymnSlug: string | null) => api.put(`/platform/hymn-of-day/${date}`, { hymnSlug }, Pick),
+    mutationFn: (hymnSlug: string | null) =>
+      api.put(`/platform/hymn-of-day/${date}`, { hymnSlug }, Pick),
     onSuccess: (h) => qc.setQueryData(["platform", "hymn-of-day", date], h),
   });
 }
@@ -59,5 +76,15 @@ export const toLocalInput = (iso: string | null) => {
 };
 export const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 
-export const STATE_LABEL = { DRAFT: "Draft", SCHEDULED: "Scheduled", LIVE: "Live", EXPIRED: "Expired" } as const;
-export const STATE_COLOR = { DRAFT: "secondary", SCHEDULED: "info", LIVE: "success", EXPIRED: "warning" } as const;
+export const STATE_LABEL = {
+  DRAFT: "Draft",
+  SCHEDULED: "Scheduled",
+  LIVE: "Live",
+  EXPIRED: "Expired",
+} as const;
+export const STATE_COLOR = {
+  DRAFT: "secondary",
+  SCHEDULED: "info",
+  LIVE: "success",
+  EXPIRED: "warning",
+} as const;

@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useMe } from "@/lib/me";
 
 /**
@@ -26,7 +27,10 @@ export function MembershipBanner() {
       <p className="small" style={{ margin: 0 }}>
         Waiting for <b>{names}</b> to confirm your membership. Everything else on Ecclesios is open
         to you now; members-only notices, societies and dues for{" "}
-        {pending.length === 1 ? "that church" : "those churches"} unlock once confirmed.
+        {pending.length === 1 ? "that church" : "those churches"} unlock once confirmed.{" "}
+        <Link to="/me#churches" className="link">
+          Your churches
+        </Link>
       </p>
     </div>
   );

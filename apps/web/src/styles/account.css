@@ -1,0 +1,117 @@
+/* Phase 6.3 — notifications and account (D-039) */
+@layer components {
+  .dot-badge {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--danger, #b42318);
+    color: #fff;
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    border: 2px solid var(--surface, #fff);
+  }
+  a.avatar {
+    text-decoration: none;
+  }
+  .notif-list li {
+    display: flex;
+    gap: 12px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .notif-list li:last-child {
+    border-bottom: 0;
+  }
+  .notif-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .notif-list .unread .notif-dot {
+    background: var(--danger, #b42318);
+  }
+  .notif-list .unread b {
+    color: var(--primary);
+  }
+  .acct-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    .acct-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .acct-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+/* Notification settings (D-052) */
+@layer components {
+  .pref-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .pref-label {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .pref-switch {
+    appearance: none;
+    flex-shrink: 0;
+    width: 40px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--line);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .pref-switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+    transition: transform 0.15s;
+  }
+  .pref-switch:checked {
+    background: var(--primary);
+  }
+  .pref-switch:checked::after {
+    transform: translateX(18px);
+  }
+  .pref-switch:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .pref-switch:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}

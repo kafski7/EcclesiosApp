@@ -57,6 +57,7 @@ export function CmsLayout() {
       footerNav={nav.footer}
       user={{ name, role: ROLE_LABEL[current.role] ?? current.role }}
       loginPath="/login"
+      links={{ notifications: "/admin/notifications", profile: "/admin/profile" }}
     >
       <SubscriptionBanner context={current} />
       {gated && !onBilling ? <NotSubscribedPage context={current} /> : <Outlet context={current} />}

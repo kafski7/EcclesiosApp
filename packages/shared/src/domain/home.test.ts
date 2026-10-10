@@ -23,7 +23,9 @@ const HYMNS = [
 describe("hymn of the day (D-033)", () => {
   it("is stable for a date and changes across days", () => {
     expect(hymnOfDay(HYMNS, "2026-10-04")).toBe(hymnOfDay(HYMNS, "2026-10-04"));
-    const week = ["01", "02", "03", "04", "05", "06", "07"].map((d) => hymnOfDay(HYMNS, `2026-10-${d}`)!.slug);
+    const week = ["01", "02", "03", "04", "05", "06", "07"].map(
+      (d) => hymnOfDay(HYMNS, `2026-10-${d}`)!.slug,
+    );
     expect(new Set(week).size).toBeGreaterThan(1);
   });
   it("follows the season", () => {
@@ -81,7 +83,11 @@ describe("mergeFeed", () => {
 describe("news (D-032)", () => {
   const now = new Date("2026-10-03T12:00:00Z");
   it("live, current and expired", () => {
-    const n = { status: "PUBLISHED" as const, publishedAt: new Date("2026-10-01"), expiresAt: new Date("2026-10-02") };
+    const n = {
+      status: "PUBLISHED" as const,
+      publishedAt: new Date("2026-10-01"),
+      expiresAt: new Date("2026-10-02"),
+    };
     expect(isNewsLive(n, now)).toBe(true);
     expect(isNewsCurrent(n, now)).toBe(false);
     expect(isNewsLive({ ...n, status: "DRAFT" }, now)).toBe(false);
@@ -96,7 +102,6 @@ describe("news (D-032)", () => {
   });
 });
 
-
 describe("selectWatch (D-034)", () => {
   const at = (d: number) => new Date(Date.UTC(2026, 9, d));
   it("newest first, each video once", () => {
@@ -108,7 +113,12 @@ describe("selectWatch (D-034)", () => {
     expect(r.map((x) => x.key)).toEqual(["e1", "h1"]);
   });
   it("caps each kind and the row", () => {
-    const many = Array.from({ length: 10 }, (_, i) => ({ kind: "POST" as const, key: `p${i}`, youtubeId: `id${i}`.padEnd(11, "x"), at: at(i + 1) }));
+    const many = Array.from({ length: 10 }, (_, i) => ({
+      kind: "POST" as const,
+      key: `p${i}`,
+      youtubeId: `id${i}`.padEnd(11, "x"),
+      at: at(i + 1),
+    }));
     expect(selectWatch(many).length).toBe(WATCH_PER_KIND_MAX);
     expect(selectWatch(many, 3).length).toBe(3);
   });

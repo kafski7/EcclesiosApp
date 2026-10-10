@@ -108,7 +108,9 @@ export const hymnTunes = pgTable(
   },
   (t) => [
     index("hymn_tunes_hymn_idx").on(t.hymnId),
-    uniqueIndex("hymn_tunes_one_default_uq").on(t.hymnId).where(sql`${t.isDefault}`),
+    uniqueIndex("hymn_tunes_one_default_uq")
+      .on(t.hymnId)
+      .where(sql`${t.isDefault}`),
   ],
 );
 
@@ -139,6 +141,9 @@ export const hymnMedia = pgTable(
     uniqueIndex("hymn_media_one_default_audio_uq")
       .on(t.tuneId)
       .where(sql`${t.isDefault} AND ${t.kind} = 'AUDIO'`),
-    check("hymn_media_source_chk", sql`(${t.kind} = 'YOUTUBE') = (${t.youtubeId} IS NOT NULL) AND (${t.kind} = 'YOUTUBE') = (${t.objectKey} IS NULL)`),
+    check(
+      "hymn_media_source_chk",
+      sql`(${t.kind} = 'YOUTUBE') = (${t.youtubeId} IS NOT NULL) AND (${t.kind} = 'YOUTUBE') = (${t.objectKey} IS NULL)`,
+    ),
   ],
 );

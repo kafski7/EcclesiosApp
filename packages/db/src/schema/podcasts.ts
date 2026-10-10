@@ -39,7 +39,10 @@ export const podcasts = pgTable(
   (t) => [
     index("podcasts_owner_user_idx").on(t.ownerUserId),
     index("podcasts_owner_member_idx").on(t.ownerMemberId),
-    check("podcasts_one_owner_chk", sql`(${t.ownerUserId} IS NULL) <> (${t.ownerMemberId} IS NULL)`),
+    check(
+      "podcasts_one_owner_chk",
+      sql`(${t.ownerUserId} IS NULL) <> (${t.ownerMemberId} IS NULL)`,
+    ),
     index("podcasts_fts_idx").using(
       "gin",
       sql`to_tsvector('english', ${t.title} || ' ' || ${t.summary} || ' ' || ${t.description})`,
@@ -97,7 +100,10 @@ export const podcastFollows = pgTable(
       .references(() => podcasts.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.memberId, t.podcastId] }), index("podcast_follows_podcast_idx").on(t.podcastId)],
+  (t) => [
+    primaryKey({ columns: [t.memberId, t.podcastId] }),
+    index("podcast_follows_podcast_idx").on(t.podcastId),
+  ],
 );
 
 /** Episode extras (D-029): PDF handouts. Access follows the episode. */

@@ -51,7 +51,7 @@ export class RegistrationService {
 
     // D-011: say plainly that the email/phone is taken — sign-up is rate-limited per IP.
     const taken = await this.db
-      .select({ id: members.id })
+      .select({ id: members.id, passwordHash: members.passwordHash })
       .from(members)
       .where(
         or(
@@ -60,6 +60,13 @@ export class RegistrationService {
         ),
       )
       .limit(1);
+    // D-039: their church already added them — they claim that record instead of creating a second one.
+    if (taken.length && !taken[0]!.passwordHash)
+      throw new DomainError(
+        409,
+        "CLAIM_ACCOUNT",
+        "Your church has already added you to Ecclesios. Use “Claim your account” on the sign-in page to set your password.",
+      );
     if (taken.length) throw accountExists();
 
     const [role] = await this.db
@@ -88,15 +95,13 @@ export class RegistrationService {
           })
           .returning({ id: members.id });
         const id = row!.id;
-        await tx
-          .insert(memberships)
-          .values({
-            memberId: id,
-            groupId: church.id,
-            roleId: role.id,
-            status: "PENDING",
-            isHome: true,
-          });
+        await tx.insert(memberships).values({
+          memberId: id,
+          groupId: church.id,
+          roleId: role.id,
+          status: "PENDING",
+          isHome: true,
+        });
         await tx.insert(follows).values({ memberId: id, groupId: church.id }).onConflictDoNothing();
         return id;
       });

@@ -1,5 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "node:crypto";
 import { ENV, type Env } from "../config/env";
@@ -54,7 +60,12 @@ export class MediaService {
   async presignPut(key: string, contentType: string, bytes: number) {
     const url = await getSignedUrl(
       this.signer,
-      new PutObjectCommand({ Bucket: this.env.S3_BUCKET, Key: key, ContentType: contentType, ContentLength: bytes }),
+      new PutObjectCommand({
+        Bucket: this.env.S3_BUCKET,
+        Key: key,
+        ContentType: contentType,
+        ContentLength: bytes,
+      }),
       { expiresIn: this.ttl },
     );
     return { key, url, headers: { "content-type": contentType }, expiresInSeconds: this.ttl };
@@ -66,7 +77,11 @@ export class MediaService {
       new GetObjectCommand({
         Bucket: this.env.S3_BUCKET,
         Key: key,
-        ...(downloadName ? { ResponseContentDisposition: `attachment; filename="${downloadName.replace(/"/g, "")}"` } : {}),
+        ...(downloadName
+          ? {
+              ResponseContentDisposition: `attachment; filename="${downloadName.replace(/"/g, "")}"`,
+            }
+          : {}),
       }),
       { expiresIn: this.ttl },
     );

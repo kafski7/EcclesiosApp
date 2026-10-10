@@ -1,7 +1,14 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { news } from "@ecclesios/db";
 import type { AdminNews, NewsItem, NewsSummary, UpsertNewsSchema } from "@ecclesios/shared";
-import { isNewsCurrent, lintLesson, orderNews, slugify, type NewsCategory, type NewsStatus } from "@ecclesios/shared/domain";
+import {
+  isNewsCurrent,
+  lintLesson,
+  orderNews,
+  slugify,
+  type NewsCategory,
+  type NewsStatus,
+} from "@ecclesios/shared/domain";
 import { and, desc, eq, gt, isNull, lte, or } from "drizzle-orm";
 import type { z } from "zod";
 import { AuditService } from "../audit/audit.service";
@@ -48,7 +55,11 @@ export class NewsService {
       .orderBy(desc(news.pinned), desc(news.publishedAt))
       .limit(PAGE + 1)
       .offset((page - 1) * PAGE);
-    return { items: await Promise.all(rows.slice(0, PAGE).map((r) => this.summary(r))), page, hasMore: rows.length > PAGE };
+    return {
+      items: await Promise.all(rows.slice(0, PAGE).map((r) => this.summary(r))),
+      page,
+      hasMore: rows.length > PAGE,
+    };
   }
 
   /** For Home: current (live, not expired) items, pinned first. */
@@ -59,7 +70,9 @@ export class NewsService {
       .where(and(this.live(now), or(isNull(news.expiresAt), gt(news.expiresAt, now))))
       .orderBy(desc(news.pinned), desc(news.publishedAt))
       .limit(limit);
-    return Promise.all(orderNews(rows.filter((r) => isNewsCurrent(r, now))).map((r) => this.summary(r)));
+    return Promise.all(
+      orderNews(rows.filter((r) => isNewsCurrent(r, now))).map((r) => this.summary(r)),
+    );
   }
 
   /** For the Home feed: current items newest first (not pinned-first), up to `limit`. */
@@ -73,7 +86,11 @@ export class NewsService {
   }
 
   async detail(slug: string, now = new Date()): Promise<NewsItem> {
-    const [r] = await this.db.select().from(news).where(and(eq(news.slug, slug), this.live(now))).limit(1);
+    const [r] = await this.db
+      .select()
+      .from(news)
+      .where(and(eq(news.slug, slug), this.live(now)))
+      .limit(1);
     if (!r) throw notFound();
     return this.item(r);
   }
@@ -115,10 +132,15 @@ export class NewsService {
 
   async adminList() {
     const rows = await this.db.select().from(news).orderBy(desc(news.updatedAt)).limit(300);
-    return Promise.all(rows.map(async (r) => {
-      const { body: _b, problems: _p, ...rest } = await this.admin(r);
-      return rest;
-    }));
+    return Promise.all(
+      rows.map(async (r) => {
+        const full = await this.admin(r);
+        const rest = { ...full };
+        delete (rest as { body?: string }).body;
+        delete (rest as { problems?: string[] }).problems;
+        return rest;
+      }),
+    );
   }
 
   adminDetail = async (slug: string) => this.admin(await this.bySlug(slug));
@@ -138,8 +160,13 @@ export class NewsService {
     if (slug) {
       const cur = await this.bySlug(slug);
       // A scheduled or live item can be moved in time; a draft keeps no publish time.
-      const publishedAt = cur.status === "PUBLISHED" && b.publishAt ? new Date(b.publishAt) : cur.publishedAt;
-      [row] = (await this.db.update(news).set({ ...values, publishedAt }).where(eq(news.id, cur.id)).returning()) as [Row];
+      const publishedAt =
+        cur.status === "PUBLISHED" && b.publishAt ? new Date(b.publishAt) : cur.publishedAt;
+      [row] = (await this.db
+        .update(news)
+        .set({ ...values, publishedAt })
+        .where(eq(news.id, cur.id))
+        .returning()) as [Row];
     } else {
       const s = await this.freeSlug(slugify(b.title));
       // New items are drafts; the publish time is chosen when publishing (setStatus).
@@ -148,7 +175,14 @@ export class NewsService {
         .values({ ...values, slug: s, authorUserId: userId, publishedAt: null })
         .returning()) as [Row];
     }
-    await this.audit.write({ actorType: "USER", actorId: userId, action: slug ? "news.updated" : "news.created", entityType: "news", entityId: row.slug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: slug ? "news.updated" : "news.created",
+      entityType: "news",
+      entityId: row.slug,
+      ip,
+    });
     return this.admin(row);
   }
 
@@ -156,21 +190,49 @@ export class NewsService {
     const root = base || "news";
     for (let i = 1; ; i++) {
       const candidate = i === 1 ? root : `${root}-${i}`;
-      const [hit] = await this.db.select({ id: news.id }).from(news).where(eq(news.slug, candidate)).limit(1);
+      const [hit] = await this.db
+        .select({ id: news.id })
+        .from(news)
+        .where(eq(news.slug, candidate))
+        .limit(1);
       if (!hit) return candidate;
     }
   }
 
   /** Publish now (or at `publishAt`), or take back to draft. Body problems block publishing. */
-  async setStatus(userId: string, slug: string, status: NewsStatus, publishAt: string | null, ip: string) {
+  async setStatus(
+    userId: string,
+    slug: string,
+    status: NewsStatus,
+    publishAt: string | null,
+    ip: string,
+  ) {
     const r = await this.bySlug(slug);
     if (status === "PUBLISHED") {
       const problems = r.body.trim() ? lintLesson(r.body) : [];
-      if (problems.length) throw new DomainError(409, "NEWS_HAS_PROBLEMS", "Fix the text's problems before publishing.", { problems });
+      if (problems.length)
+        throw new DomainError(
+          409,
+          "NEWS_HAS_PROBLEMS",
+          "Fix the text's problems before publishing.",
+          { problems },
+        );
     }
     const publishedAt = status === "DRAFT" ? null : publishAt ? new Date(publishAt) : new Date();
-    const [row] = await this.db.update(news).set({ status, publishedAt }).where(eq(news.id, r.id)).returning();
-    await this.audit.write({ actorType: "USER", actorId: userId, action: `news.${status.toLowerCase()}`, entityType: "news", entityId: slug, ip, metadata: { publishAt } });
+    const [row] = await this.db
+      .update(news)
+      .set({ status, publishedAt })
+      .where(eq(news.id, r.id))
+      .returning();
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: `news.${status.toLowerCase()}`,
+      entityType: "news",
+      entityId: slug,
+      ip,
+      metadata: { publishAt },
+    });
     return this.admin(row!);
   }
 
@@ -178,6 +240,13 @@ export class NewsService {
     const r = await this.bySlug(slug);
     await this.db.delete(news).where(eq(news.id, r.id));
     if (r.coverKey) await this.media.remove(r.coverKey);
-    await this.audit.write({ actorType: "USER", actorId: userId, action: "news.deleted", entityType: "news", entityId: slug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: "news.deleted",
+      entityType: "news",
+      entityId: slug,
+      ip,
+    });
   }
 }

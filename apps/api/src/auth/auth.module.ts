@@ -5,7 +5,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService, RATE_LIMIT_STORE } from "./auth.service";
 import { MemoryRateLimitStore } from "./core/rate-limit";
 import { JwtAuthGuard } from "./jwt-auth.guard";
-import { ConsoleOtpSender, OTP_SENDER } from "./otp-sender";
+import { OTP_SENDER, QueuedOtpSender } from "./otp-sender";
 
 @Module({
   controllers: [AuthController],
@@ -15,7 +15,7 @@ import { ConsoleOtpSender, OTP_SENDER } from "./otp-sender";
     UserAccountStore,
     ArgonHasher,
     JwtAuthGuard,
-    { provide: OTP_SENDER, useClass: ConsoleOtpSender },
+    { provide: OTP_SENDER, useClass: QueuedOtpSender },
     // In-memory = one API instance only. Redis store before scaling out (todo Phase 9).
     { provide: RATE_LIMIT_STORE, useFactory: () => new MemoryRateLimitStore() },
   ],

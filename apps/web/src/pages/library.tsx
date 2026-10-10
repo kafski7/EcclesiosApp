@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { Library } from "lucide-react";
+import { SignInLink } from "@/components/auth/sign-in-link";
 import { BookCover } from "@/components/books/book-cover";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { useLibrary } from "@/lib/books";
+import { libraryLabel, sortLibrary } from "@/lib/you";
 import { useSession } from "@/stores/session";
 
 /** My library: books bought and free books added (D-036). */
@@ -10,21 +14,38 @@ export function LibraryPage() {
   if (principal?.kind !== "member")
     return (
       <div className="content-narrow mx-auto card rail-card">
-        <Link to="/login" className="link">Sign in</Link> to see your books.
+        <SignInLink /> to see your books.
       </div>
     );
-  const items = q.data?.items ?? [];
+  // Reading first, then unstarted, then finished (D-049).
+  const items = sortLibrary(q.data?.items ?? []);
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <header className="page-head">
         <h1 className="page-title">My library</h1>
         <p className="page-sub">Books you've bought or added. Pick up where you left off.</p>
       </header>
-      {q.isPending ? <p className="muted small">Loading…</p> : null}
+      {q.isPending ? <Skeleton variant="grid" count={4} label="Loading your library" /> : null}
+      {q.isError ? (
+        <ErrorState
+          title="Your library could not be loaded"
+          error={q.error}
+          onRetry={() => q.refetch()}
+          retrying={q.isRefetching}
+        />
+      ) : null}
       {q.isSuccess && !items.length ? (
-        <p className="card rail-card muted">
-          Your library is empty. <Link to="/books" className="link">Browse books</Link>.
-        </p>
+        <EmptyState
+          icon={Library}
+          title="Your library is empty"
+          action={
+            <Link to="/books" className="btn btn-outline btn-sm">
+              Browse books
+            </Link>
+          }
+        >
+          Books you buy or add for free appear here.
+        </EmptyState>
       ) : null}
       <ul className="book-grid">
         {items.map((b) => (
@@ -36,7 +57,7 @@ export function LibraryPage() {
               <span className="book-progress" aria-label={`${b.percent}% read`}>
                 <span style={{ width: `${b.percent}%` }} />
               </span>
-              <small className="muted">{b.percent ? `${b.percent}% read` : "Not started"}</small>
+              <small className="muted">{libraryLabel(b.percent)}</small>
             </Link>
           </li>
         ))}

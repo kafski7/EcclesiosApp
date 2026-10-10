@@ -16,7 +16,14 @@ import {
   reactions,
   teachings,
 } from "@ecclesios/db";
-import type { FeedItem, HomeFeed, HomeSummary, HymnOfDay, Principal, WatchItem } from "@ecclesios/shared";
+import type {
+  FeedItem,
+  HomeFeed,
+  HomeSummary,
+  HymnOfDay,
+  Principal,
+  WatchItem,
+} from "@ecclesios/shared";
 import {
   canOpenMedia,
   hymnDisplayTitle,
@@ -113,11 +120,20 @@ export class HomeService {
       this.db
         .select()
         .from(posts)
-        .where(and(eq(posts.status, "APPROVED"), lte(posts.publishedAt, now), isNotNull(posts.youtubeId)))
+        .where(
+          and(
+            eq(posts.status, "APPROVED"),
+            lte(posts.publishedAt, now),
+            isNotNull(posts.youtubeId),
+          ),
+        )
         .orderBy(desc(posts.publishedAt))
         .limit(take * 2),
       this.db
-        .select({ m: hymnMedia, h: { slug: hymns.slug, title: hymns.title, firstLine: hymns.firstLine } })
+        .select({
+          m: hymnMedia,
+          h: { slug: hymns.slug, title: hymns.title, firstLine: hymns.firstLine },
+        })
         .from(hymnMedia)
         .innerJoin(hymnTunes, eq(hymnTunes.id, hymnMedia.tuneId))
         .innerJoin(hymns, eq(hymns.id, hymnTunes.hymnId))
@@ -167,9 +183,17 @@ export class HomeService {
   /** Pinned hymn for the date, else a season-appropriate pick (hymnOfDay, D-033). */
   async hymnOfDay(date: string): Promise<HymnOfDay | null> {
     const [rows, tags, [pick]] = await Promise.all([
-      this.db.select({ id: hymns.id, slug: hymns.slug }).from(hymns).where(eq(hymns.isPublished, true)),
+      this.db
+        .select({ id: hymns.id, slug: hymns.slug })
+        .from(hymns)
+        .where(eq(hymns.isPublished, true)),
       this.db.select({ hymnId: hymnTags.hymnId, tag: hymnTags.tag }).from(hymnTags),
-      this.db.select({ slug: hymns.slug }).from(hymnPicks).innerJoin(hymns, eq(hymns.id, hymnPicks.hymnId)).where(eq(hymnPicks.date, date)).limit(1),
+      this.db
+        .select({ slug: hymns.slug })
+        .from(hymnPicks)
+        .innerJoin(hymns, eq(hymns.id, hymnPicks.hymnId))
+        .where(eq(hymnPicks.date, date))
+        .limit(1),
     ]);
     const chosen = hymnOfDay(
       rows.map((r) => ({ ...r, tags: tags.filter((t) => t.hymnId === r.id).map((t) => t.tag) })),
@@ -212,20 +236,45 @@ export class HomeService {
     const rows = await this.db
       .select()
       .from(posts)
-      .where(and(eq(posts.status, "APPROVED"), gte(posts.publishedAt, since), lte(posts.publishedAt, now)))
+      .where(
+        and(
+          eq(posts.status, "APPROVED"),
+          gte(posts.publishedAt, since),
+          lte(posts.publishedAt, now),
+        ),
+      )
       .orderBy(desc(posts.publishedAt))
       .limit(200);
     if (!rows.length) return [];
     const counts = await this.db
       .select({ postId: postComments.postId, n: sql<number>`count(*)::int` })
       .from(postComments)
-      .where(and(inArray(postComments.postId, rows.map((r) => r.id)), eq(postComments.status, "VISIBLE"), gte(postComments.createdAt, activitySince)))
+      .where(
+        and(
+          inArray(
+            postComments.postId,
+            rows.map((r) => r.id),
+          ),
+          eq(postComments.status, "VISIBLE"),
+          gte(postComments.createdAt, activitySince),
+        ),
+      )
       .groupBy(postComments.postId);
     // Likes in the same window count too, a third of a comment each (D-035).
     const likes = await this.db
       .select({ itemId: reactions.itemId, n: sql<number>`count(*)::int` })
       .from(reactions)
-      .where(and(eq(reactions.kind, "POST"), eq(reactions.type, "LIKE"), inArray(reactions.itemId, rows.map((r) => r.id)), gte(reactions.createdAt, activitySince)))
+      .where(
+        and(
+          eq(reactions.kind, "POST"),
+          eq(reactions.type, "LIKE"),
+          inArray(
+            reactions.itemId,
+            rows.map((r) => r.id),
+          ),
+          gte(reactions.createdAt, activitySince),
+        ),
+      )
       .groupBy(reactions.itemId);
     const ranked = rankTrending(
       rows.map((r) => ({
@@ -245,7 +294,13 @@ export class HomeService {
     const rows = await this.db
       .select()
       .from(posts)
-      .where(and(eq(posts.status, "APPROVED"), eq(posts.kind, "EVENT"), sql`coalesce(${posts.endsAt}, ${posts.startsAt}) >= ${at}`))
+      .where(
+        and(
+          eq(posts.status, "APPROVED"),
+          eq(posts.kind, "EVENT"),
+          sql`coalesce(${posts.endsAt}, ${posts.startsAt}) >= ${at}`,
+        ),
+      )
       .orderBy(asc(posts.startsAt))
       .limit(3);
     return this.explore.summaries(rows);
@@ -257,9 +312,15 @@ export class HomeService {
    * For you: everything new — approved posts, published teachings, published episodes, current news.
    * Following (members): posts from churches they follow and episodes of podcasts they follow.
    */
-  async feed(tab: "for-you" | "following", page: number, viewer: Principal | undefined, now = new Date()): Promise<HomeFeed> {
+  async feed(
+    tab: "for-you" | "following",
+    page: number,
+    viewer: Principal | undefined,
+    now = new Date(),
+  ): Promise<HomeFeed> {
     const need = page * FEED_PAGE;
-    if (tab === "following" && viewer?.kind !== "member") return { items: [], page, hasMore: false };
+    if (tab === "following" && viewer?.kind !== "member")
+      return { items: [], page, hasMore: false };
     const following = tab === "following" && viewer?.kind === "member" ? viewer.id : null;
 
     const [postRows, teachingRows, episodeRows, newsRows] = await Promise.all([
@@ -270,14 +331,27 @@ export class HomeService {
           and(
             eq(posts.status, "APPROVED"),
             lte(posts.publishedAt, now),
-            following ? inArray(posts.churchId, this.db.select({ id: follows.groupId }).from(follows).where(eq(follows.memberId, following))) : undefined,
+            following
+              ? inArray(
+                  posts.churchId,
+                  this.db
+                    .select({ id: follows.groupId })
+                    .from(follows)
+                    .where(eq(follows.memberId, following)),
+                )
+              : undefined,
           ),
         )
         .orderBy(desc(posts.publishedAt))
         .limit(need),
       following
         ? Promise.resolve([] as (typeof teachings.$inferSelect)[])
-        : this.db.select().from(teachings).where(and(eq(teachings.status, "PUBLISHED"), lte(teachings.publishedAt, now))).orderBy(desc(teachings.publishedAt)).limit(need),
+        : this.db
+            .select()
+            .from(teachings)
+            .where(and(eq(teachings.status, "PUBLISHED"), lte(teachings.publishedAt, now)))
+            .orderBy(desc(teachings.publishedAt))
+            .limit(need),
       this.db
         .select({ e: podcastEpisodes, p: podcasts })
         .from(podcastEpisodes)
@@ -288,19 +362,45 @@ export class HomeService {
             eq(podcasts.isPublished, true),
             lte(podcastEpisodes.publishedAt, now),
             following
-              ? inArray(podcasts.id, this.db.select({ id: podcastFollows.podcastId }).from(podcastFollows).where(eq(podcastFollows.memberId, following)))
+              ? inArray(
+                  podcasts.id,
+                  this.db
+                    .select({ id: podcastFollows.podcastId })
+                    .from(podcastFollows)
+                    .where(eq(podcastFollows.memberId, following)),
+                )
               : undefined,
           ),
         )
         .orderBy(desc(podcastEpisodes.publishedAt))
         .limit(need),
-      following ? Promise.resolve([] as Awaited<ReturnType<NewsService["recentRows"]>>) : this.news.recentRows(need, now),
+      following
+        ? Promise.resolve([] as Awaited<ReturnType<NewsService["recentRows"]>>)
+        : this.news.recentRows(need, now),
     ]);
 
     type Entry = FeedEntry & { load: () => Promise<FeedItem> };
     const entries: Entry[][] = [
-      postRows.map((r): Entry => ({ type: "POST", key: r.id, at: r.publishedAt!, load: async () => ({ type: "POST", at: r.publishedAt!.toISOString(), post: (await this.explore.summaries([r]))[0]! }) })),
-      teachingRows.map((r): Entry => ({ type: "TEACHING", key: r.id, at: r.publishedAt!, load: async () => ({ type: "TEACHING", at: r.publishedAt!.toISOString(), teaching: (await this.teachingsSvc.summaries([r]))[0]! }) })),
+      postRows.map((r): Entry => ({
+        type: "POST",
+        key: r.id,
+        at: r.publishedAt!,
+        load: async () => ({
+          type: "POST",
+          at: r.publishedAt!.toISOString(),
+          post: (await this.explore.summaries([r]))[0]!,
+        }),
+      })),
+      teachingRows.map((r): Entry => ({
+        type: "TEACHING",
+        key: r.id,
+        at: r.publishedAt!,
+        load: async () => ({
+          type: "TEACHING",
+          at: r.publishedAt!.toISOString(),
+          teaching: (await this.teachingsSvc.summaries([r]))[0]!,
+        }),
+      })),
       episodeRows.map(({ e, p }): Entry => ({
         type: "EPISODE",
         key: e.id,
@@ -313,11 +413,24 @@ export class HomeService {
             title: e.title,
             durationSec: e.durationSec,
             mediaKind: e.mediaKind,
-            podcast: { slug: p.slug, title: p.title, coverUrl: p.coverKey ? await this.media.presignGet(p.coverKey) : null },
+            podcast: {
+              slug: p.slug,
+              title: p.title,
+              coverUrl: p.coverKey ? await this.media.presignGet(p.coverKey) : null,
+            },
           },
         }),
       })),
-      newsRows.map((r): Entry => ({ type: "NEWS", key: r.id, at: r.publishedAt!, load: async () => ({ type: "NEWS", at: r.publishedAt!.toISOString(), news: await this.news.summary(r) }) })),
+      newsRows.map((r): Entry => ({
+        type: "NEWS",
+        key: r.id,
+        at: r.publishedAt!,
+        load: async () => ({
+          type: "NEWS",
+          at: r.publishedAt!.toISOString(),
+          news: await this.news.summary(r),
+        }),
+      })),
     ];
     const { items, hasMore } = mergeFeed(entries, page, FEED_PAGE);
     return { items: await Promise.all(items.map((x) => x.load())), page, hasMore };
@@ -331,9 +444,16 @@ export class HomeService {
       await this.db.delete(hymnPicks).where(eq(hymnPicks.date, date));
       return this.hymnOfDay(date);
     }
-    const [h] = await this.db.select({ id: hymns.id }).from(hymns).where(and(eq(hymns.slug, hymnSlug), eq(hymns.isPublished, true))).limit(1);
+    const [h] = await this.db
+      .select({ id: hymns.id })
+      .from(hymns)
+      .where(and(eq(hymns.slug, hymnSlug), eq(hymns.isPublished, true)))
+      .limit(1);
     if (!h) throw new DomainError(404, "HYMN_NOT_FOUND", "We couldn't find that hymn.");
-    await this.db.insert(hymnPicks).values({ date, hymnId: h.id }).onConflictDoUpdate({ target: hymnPicks.date, set: { hymnId: h.id } });
+    await this.db
+      .insert(hymnPicks)
+      .values({ date, hymnId: h.id })
+      .onConflictDoUpdate({ target: hymnPicks.date, set: { hymnId: h.id } });
     return this.hymnOfDay(date);
   }
 }

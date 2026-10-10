@@ -11,7 +11,10 @@ import {
   REFUND_STATUSES,
 } from "../domain/books.js";
 
-export const BookSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120);
+export const BookSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .max(120);
 export const BookStatusSchema = z.enum(BOOK_STATUSES);
 export const BookFormatSchema = z.enum(BOOK_FORMATS);
 export const BookCategorySchema = z.enum(BOOK_CATEGORIES);
@@ -48,7 +51,11 @@ export const BookQuerySchema = z.object({
   price: z.enum(["free", "paid"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
-export const BookListSchema = z.object({ items: z.array(BookSummarySchema), page: z.number().int(), hasMore: z.boolean() });
+export const BookListSchema = z.object({
+  items: z.array(BookSummarySchema),
+  page: z.number().int(),
+  hasMore: z.boolean(),
+});
 
 export const BookSchema = BookSummarySchema.extend({
   description: z.string(),
@@ -62,7 +69,15 @@ export const BookSchema = BookSummarySchema.extend({
   hasPreview: z.boolean(),
   /** Set for the buyer: their latest paid order, for refunds. */
   order: z
-    .object({ id: z.string().uuid(), paidAt: z.string().datetime(), refund: z.object({ allowed: z.boolean(), reason: z.string().nullable(), status: RefundStatusSchema.nullable() }) })
+    .object({
+      id: z.string().uuid(),
+      paidAt: z.string().datetime(),
+      refund: z.object({
+        allowed: z.boolean(),
+        reason: z.string().nullable(),
+        status: RefundStatusSchema.nullable(),
+      }),
+    })
     .nullable(),
 });
 export type Book = z.infer<typeof BookSchema>;
@@ -108,7 +123,9 @@ export const OrderSchema = z.object({
   paidAt: z.string().datetime().nullable(),
 });
 export type Order = z.infer<typeof OrderSchema>;
-export const RefundRequestSchema = z.object({ reason: z.string().trim().min(5, "Tell us briefly why").max(500) });
+export const RefundRequestSchema = z.object({
+  reason: z.string().trim().min(5, "Tell us briefly why").max(500),
+});
 
 // ------------------------------------------------------------------ studio (sellers)
 
@@ -135,7 +152,10 @@ export const BookUploadSchema = z.object({
   contentType: z.string().max(100),
   bytes: z.number().int().min(1).max(MAX_BOOK_BYTES),
 });
-export const AttachBookFileSchema = z.object({ part: z.enum(["file", "preview", "cover"]), key: z.string().min(5).max(300).nullable() });
+export const AttachBookFileSchema = z.object({
+  part: z.enum(["file", "preview", "cover"]),
+  key: z.string().min(5).max(300).nullable(),
+});
 
 export const StudioBookSchema = BookSchema.omit({ owned: true, order: true }).extend({
   status: BookStatusSchema,
@@ -149,7 +169,10 @@ export const StudioBookSchema = BookSchema.omit({ owned: true, order: true }).ex
   updatedAt: z.string().datetime(),
 });
 export type StudioBook = z.infer<typeof StudioBookSchema>;
-export const StudioBookListSchema = z.object({ items: z.array(StudioBookSchema), canCreate: z.boolean() });
+export const StudioBookListSchema = z.object({
+  items: z.array(StudioBookSchema),
+  canCreate: z.boolean(),
+});
 
 export const SellerStatementSchema = z.object({
   commissionBps: z.number().int(),
@@ -167,7 +190,14 @@ export const SellerStatementSchema = z.object({
       status: OrderStatusSchema,
     }),
   ),
-  payouts: z.array(z.object({ id: z.string().uuid(), amountMinor: z.number().int(), reference: z.string(), at: z.string().datetime() })),
+  payouts: z.array(
+    z.object({
+      id: z.string().uuid(),
+      amountMinor: z.number().int(),
+      reference: z.string(),
+      at: z.string().datetime(),
+    }),
+  ),
 });
 export type SellerStatement = z.infer<typeof SellerStatementSchema>;
 
@@ -175,8 +205,14 @@ export type SellerStatement = z.infer<typeof SellerStatementSchema>;
 
 export const BookDecisionSchema = z.discriminatedUnion("decision", [
   z.object({ decision: z.literal("approve"), note: z.string().trim().max(500).optional() }),
-  z.object({ decision: z.literal("reject"), note: z.string().trim().min(3, "Tell the seller why").max(500) }),
-  z.object({ decision: z.literal("unlist"), note: z.string().trim().min(3, "Give a reason").max(500) }),
+  z.object({
+    decision: z.literal("reject"),
+    note: z.string().trim().min(3, "Tell the seller why").max(500),
+  }),
+  z.object({
+    decision: z.literal("unlist"),
+    note: z.string().trim().min(3, "Give a reason").max(500),
+  }),
 ]);
 export type BookDecision = z.infer<typeof BookDecisionSchema>;
 
@@ -194,7 +230,10 @@ export const SellerRowSchema = z.object({
   balanceMinor: z.number().int(),
   payoutTo: z.string().nullable(),
 });
-export const SellerListSchema = z.object({ items: z.array(SellerRowSchema), defaultCommissionBps: z.number().int() });
+export const SellerListSchema = z.object({
+  items: z.array(SellerRowSchema),
+  defaultCommissionBps: z.number().int(),
+});
 export const SellerTermsSchema = z.object({
   commissionBps: z.number().int().min(0).max(MAX_COMMISSION_BPS).nullable(),
   /** Mobile-money number or bank details for payouts. */

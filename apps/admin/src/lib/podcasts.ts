@@ -6,7 +6,11 @@ import {
   type UpsertEpisode,
   type UpsertPodcast,
 } from "@ecclesios/shared";
-import { PODCAST_AUDIO_TYPES, PODCAST_COVER_TYPES, type EpisodeStatus } from "@ecclesios/shared/domain";
+import {
+  PODCAST_AUDIO_TYPES,
+  PODCAST_COVER_TYPES,
+  type EpisodeStatus,
+} from "@ecclesios/shared/domain";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./query";
 
@@ -14,7 +18,10 @@ import { api } from "./query";
 const base = "/studio/podcasts";
 
 export function useStudioPodcasts() {
-  return useQuery({ queryKey: ["studio", "podcasts"], queryFn: () => api.get(base, StudioPodcastListSchema) });
+  return useQuery({
+    queryKey: ["studio", "podcasts"],
+    queryFn: () => api.get(base, StudioPodcastListSchema),
+  });
 }
 
 export function useStudioPodcast(slug: string | undefined) {
@@ -38,11 +45,15 @@ function useStudioMutation<V>(fn: (v: V) => Promise<StudioPodcast>) {
 
 export const useSavePodcast = (slug: string | undefined) =>
   useStudioMutation((body: UpsertPodcast) =>
-    slug ? api.put(`${base}/${slug}`, body, StudioPodcastSchema) : api.post(base, body, StudioPodcastSchema),
+    slug
+      ? api.put(`${base}/${slug}`, body, StudioPodcastSchema)
+      : api.post(base, body, StudioPodcastSchema),
   );
 
 export const useAddEpisode = (slug: string) =>
-  useStudioMutation((body: UpsertEpisode) => api.post(`${base}/${slug}/episodes`, body, StudioPodcastSchema));
+  useStudioMutation((body: UpsertEpisode) =>
+    api.post(`${base}/${slug}/episodes`, body, StudioPodcastSchema),
+  );
 
 export const useUpdateEpisode = (slug: string) =>
   useStudioMutation(({ id, body }: { id: string; body: UpsertEpisode }) =>
@@ -66,7 +77,14 @@ async function putFile(url: string, headers: Record<string, string>, file: File)
 export const audioType = (file: { type: string; name: string }) => {
   if ((PODCAST_AUDIO_TYPES as readonly string[]).includes(file.type)) return file.type;
   const ext = file.name.split(".").pop()?.toLowerCase();
-  return ({ mp3: "audio/mpeg", m4a: "audio/mp4", aac: "audio/aac", ogg: "audio/ogg" } as Record<string, string>)[ext ?? ""] ?? file.type;
+  return (
+    (
+      { mp3: "audio/mpeg", m4a: "audio/mp4", aac: "audio/aac", ogg: "audio/ogg" } as Record<
+        string,
+        string
+      >
+    )[ext ?? ""] ?? file.type
+  );
 };
 
 export const isCoverType = (t: string) => (PODCAST_COVER_TYPES as readonly string[]).includes(t);
@@ -74,9 +92,17 @@ export const isCoverType = (t: string) => (PODCAST_COVER_TYPES as readonly strin
 export const useUploadAudio = (slug: string) =>
   useStudioMutation(async ({ id, file }: { id: string; file: File }) => {
     const contentType = audioType(file);
-    const signed = await api.post(`${base}/${slug}/episodes/${id}/upload`, { contentType, bytes: file.size }, PresignedUploadSchema);
+    const signed = await api.post(
+      `${base}/${slug}/episodes/${id}/upload`,
+      { contentType, bytes: file.size },
+      PresignedUploadSchema,
+    );
     await putFile(signed.url, signed.headers, file);
-    return api.put(`${base}/${slug}/episodes/${id}/audio`, { key: signed.key, durationSec: await duration(file) }, StudioPodcastSchema);
+    return api.put(
+      `${base}/${slug}/episodes/${id}/audio`,
+      { key: signed.key, durationSec: await duration(file) },
+      StudioPodcastSchema,
+    );
   });
 
 /** YouTube / YouTube Music link (D-029); null clears it. */
@@ -94,19 +120,34 @@ export const useAddHandout = (slug: string) =>
       PresignedUploadSchema,
     );
     await putFile(signed.url, signed.headers, file);
-    return api.post(`${base}/${slug}/episodes/${id}/attachments`, { key: signed.key, label }, StudioPodcastSchema);
+    return api.post(
+      `${base}/${slug}/episodes/${id}/attachments`,
+      { key: signed.key, label },
+      StudioPodcastSchema,
+    );
   });
 
 export const useRemoveHandout = (slug: string) =>
-  useStudioMutation((attachmentId: string) => api.del(`${base}/${slug}/attachments/${attachmentId}`, StudioPodcastSchema));
+  useStudioMutation((attachmentId: string) =>
+    api.del(`${base}/${slug}/attachments/${attachmentId}`, StudioPodcastSchema),
+  );
 
 /** Handout label from a file name: "Week 3 notes.pdf" → "Week 3 notes". */
-export const handoutLabel = (name: string) => name.replace(/\.pdf$/i, "").replace(/[_-]+/g, " ").trim().slice(0, 80) || "Handout";
+export const handoutLabel = (name: string) =>
+  name
+    .replace(/\.pdf$/i, "")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .slice(0, 80) || "Handout";
 
 export const useUploadCover = (slug: string) =>
   useStudioMutation(async (file: File | null) => {
     if (!file) return api.put(`${base}/${slug}/cover`, { key: null }, StudioPodcastSchema);
-    const signed = await api.post(`${base}/${slug}/cover-upload`, { contentType: file.type, bytes: file.size }, PresignedUploadSchema);
+    const signed = await api.post(
+      `${base}/${slug}/cover-upload`,
+      { contentType: file.type, bytes: file.size },
+      PresignedUploadSchema,
+    );
     await putFile(signed.url, signed.headers, file);
     return api.put(`${base}/${slug}/cover`, { key: signed.key }, StudioPodcastSchema);
   });

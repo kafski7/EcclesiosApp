@@ -3,13 +3,24 @@ import { clampSeek, episodeActions, formatClock, resumePosition } from "./player
 
 describe("episodeActions (D-029)", () => {
   it("audio-first episode", () => {
-    expect(episodeActions({ mediaKind: "AUDIO", hasAudio: true, youtubeId: null, available: true })).toEqual({ listen: true, watch: false, locked: false, primary: "listen" });
+    expect(
+      episodeActions({ mediaKind: "AUDIO", hasAudio: true, youtubeId: null, available: true }),
+    ).toEqual({ listen: true, watch: false, locked: false, primary: "listen" });
   });
   it("YouTube-first episode with audio too", () => {
-    expect(episodeActions({ mediaKind: "YOUTUBE", hasAudio: true, youtubeId: "dQw4w9WgXcQ", available: true }).primary).toBe("watch");
+    expect(
+      episodeActions({
+        mediaKind: "YOUTUBE",
+        hasAudio: true,
+        youtubeId: "dQw4w9WgXcQ",
+        available: true,
+      }).primary,
+    ).toBe("watch");
   });
   it("locked episodes offer nothing", () => {
-    expect(episodeActions({ mediaKind: "AUDIO", hasAudio: true, youtubeId: null, available: false })).toMatchObject({ locked: true, listen: false });
+    expect(
+      episodeActions({ mediaKind: "AUDIO", hasAudio: true, youtubeId: null, available: false }),
+    ).toMatchObject({ locked: true, listen: false });
   });
 });
 

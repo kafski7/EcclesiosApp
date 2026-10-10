@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { E164, normalisePhone, PHONE_HINT } from "../domain/phone.js";
 
 /** Standard error envelope every API error must use (Phase 2 error filter). */
 export const ApiErrorSchema = z.object({
@@ -26,7 +27,27 @@ export const paginated = <T extends z.ZodTypeAny>(item: T) =>
   });
 
 export const UuidSchema = z.string().uuid();
-/** E.164 telephone, e.g. +233241234567. */
+/**
+ * Telephone (D-040): accepts the way people type numbers (024 123 4567, +233 24…, 00233…) and
+ * stores E.164 (+233241234567). Use `optionalPhone` for fields that may be left empty.
+ */
 export const TelephoneSchema = z
   .string()
-  .regex(/^\+[1-9]\d{7,14}$/, "Use E.164 format, e.g. +233241234567");
+  .trim()
+  .transform((v) => normalisePhone(v))
+  .pipe(z.string().regex(E164, PHONE_HINT));
+
+/** Optional phone: empty → null, otherwise tidied and validated like TelephoneSchema. */
+export const optionalPhone = () =>
+  z
+    .string()
+    .nullish()
+    .transform((v, ctx) => {
+      if (v == null || !v.trim()) return null;
+      const n = normalisePhone(v);
+      if (!E164.test(n)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: PHONE_HINT });
+        return z.NEVER;
+      }
+      return n;
+    });

@@ -16,7 +16,9 @@ export function BookReaderPage() {
   const preview = params.get("preview") === "1";
   const [r, setR] = useState<ReadUrl | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [font, setFont] = useState(() => Number(localStorage.getItem("ecclesios.reader.font")) || 100);
+  const [font, setFont] = useState(
+    () => Number(localStorage.getItem("ecclesios.reader.font")) || 100,
+  );
   const [night, setNight] = useState(() => localStorage.getItem("ecclesios.reader.night") === "1");
   const [percent, setPercent] = useState(0);
   const nav = useRef<{ next: () => void; prev: () => void } | null>(null);
@@ -28,13 +30,23 @@ export function BookReaderPage() {
         setR(x);
         setPercent(x.progress.percent);
       })
-      .catch((e) => setError(e instanceof ApiClientError ? e.message : "This book could not be opened."));
+      .catch((e) =>
+        setError(e instanceof ApiClientError ? e.message : "This book could not be opened."),
+      );
   }, [slug, preview]);
 
   useEffect(() => localStorage.setItem("ecclesios.reader.font", String(font)), [font]);
   useEffect(() => localStorage.setItem("ecclesios.reader.night", night ? "1" : "0"), [night]);
 
-  const save = useMemo(() => throttleLatest((cfi: string, pct: number) => slug && !preview && void saveProgress(slug, cfi, pct).catch(() => {}), 4000), [slug, preview]);
+  const save = useMemo(
+    () =>
+      throttleLatest(
+        (cfi: string, pct: number) =>
+          slug && !preview && void saveProgress(slug, cfi, pct).catch(() => {}),
+        4000,
+      ),
+    [slug, preview],
+  );
   useEffect(() => () => save.flush(), [save]);
 
   useEffect(() => {
@@ -47,21 +59,41 @@ export function BookReaderPage() {
   }, []);
 
   return (
-    <div className={`reader${night ? " reader-night" : ""}`} onContextMenu={(e) => e.preventDefault()}>
+    <div
+      className={`reader${night ? " reader-night" : ""}`}
+      onContextMenu={(e) => e.preventDefault()}
+    >
       <div className="reader-bar">
         <Link to={`/books/${slug}`} className="icon-btn" aria-label="Back to the book">
           <ArrowLeft className="ic" />
         </Link>
-        <span className="small muted flex-1">{preview ? "Sample" : r?.format === "EPUB" ? `${percent}%` : ""}</span>
+        <span className="small muted flex-1">
+          {preview ? "Sample" : r?.format === "EPUB" ? `${percent}%` : ""}
+        </span>
         {r?.format === "EPUB" ? (
           <>
-            <button type="button" className="icon-btn" onClick={() => setFont((f) => Math.max(80, f - 10))} aria-label="Smaller text">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setFont((f) => Math.max(80, f - 10))}
+              aria-label="Smaller text"
+            >
               <Minus className="ic" />
             </button>
-            <button type="button" className="icon-btn" onClick={() => setFont((f) => Math.min(180, f + 10))} aria-label="Larger text">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setFont((f) => Math.min(180, f + 10))}
+              aria-label="Larger text"
+            >
               <Plus className="ic" />
             </button>
-            <button type="button" className="icon-btn" onClick={() => setNight((n) => !n)} aria-label={night ? "Day mode" : "Night mode"}>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => setNight((n) => !n)}
+              aria-label={night ? "Day mode" : "Night mode"}
+            >
               {night ? <Sun className="ic" /> : <Moon className="ic" />}
             </button>
           </>
@@ -74,7 +106,12 @@ export function BookReaderPage() {
         <div className="reader-page">
           {r.format === "EPUB" ? (
             <>
-              <button type="button" className="reader-turn left" onClick={() => nav.current?.prev()} aria-label="Previous page">
+              <button
+                type="button"
+                className="reader-turn left"
+                onClick={() => nav.current?.prev()}
+                aria-label="Previous page"
+              >
                 <ChevronLeft className="ic" />
               </button>
               <EpubView
@@ -89,7 +126,12 @@ export function BookReaderPage() {
                 }}
                 onError={setError}
               />
-              <button type="button" className="reader-turn right" onClick={() => nav.current?.next()} aria-label="Next page">
+              <button
+                type="button"
+                className="reader-turn right"
+                onClick={() => nav.current?.next()}
+                aria-label="Next page"
+              >
                 <ChevronRight className="ic" />
               </button>
             </>

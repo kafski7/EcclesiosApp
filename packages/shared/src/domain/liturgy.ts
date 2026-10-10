@@ -6,7 +6,14 @@
  * following Sunday (universal calendar); Ordinary Time week numbers and transferred
  * solemnities are not computed — specific celebrations come from the readings data.
  */
-export const LITURGICAL_SEASONS = ["ADVENT", "CHRISTMAS", "LENT", "TRIDUUM", "EASTER", "ORDINARY"] as const;
+export const LITURGICAL_SEASONS = [
+  "ADVENT",
+  "CHRISTMAS",
+  "LENT",
+  "TRIDUUM",
+  "EASTER",
+  "ORDINARY",
+] as const;
 export type LiturgicalSeason = (typeof LITURGICAL_SEASONS)[number];
 
 export const LITURGICAL_COLORS = ["GREEN", "VIOLET", "WHITE", "RED", "ROSE", "BLACK"] as const;
@@ -37,7 +44,8 @@ export const isIsoDate = (s: string) => {
 };
 
 export const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
-export const addDays = (iso: string, n: number) => toIsoDate(new Date(parseIsoDate(iso).getTime() + n * DAY));
+export const addDays = (iso: string, n: number) =>
+  toIsoDate(new Date(parseIsoDate(iso).getTime() + n * DAY));
 const utc = (y: number, m: number, d: number) => new Date(Date.UTC(y, m - 1, d));
 const dow = (d: Date) => d.getUTCDay(); // 0 = Sunday
 

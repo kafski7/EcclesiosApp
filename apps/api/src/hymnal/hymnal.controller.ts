@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import {
   AddMediaSchema,
   HymnSearchQuerySchema,
@@ -18,10 +31,17 @@ import { ZodPipe } from "../common/zod.pipe";
 import { PlatformRole } from "../platform/platform-role";
 import { HymnalService } from "./hymnal.service";
 
-const uuid = new ParseUUIDPipe({ exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id.") });
+const uuid = new ParseUUIDPipe({
+  exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id."),
+});
 const slugPipe = new ZodPipe(HymnSlugSchema);
 const ip = (req: Request) => req.ip ?? "unknown";
-const CountryQuery = z.object({ country: z.string().regex(/^[A-Z]{2}$/).optional() });
+const CountryQuery = z.object({
+  country: z
+    .string()
+    .regex(/^[A-Z]{2}$/)
+    .optional(),
+});
 const UrlQuery = z.object({ download: z.enum(["0", "1"]).optional() });
 const AdminListQuery = z.object({ q: z.string().trim().max(100).default("") });
 
@@ -49,7 +69,10 @@ export class HymnalController {
   }
 
   @Get("hymns/:slug")
-  bySlug(@Param("slug", slugPipe) slug: string, @Query(new ZodPipe(CountryQuery)) q: z.output<typeof CountryQuery>) {
+  bySlug(
+    @Param("slug", slugPipe) slug: string,
+    @Query(new ZodPipe(CountryQuery)) q: z.output<typeof CountryQuery>,
+  ) {
     return this.hymnal.bySlug(slug, q.country ?? null, PUBLIC_VIEWER);
   }
 
@@ -98,7 +121,10 @@ export class HymnalAdminController {
 
   @Post("hymns/:slug/tunes")
   @HttpCode(201)
-  addTune(@Param("slug", slugPipe) slug: string, @Body(new ZodPipe(UpsertTuneSchema)) body: z.output<typeof UpsertTuneSchema>) {
+  addTune(
+    @Param("slug", slugPipe) slug: string,
+    @Body(new ZodPipe(UpsertTuneSchema)) body: z.output<typeof UpsertTuneSchema>,
+  ) {
     return this.hymnal.addTune(slug, body);
   }
 

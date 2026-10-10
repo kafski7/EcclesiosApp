@@ -23,6 +23,7 @@ export function PlatformLayout() {
       nav={creator ? CREATOR_NAV : PLATFORM_NAV}
       user={{ name: creator ? "Creator" : "Platform admin", role: ROLE_LABEL[role] ?? role }}
       loginPath="/admin-login"
+      links={{ notifications: "/platform/notifications", profile: "/platform/profile" }}
     >
       <Outlet />
     </Shell>

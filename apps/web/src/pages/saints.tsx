@@ -1,10 +1,11 @@
 import { SaintPortrait } from "@/components/saints/saint-portrait";
 import { monthName } from "@ecclesios/shared/domain";
-import { Search } from "lucide-react";
+import { Search, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { SaintOfTheDay } from "@/components/saints/saint-of-the-day";
 import { feastLabel, RANK_LABEL, useSaints } from "@/lib/saints";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
@@ -37,20 +38,30 @@ export function SaintsPage() {
     <div className="content-narrow mx-auto" style={{ maxWidth: 980 }}>
       <div className="page-head">
         <h1 className="page-title">Saints</h1>
-        <p className="page-sub">Witnesses of faith — the saint of the day and the Church's calendar of saints.</p>
+        <p className="page-sub">
+          Witnesses of faith — the saint of the day and the Church's calendar of saints.
+        </p>
       </div>
 
       <SaintOfTheDay
         fallback={
           <div className="card rail-card">
-            <p className="post-text">No saint from our calendar is celebrated today. Browse the directory below.</p>
+            <p className="post-text">
+              No saint from our calendar is celebrated today. Browse the directory below.
+            </p>
           </div>
         }
       />
 
       <form className="search mt-6" role="search" onSubmit={(e) => e.preventDefault()}>
         <Search className="ic" aria-hidden />
-        <input type="search" placeholder="Search by name or patronage, e.g. mothers, missions" aria-label="Search saints" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input
+          type="search"
+          placeholder="Search by name or patronage, e.g. mothers, missions"
+          aria-label="Search saints"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
       </form>
 
       <div className="filter-bar" role="group" aria-label="Filter by month">
@@ -58,15 +69,32 @@ export function SaintsPage() {
           All
         </button>
         {MONTHS.map((m) => (
-          <button key={m} type="button" className="f-pill" aria-pressed={month === m} onClick={() => pick(m)}>
+          <button
+            key={m}
+            type="button"
+            className="f-pill"
+            aria-pressed={month === m}
+            onClick={() => pick(m)}
+          >
             {monthName(m).slice(0, 3)}
           </button>
         ))}
       </div>
 
-      {list.isPending ? <p className="muted small">Loading saints…</p> : null}
-      {list.isError ? <p className="small">The directory could not be loaded.</p> : null}
-      {list.data && !list.data.items.length ? <p className="muted small">No saints match your search.</p> : null}
+      {list.isPending ? <Skeleton variant="grid" count={6} label="Loading saints" /> : null}
+      {list.isError ? (
+        <ErrorState
+          title="The directory could not be loaded"
+          error={list.error}
+          onRetry={() => list.refetch()}
+          retrying={list.isRefetching}
+        />
+      ) : null}
+      {list.data && !list.data.items.length ? (
+        <EmptyState icon={UserRound} title="No saints match your search">
+          Try a name, a patronage such as “teachers”, or another month.
+        </EmptyState>
+      ) : null}
       <ul className="saint-grid">
         {list.data?.items.map((s) => (
           <li key={s.slug}>

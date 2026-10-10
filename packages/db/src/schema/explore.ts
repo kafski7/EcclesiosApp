@@ -41,13 +41,21 @@ export const posts = pgTable(
     onlineUrl: text("online_url"),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     publishedAt: timestamp("published_at", { withTimezone: true }),
-    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     reviewNote: text("review_note"),
     ...timestamps(),
   },
   (t) => [
-    check("posts_one_author_chk", sql`(${t.authorUserId} IS NULL) <> (${t.authorMemberId} IS NULL)`),
-    check("posts_event_chk", sql`${t.kind} <> 'EVENT' OR ${t.status} IN ('DRAFT','REJECTED') OR ${t.startsAt} IS NOT NULL`),
+    check(
+      "posts_one_author_chk",
+      sql`(${t.authorUserId} IS NULL) <> (${t.authorMemberId} IS NULL)`,
+    ),
+    check(
+      "posts_event_chk",
+      sql`${t.kind} <> 'EVENT' OR ${t.status} IN ('DRAFT','REJECTED') OR ${t.startsAt} IS NOT NULL`,
+    ),
     check("posts_live_chk", sql`${t.status} <> 'APPROVED' OR ${t.publishedAt} IS NOT NULL`),
     index("posts_feed_idx").on(t.status, t.publishedAt),
     index("posts_events_idx").on(t.status, t.kind, t.startsAt),
@@ -78,7 +86,10 @@ export const postComments = pgTable(
     reportCount: integer("report_count").notNull().default(0),
     ...timestamps(),
   },
-  (t) => [index("post_comments_post_idx").on(t.postId, t.status, t.createdAt), index("post_comments_reports_idx").on(t.reportCount)],
+  (t) => [
+    index("post_comments_post_idx").on(t.postId, t.status, t.createdAt),
+    index("post_comments_reports_idx").on(t.reportCount),
+  ],
 );
 
 /** One report per person per comment. */

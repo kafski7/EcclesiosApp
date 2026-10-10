@@ -20,11 +20,16 @@ export const isNewsLive = (n: NewsWindow, now: Date) =>
   n.status === "PUBLISHED" && n.publishedAt !== null && n.publishedAt <= now;
 
 /** Shown on Home (rail + feed): live and not yet expired. */
-export const isNewsCurrent = (n: NewsWindow, now: Date) => isNewsLive(n, now) && (!n.expiresAt || n.expiresAt > now);
+export const isNewsCurrent = (n: NewsWindow, now: Date) =>
+  isNewsLive(n, now) && (!n.expiresAt || n.expiresAt > now);
 
 /** Rail order: pinned first, then newest. */
-export function orderNews<T extends { pinned: boolean; publishedAt: Date | null }>(items: readonly T[]): T[] {
+export function orderNews<T extends { pinned: boolean; publishedAt: Date | null }>(
+  items: readonly T[],
+): T[] {
   return [...items].sort(
-    (a, b) => Number(b.pinned) - Number(a.pinned) || (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
+    (a, b) =>
+      Number(b.pinned) - Number(a.pinned) ||
+      (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0),
   );
 }

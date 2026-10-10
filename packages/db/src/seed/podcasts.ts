@@ -7,12 +7,21 @@ export const SEED_PODCASTS = [
     slug: "ecclesios-weekly",
     title: "Ecclesios Weekly",
     summary: "A short weekly reflection on the Sunday Gospel.",
-    description: "Ten minutes with the Sunday Gospel: the reading, a reflection and a question to take into the week.",
+    description:
+      "Ten minutes with the Sunday Gospel: the reading, a reflection and a question to take into the week.",
     category: "reflection",
     owner: "SUPER" as const,
     episodes: [
-      { number: 1, title: "Welcome to Ecclesios Weekly", notes: "What this podcast is for and how to use it." },
-      { number: 2, title: "The vineyard and its tenants", notes: "A reflection on Matthew 21:33-43." },
+      {
+        number: 1,
+        title: "Welcome to Ecclesios Weekly",
+        notes: "What this podcast is for and how to use it.",
+      },
+      {
+        number: 2,
+        title: "The vineyard and its tenants",
+        notes: "A reflection on Matthew 21:33-43.",
+      },
     ],
   },
   {

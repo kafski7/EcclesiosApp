@@ -1,17 +1,25 @@
 import { PasswordSchema, type LoginChallengeResponse } from "@ecclesios/shared";
 import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout, Field, FormAlert } from "@/components/auth/auth-layout";
 import { ApiClientError } from "@/lib/api";
 import { authErrorMessage, restartsSignIn } from "@/lib/auth-errors";
-import { setFirstPassword, startSignIn, verifyCode } from "@/lib/auth";
+import { setFirstPassword, startClaim, startSignIn, verifyCode } from "@/lib/auth";
 import { env } from "@/lib/env";
+import { safeNext, withNext } from "@/lib/return-to";
 import { useSession } from "@/stores/session";
 
 type Step =
   | { kind: "credentials" }
-  | { kind: "otp"; challenge: LoginChallengeResponse; identifier: string; password: string }
+  | { kind: "claim" }
+  | {
+      kind: "otp";
+      challenge: LoginChallengeResponse;
+      identifier: string;
+      password: string;
+      claim?: boolean;
+    }
   | { kind: "set-password"; tempToken: string };
 
 const asApiError = (e: unknown) => (e instanceof ApiClientError ? e : null);
@@ -20,12 +28,18 @@ const asApiError = (e: unknown) => (e instanceof ApiClientError ? e : null);
 export function LoginPage() {
   const principal = useSession((s) => s.principal);
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>({ kind: "credentials" });
+  const [params] = useSearchParams();
+  const [step, setStep] = useState<Step>(
+    params.get("claim") === "1" ? { kind: "claim" } : { kind: "credentials" },
+  );
   const [notice, setNotice] = useState<string | null>(null);
 
-  if (principal && step.kind === "credentials") return <Navigate to="/" replace />;
+  // Back to where the person was (D-043); only in-app paths are accepted.
+  const next = safeNext(params.get("next"));
+  if (principal && (step.kind === "credentials" || step.kind === "claim"))
+    return <Navigate to={next} replace />;
 
-  const done = () => navigate("/", { replace: true });
+  const done = () => navigate(next, { replace: true });
   const restart = (message: string) => {
     setNotice(message);
     setStep({ kind: "credentials" });
@@ -40,6 +54,15 @@ export function LoginPage() {
             setNotice(null);
             setStep({ kind: "otp", challenge, identifier, password });
           }}
+          onClaim={() => (setNotice(null), setStep({ kind: "claim" }))}
+        />
+      )}
+      {step.kind === "claim" && (
+        <ClaimStep
+          onChallenge={(challenge, identifier) =>
+            setStep({ kind: "otp", challenge, identifier, password: "", claim: true })
+          }
+          onBack={() => setStep({ kind: "credentials" })}
         />
       )}
       {step.kind === "otp" && (
@@ -61,12 +84,17 @@ export function LoginPage() {
 function CredentialsStep({
   notice,
   onChallenge,
+  onClaim,
 }: {
   notice: string | null;
   onChallenge: (c: LoginChallengeResponse, identifier: string, password: string) => void;
+  onClaim: () => void;
 }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  // Keep "come back to this page" when switching to Create account (D-043).
+  const [params] = useSearchParams();
+  const next = params.get("next");
   const m = useMutation({
     mutationFn: () => startSignIn(identifier.trim(), password),
     onSuccess: (c) => onChallenge(c, identifier.trim(), password),
@@ -83,10 +111,7 @@ function CredentialsStep({
       {notice ? <FormAlert>{notice}</FormAlert> : null}
       {m.error ? <FormAlert>{authErrorMessage(asApiError(m.error))}</FormAlert> : null}
       <form className="auth-form" onSubmit={submit} noValidate>
-        <Field
-          label="Email or phone number"
-          hint="Phone numbers start with your country code, e.g. +233…"
-        >
+        <Field label="Email or phone number" hint="e.g. you@example.com or 024 123 4567">
           <input
             className="auth-input"
             autoComplete="username"
@@ -116,11 +141,73 @@ function CredentialsStep({
         </button>
       </form>
       <p className="auth-x-switch">
-        New to Ecclesios? <Link to="/register">Create an account</Link>
+        New to Ecclesios? <Link to={withNext("/register", next)}>Create an account</Link>
+      </p>
+      <p className="auth-x-switch">
+        Added by your church but never signed in?{" "}
+        <button type="button" className="auth-link" onClick={onClaim}>
+          Claim your account
+        </button>
       </p>
       <p className="auth-x-switch">
         Church staff? <a href={`${env.VITE_ADMIN_URL}/login`}>Church Management login</a>
       </p>
+    </>
+  );
+}
+
+/** D-039: people their church added (no password yet) prove their phone or email, then set a password. */
+function ClaimStep({
+  onChallenge,
+  onBack,
+}: {
+  onChallenge: (c: LoginChallengeResponse, identifier: string) => void;
+  onBack: () => void;
+}) {
+  const [identifier, setIdentifier] = useState("");
+  const m = useMutation({
+    mutationFn: () => startClaim(identifier.trim()),
+    onSuccess: (c) => onChallenge(c, identifier.trim()),
+  });
+  return (
+    <>
+      <h1 className="auth-x-sub">Claim your account</h1>
+      <p className="auth-x-lede">
+        If your parish or outstation added you to Ecclesios, enter the phone number or email they
+        have for you. We'll send a code, then you choose a password.
+      </p>
+      {m.error ? <FormAlert>{authErrorMessage(asApiError(m.error))}</FormAlert> : null}
+      <form
+        className="auth-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (identifier.trim()) m.mutate();
+        }}
+        noValidate
+      >
+        <Field label="Email or phone number" hint="e.g. you@example.com or 024 123 4567">
+          <input
+            className="auth-input"
+            autoComplete="username"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            required
+            autoFocus
+          />
+        </Field>
+        <button
+          type="submit"
+          className="auth-btn auth-btn-primary"
+          disabled={m.isPending || !identifier.trim()}
+        >
+          {m.isPending ? "Checking…" : "Send code"}
+        </button>
+      </form>
+      <div className="auth-x-row">
+        <button type="button" className="auth-link" onClick={onBack}>
+          Back to sign in
+        </button>
+      </div>
     </>
   );
 }
@@ -150,7 +237,8 @@ function OtpStep({
     },
   });
   const resend = useMutation({
-    mutationFn: () => startSignIn(step.identifier, step.password),
+    mutationFn: () =>
+      step.claim ? startClaim(step.identifier) : startSignIn(step.identifier, step.password),
     onSuccess: onResent,
   });
   const submit = (e: FormEvent) => {

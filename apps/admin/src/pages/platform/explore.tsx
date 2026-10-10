@@ -22,7 +22,8 @@ import { ApiClientError } from "@/lib/api";
 import { useModeration, useQueue, useReportedComments } from "@/lib/explore";
 
 const errText = (e: unknown) => (e instanceof ApiClientError ? e.message : "Something went wrong.");
-const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
+const when = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—";
 
 /** Explore moderation (functionality §3.4, §6, D-031): pending posts and reported comments. */
 export function ExploreModerationPage() {
@@ -34,20 +35,34 @@ export function ExploreModerationPage() {
       <div className="dash-head">
         <div>
           <h1>Explore moderation</h1>
-          <p className="dash-sub">Posts appear on Explore only after you approve them. Every decision is recorded in the audit log.</p>
+          <p className="dash-sub">
+            Posts appear on Explore only after you approve them. Every decision is recorded in the
+            audit log.
+          </p>
         </div>
-        <Link to="/platform/explore/mine" className="btn btn-outline btn-sm">My posts</Link>
+        <Link to="/platform/explore/mine" className="btn btn-outline btn-sm">
+          My posts
+        </Link>
       </div>
       <CNav variant="underline" className="mb-3">
         <CNavItem>
           <CNavLink active={tab === "queue"} onClick={() => setTab("queue")} as="button">
-            Waiting for review {queue.data ? <CBadge color="primary" className="ms-1">{queue.data.items.length}</CBadge> : null}
+            Waiting for review{" "}
+            {queue.data ? (
+              <CBadge color="primary" className="ms-1">
+                {queue.data.items.length}
+              </CBadge>
+            ) : null}
           </CNavLink>
         </CNavItem>
         <CNavItem>
           <CNavLink active={tab === "comments"} onClick={() => setTab("comments")} as="button">
             Reported comments{" "}
-            {reported.data ? <CBadge color="danger" className="ms-1">{reported.data.items.filter((c) => c.status === "HIDDEN").length}</CBadge> : null}
+            {reported.data ? (
+              <CBadge color="danger" className="ms-1">
+                {reported.data.items.filter((c) => c.status === "HIDDEN").length}
+              </CBadge>
+            ) : null}
           </CNavLink>
         </CNavItem>
       </CNav>
@@ -55,8 +70,12 @@ export function ExploreModerationPage() {
         <>
           {queue.isError ? <CAlert color="danger">{errText(queue.error)}</CAlert> : null}
           {queue.isPending ? <p className="muted">Loading…</p> : null}
-          {queue.data && !queue.data.items.length ? <section className="card panel muted">Nothing waiting. 🙏</section> : null}
-          {queue.data?.items.map((p) => <QueueItem key={p.id} p={p} />)}
+          {queue.data && !queue.data.items.length ? (
+            <section className="card panel muted">Nothing waiting. 🙏</section>
+          ) : null}
+          {queue.data?.items.map((p) => (
+            <QueueItem key={p.id} p={p} />
+          ))}
         </>
       ) : (
         <ReportedComments />
@@ -72,7 +91,9 @@ function QueueItem({ p }: { p: MyPost & { submittedBy: string; submittedAt: stri
   return (
     <section className="card panel mb-4">
       <div className="d-flex flex-wrap gap-2 align-items-center mb-2">
-        <CBadge color={p.kind === "EVENT" ? "warning" : "info"}>{p.kind === "EVENT" ? "Event" : "Article"}</CBadge>
+        <CBadge color={p.kind === "EVENT" ? "warning" : "info"}>
+          {p.kind === "EVENT" ? "Event" : "Article"}
+        </CBadge>
         <span className="small muted">
           by <b>{p.submittedBy}</b> · submitted {when(p.submittedAt)}
         </span>
@@ -86,22 +107,53 @@ function QueueItem({ p }: { p: MyPost & { submittedBy: string; submittedAt: stri
           {p.event.onlineUrl ? ` · ${p.event.onlineUrl}` : ""}
         </p>
       ) : null}
-      {p.coverUrl ? <img src={p.coverUrl} alt="" style={{ maxHeight: 220, borderRadius: 12, marginBottom: 12 }} /> : null}
+      {p.coverUrl ? (
+        <img
+          src={p.coverUrl}
+          alt=""
+          style={{ maxHeight: 220, borderRadius: 12, marginBottom: 12 }}
+        />
+      ) : null}
       {p.youtubeId ? (
         <p className="small">
-          Video: <a href={`https://youtu.be/${p.youtubeId}`} target="_blank" rel="noopener noreferrer">youtu.be/{p.youtubeId}</a>
+          Video:{" "}
+          <a href={`https://youtu.be/${p.youtubeId}`} target="_blank" rel="noopener noreferrer">
+            youtu.be/{p.youtubeId}
+          </a>
         </p>
       ) : null}
       <div className="border rounded p-3 mb-3" style={{ maxHeight: 420, overflow: "auto" }}>
         <Preview blocks={blocks} />
       </div>
-      <CFormTextarea rows={2} placeholder="Note to the author (required to reject)" value={note} onChange={(e) => setNote(e.target.value)} className="mb-2" />
+      <CFormTextarea
+        rows={2}
+        placeholder="Note to the author (required to reject)"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        className="mb-2"
+      />
       {m.decide.error ? <CAlert color="danger">{errText(m.decide.error)}</CAlert> : null}
       <div className="d-flex gap-2">
-        <CButton color="primary" disabled={m.decide.isPending} onClick={() => m.decide.mutate({ id: p.id, d: { decision: "approve", note: note.trim() || undefined } })}>
+        <CButton
+          color="primary"
+          disabled={m.decide.isPending}
+          onClick={() =>
+            m.decide.mutate({
+              id: p.id,
+              d: { decision: "approve", note: note.trim() || undefined },
+            })
+          }
+        >
           Approve
         </CButton>
-        <CButton color="danger" variant="outline" disabled={m.decide.isPending || note.trim().length < 3} onClick={() => m.decide.mutate({ id: p.id, d: { decision: "reject", note: note.trim() } })}>
+        <CButton
+          color="danger"
+          variant="outline"
+          disabled={m.decide.isPending || note.trim().length < 3}
+          onClick={() =>
+            m.decide.mutate({ id: p.id, d: { decision: "reject", note: note.trim() } })
+          }
+        >
           Reject
         </CButton>
       </div>
@@ -114,7 +166,8 @@ function ReportedComments() {
   const m = useModeration();
   if (list.isPending) return <p className="muted">Loading…</p>;
   if (list.isError) return <CAlert color="danger">{errText(list.error)}</CAlert>;
-  if (!list.data.items.length) return <section className="card panel muted">No reported comments.</section>;
+  if (!list.data.items.length)
+    return <section className="card panel muted">No reported comments.</section>;
   return (
     <section className="card panel">
       <CTable responsive className="cms-table mb-0">
@@ -132,14 +185,32 @@ function ReportedComments() {
             <CTableRow key={c.id}>
               <CTableDataCell style={{ maxWidth: 420 }}>
                 <div style={{ whiteSpace: "pre-line" }}>{c.body}</div>
-                <div className="small muted">{c.author} · {when(c.createdAt)}</div>
+                <div className="small muted">
+                  {c.author} · {when(c.createdAt)}
+                </div>
               </CTableDataCell>
               <CTableDataCell>{c.post.title}</CTableDataCell>
               <CTableDataCell>{c.reports}</CTableDataCell>
-              <CTableDataCell>{c.status === "HIDDEN" ? <CBadge color="danger">Hidden</CBadge> : <CBadge color="success">Visible</CBadge>}</CTableDataCell>
+              <CTableDataCell>
+                {c.status === "HIDDEN" ? (
+                  <CBadge color="danger">Hidden</CBadge>
+                ) : (
+                  <CBadge color="success">Visible</CBadge>
+                )}
+              </CTableDataCell>
               <CTableDataCell className="text-end">
-                <CButton size="sm" color={c.status === "HIDDEN" ? "primary" : "danger"} variant="outline" disabled={m.comment.isPending}
-                  onClick={() => m.comment.mutate({ id: c.id, status: c.status === "HIDDEN" ? "VISIBLE" : "HIDDEN" })}>
+                <CButton
+                  size="sm"
+                  color={c.status === "HIDDEN" ? "primary" : "danger"}
+                  variant="outline"
+                  disabled={m.comment.isPending}
+                  onClick={() =>
+                    m.comment.mutate({
+                      id: c.id,
+                      status: c.status === "HIDDEN" ? "VISIBLE" : "HIDDEN",
+                    })
+                  }
+                >
                   {c.status === "HIDDEN" ? "Restore" : "Hide"}
                 </CButton>
               </CTableDataCell>
@@ -147,7 +218,9 @@ function ReportedComments() {
           ))}
         </CTableBody>
       </CTable>
-      <p className="small muted mt-3 mb-0">Restoring a comment clears its reports. Comments hide themselves after 3 reports.</p>
+      <p className="small muted mt-3 mb-0">
+        Restoring a comment clears its reports. Comments hide themselves after 3 reports.
+      </p>
     </section>
   );
 }

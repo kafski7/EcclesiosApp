@@ -10,4 +10,5 @@ import type { PgTable } from "drizzle-orm/pg-core";
  * renders as `… where "hymn_id" = "id"`, and Postgres binds "id" to the INNER table.
  * Use `qcol(hymns, hymns.id)` for every outer reference in a correlated subquery (D-033).
  */
-export const qcol = (table: PgTable, column: Column): SQL => sql`${table}.${sql.identifier(column.name)}`;
+export const qcol = (table: PgTable, column: Column): SQL =>
+  sql`${table}.${sql.identifier(column.name)}`;

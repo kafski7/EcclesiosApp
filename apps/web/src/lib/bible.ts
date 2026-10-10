@@ -44,14 +44,22 @@ export function useBooks(translation: string | undefined) {
 }
 
 /** A chapter from the API; falls back to the offline copy when the network fails. */
-export function useChapter(translation: string | undefined, book: string, chapter: number, offlineAllowed: boolean) {
+export function useChapter(
+  translation: string | undefined,
+  book: string,
+  chapter: number,
+  offlineAllowed: boolean,
+) {
   return useQuery({
     queryKey: ["bible", "chapter", translation, book, chapter],
     enabled: !!translation,
     staleTime: 24 * 60 * 60_000,
     queryFn: async () => {
       try {
-        const c = await api.get(`/public/bible/${translation}/${book}/${chapter}`, BibleChapterSchema);
+        const c = await api.get(
+          `/public/bible/${translation}/${book}/${chapter}`,
+          BibleChapterSchema,
+        );
         if (offlineAllowed) void saveChapter(c);
         return c;
       } catch (err) {
@@ -68,7 +76,11 @@ export function useChapter(translation: string | undefined, book: string, chapte
 export function useBibleSearch(translation: string | undefined, q: string) {
   return useQuery({
     queryKey: ["bible", "search", translation, q],
-    queryFn: () => api.get(`/public/bible/${translation}/search?q=${encodeURIComponent(q)}`, BibleSearchResponseSchema),
+    queryFn: () =>
+      api.get(
+        `/public/bible/${translation}/search?q=${encodeURIComponent(q)}`,
+        BibleSearchResponseSchema,
+      ),
     enabled: !!translation && q.trim().length >= 2,
     staleTime: 10 * 60_000,
   });
@@ -84,7 +96,10 @@ export interface ReaderLocation {
  * Where the reader opens: /bible/:book/:chapter, or /bible?ref=Luke 10:13-16 from Readings,
  * else John 1. Unknown references fall back too.
  */
-export function readerLocation(params: { book?: string; chapter?: string }, ref: string | null): ReaderLocation {
+export function readerLocation(
+  params: { book?: string; chapter?: string },
+  ref: string | null,
+): ReaderLocation {
   if (ref) {
     const parsed = parseReference(ref);
     if (parsed) {
@@ -101,14 +116,19 @@ export function readerLocation(params: { book?: string; chapter?: string }, ref:
  * A citation (Hebrew psalm numbers) opened in a Vulgate-numbered translation: move to the matching
  * psalm and drop verse highlights, since verse numbers may not line up (D-024). Path navigation is untouched.
  */
-export function adjustForTranslation(loc: ReaderLocation, fromCitation: boolean, numbering: PsalmNumbering): ReaderLocation {
+export function adjustForTranslation(
+  loc: ReaderLocation,
+  fromCitation: boolean,
+  numbering: PsalmNumbering,
+): ReaderLocation {
   if (!fromCitation) return loc;
   const first = loc.highlight && loc.highlight.size ? Math.min(...loc.highlight) : undefined;
   const { chapter, exact } = chapterInTranslation(loc.book, loc.chapter, numbering, first);
   return exact ? loc : { book: loc.book, chapter, highlight: null };
 }
 
-export const chapterPath = (book: string, chapter: number) => `/bible/${book.toLowerCase()}/${chapter}`;
+export const chapterPath = (book: string, chapter: number) =>
+  `/bible/${book.toLowerCase()}/${chapter}`;
 
 /** Split a verse into plain and words-of-Jesus segments. */
 export function verseSegments(text: string, woj: [number, number][]) {

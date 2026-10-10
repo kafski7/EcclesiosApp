@@ -3,9 +3,15 @@ import { ACCESS_LEVELS_MEDIA, MEDIA_KINDS } from "../domain/hymnal.js";
 
 export const MediaKindSchema = z.enum(MEDIA_KINDS);
 export const MediaAccessSchema = z.enum(ACCESS_LEVELS_MEDIA);
-export const HymnSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100);
+export const HymnSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .max(100);
 export const BookCodeSchema = z.string().regex(/^[A-Z0-9]{1,10}$/, "Upper-case code, e.g. NCH");
-const HymnNumberSchema = z.string().trim().regex(/^\d{1,4}[a-zA-Z]?$/, "A number like 512 or 246a");
+const HymnNumberSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{1,4}[a-zA-Z]?$/, "A number like 512 or 246a");
 
 /** GET /api/public/hymnal/books (D-026). */
 export const HymnBookSchema = z.object({
@@ -19,7 +25,11 @@ export const HymnBookSchema = z.object({
 export type HymnBook = z.infer<typeof HymnBookSchema>;
 export const HymnBookListSchema = z.object({ items: z.array(HymnBookSchema) });
 
-export const BookNumberSchema = z.object({ book: BookCodeSchema, bookName: z.string(), number: z.string() });
+export const BookNumberSchema = z.object({
+  book: BookCodeSchema,
+  bookName: z.string(),
+  number: z.string(),
+});
 export type BookNumber = z.infer<typeof BookNumberSchema>;
 
 export const HymnSummarySchema = z.object({
@@ -41,7 +51,10 @@ export const HymnSearchQuerySchema = z.object({
   book: BookCodeSchema.optional(),
   tag: z.string().trim().max(50).optional(),
   /** ISO country of the reader, to order book numbers. */
-  country: z.string().regex(/^[A-Z]{2}$/).optional(),
+  country: z
+    .string()
+    .regex(/^[A-Z]{2}$/)
+    .optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
 export const HymnListSchema = z.object({
@@ -93,7 +106,10 @@ export const HymnSchema = HymnSummarySchema.extend({
 export type Hymn = z.infer<typeof HymnSchema>;
 
 /** GET /api/public/hymnal/media/:id/url — short-lived download/stream URL. */
-export const MediaUrlSchema = z.object({ url: z.string().url(), expiresInSeconds: z.number().int() });
+export const MediaUrlSchema = z.object({
+  url: z.string().url(),
+  expiresInSeconds: z.number().int(),
+});
 
 // ------------------------------------------------------------------ Super-Admin
 
@@ -176,7 +192,13 @@ export const AdminHymnListSchema = z.object({ items: z.array(AdminHymnRowSchema)
 /** Admin detail = public detail + editable fields. */
 export const AdminHymnSchema = HymnSchema.extend({
   isPublished: z.boolean(),
-  tunes: z.array(HymnTuneSchema.extend({ media: z.array(HymnMediaSchema.extend({ key: z.string().nullable(), url: z.string().nullable() })) })),
+  tunes: z.array(
+    HymnTuneSchema.extend({
+      media: z.array(
+        HymnMediaSchema.extend({ key: z.string().nullable(), url: z.string().nullable() }),
+      ),
+    }),
+  ),
 });
 export type AdminHymn = z.infer<typeof AdminHymnSchema>;
 

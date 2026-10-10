@@ -25,7 +25,13 @@ describe("keys and paths (D-035)", () => {
     expect(engageHref("EPISODE", { id: A, podcastSlug: "weekly" })).toBe("/podcasts/weekly");
   });
   it("compact counts", () => {
-    expect([999, 1200, 1000, 15400, 2_300_000].map(compactCount)).toEqual(["999", "1.2k", "1k", "15k", "2.3M"]);
+    expect([999, 1200, 1000, 15400, 2_300_000].map(compactCount)).toEqual([
+      "999",
+      "1.2k",
+      "1k",
+      "15k",
+      "2.3M",
+    ]);
   });
 });
 
@@ -41,12 +47,16 @@ describe("containsLink", () => {
   ])("blocks: %s", (s) => {
     expect(containsLink(s)).toBe(true);
   });
-  it.each(["Amen!", "Read Jn 3.16 today", "Mass at 7 a.m. e.g. Sunday", "St. Theresa Parish", "Thanks... see you", "Ps. 23 is lovely"])(
-    "allows: %s",
-    (s) => {
-      expect(containsLink(s)).toBe(false);
-    },
-  );
+  it.each([
+    "Amen!",
+    "Read Jn 3.16 today",
+    "Mass at 7 a.m. e.g. Sunday",
+    "St. Theresa Parish",
+    "Thanks... see you",
+    "Ps. 23 is lovely",
+  ])("allows: %s", (s) => {
+    expect(containsLink(s)).toBe(false);
+  });
 });
 
 describe("mentions", () => {

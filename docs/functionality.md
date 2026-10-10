@@ -81,6 +81,12 @@ All routes are under `/api/auth`, rate-limited, and return the standard error en
 - **Tokens:** access token 15 min (Bearer; names the person only — churches and roles come from memberships, checked per request, D-015); refresh token 30 days, rotated on every use (one session per account until the sessions table — D-007).
 - **Audit:** failed logins, lockouts, OTP sends/failures, successful logins, password setup, logout and refresh-token reuse are written to `audit_logs`.
 
+### 2.4a. Claiming a record your church created (D-039)
+
+- People added by their church (no app account) choose **Claim your account** on the sign-in page (also linked from the console sign-in and from sign-up when their phone or email is already registered).
+- They enter the phone or email the church has, receive a 6-digit code there, then choose a password — and land in the app with their church membership already in place.
+- API: `POST /api/auth/claim { identifier }` → `verify-otp` → `set-password`. Refused (`NOTHING_TO_CLAIM`) if the account already has a password, is inactive or isn't found.
+
 ### 2.4. Self-Registration
 
 - **Route:** `/register` (link from Sign in and the More menu).
@@ -104,7 +110,7 @@ All routes are under `/api/auth`, rate-limited, and return the standard error en
 - **Join** (`POST /api/groups/:id/join`): a membership request to a parish or outstation; also follows it. A person may belong to **several churches**. **Leave / cancel:** `DELETE /api/groups/:id/membership`. Rejected or left memberships can be requested again.
 - **Approval:** `GET /api/groups/:id/membership-requests` and `POST /api/membership-requests/:id/decision` (`approve`, or `reject` with a reason) — by an Administrator of that church, or of its parish for an outstation. The person is notified.
 - **Me:** `GET /api/me` returns the person, their memberships (pending and active) and follows.
-- **Home church:** exactly one membership is the person's home — the first church they join. The home church's staff (and its parish) edit the person's sacramental records; other churches where they are active can read them. A person can **request a transfer** of their home to another church where they are already an active member; the receiving church (or its parish) approves and the previous home is notified (UI: Phase 6).
+- **Home church:** exactly one membership is the person's home — the first church they join. The home church's staff (and its parish) edit the person's sacramental records; other churches where they are active can read them. A person can **request a transfer** of their home to another church where they are already an active member; the receiving church (or its parish) approves and the previous home is notified. Built in D-049: *Make home church* on Your churches (`/me`) in the app; Members → Requests → *Home church requests* in the console.
 
 ## 3. The Social Platform (Main Application)
 
@@ -118,7 +124,7 @@ The main application is what every user sees. It has a fixed primary navigation 
 - **Implemented (Phase 5.8, D-032, D-033):**
   - **Today card:** the liturgical day and the day's Gospel, linking to Readings.
   - **Watch row (D-034):** a horizontal, swipeable row of the newest videos — podcast episodes, Explore posts and hymns with YouTube links. Tapping one plays it in a pop-up player with a link to its page.
-  - **Feed tabs:** *For you* — new Explore posts, new teachings, new podcast episodes and Ecclesios news, newest first; *Following* — posts from churches and episodes from podcasts the member follows.
+  - **Feed tabs:** _For you_ — new Explore posts, new teachings, new podcast episodes and Ecclesios news, newest first; _Following_ — posts from churches and episodes from podcasts the member follows.
   - **Right rail (sticky, like Twitter's):** **Ecclesios news** (pinned first), **saint of the day**, **hymn of the day** (chosen for the season, or pinned by the Ecclesios team for a feast), **trending on Explore** (posts with the most recent comments, weighed against age), **upcoming events**.
   - The "Write" box appears only for people who may post on Explore (D-017).
   - API: `GET /api/public/home?date=` · `GET /api/public/home/feed?tab=for-you|following&page=`.
@@ -202,21 +208,24 @@ The main application is what every user sees. It has a fixed primary navigation 
 Catholic writers — priests, religious, publishers and lay authors — can sell their e-books on Ecclesios, and readers buy and read them in the app. Ecclesios also offers public-domain Catholic classics free.
 
 **For readers**
+
 - **Books** in the sidebar: browse by category (Spirituality, Prayer & devotion, Theology, Scripture, Catechesis, Lives of the saints, Church history, Marriage & family, Youth, Children, Fiction, Catholic classics), filter free / paid, search by title or author.
 - Each book has a page with its cover, description, author, price, church approval (Nihil obstat / Imprimatur where given), and — if the seller added one — a **free sample** to read.
-- **Free books**: *Add to library* or *Read*.
-- **Paid books**: *Buy* opens **Hubtel's checkout** (mobile money or card). When Hubtel confirms the payment, the book is in **My library** (More menu, and on the Books page). Payment is never assumed from the browser: Ecclesios checks with Hubtel before giving access.
+- **Free books**: _Add to library_ or _Read_.
+- **Paid books**: _Buy_ opens **Hubtel's checkout** (mobile money or card). When Hubtel confirms the payment, the book is in **My library** (More menu, and on the Books page). Payment is never assumed from the browser: Ecclesios checks with Hubtel before giving access.
 - **Reading** happens in the app: EPUB books turn pages, remember where you stopped on every device, and have text size and night mode; PDF books open in the built-in viewer. There is no download button, and paid books show the buyer's name faintly on the page.
 - Books can be **liked, saved and shared** like other content (§3.4a).
 - **Refunds**: within **7 days** of buying, if you've read **less than 10 %**, you can ask for a refund once per book. Ecclesios reviews each request; if approved, the money is returned through Hubtel and the book leaves your library.
 
 **For sellers**
+
 - People approved to sell books (privilege `SELL_BOOKS`, granted by Ecclesios) list books in their studio: details, category, price (free, or from GH₵ 1.00), cover, the book file (EPUB or PDF, up to 100 MB) and an optional sample file. They confirm they hold the rights.
 - Every book is **reviewed by Ecclesios** before it appears; a rejected book comes back with a reason.
 - While a book is on the shelf, only its price and sample can change. To change anything else, the seller **unlists** it (buyers keep reading), edits it and submits it again. A book that has sold can't be deleted.
 - The **statement** shows sales, the seller's share, refunds, payouts and what they're owed.
 
 **For Ecclesios (Super-Admin)**
+
 - Review queue (approve / reject with a reason), take any book off the shelf with a reason.
 - **Commission**: a platform-wide rate set in the console, and an optional rate per seller. The rate in force at checkout is stored on the order. Hubtel's fees come out of Ecclesios's share.
 - **Refunds**: approve (after returning the money in Hubtel, with the reference) or decline; refund any order directly when needed.
@@ -246,10 +255,20 @@ The CMS is reached from the social platform via **More → Subscribe / Login**. 
 
 - Full membership records for the church: personal details (name, contact, address, photo), sacramental records (baptised, communicant, confirmed), deceased flag, and society/community affiliations.
 - Create/edit/deactivate members; member profile page consolidates all records; photo upload; print/export tools.
+- **Implemented (Phase 6.1, D-037):**
+  - **Register**: search by name, phone or email; filter by role, missing sacraments (for catechesis follow-up), deceased and former members; a parish can include its outstations. Shows who uses the app and who doesn't.
+  - **Add member** (staff): for people without the app. People already on Ecclesios join from the app and are approved under **Requests**.
+  - **Profile**: personal details, sacraments, every church the person belongs to (role, status, home church), societies here; photo; print.
+  - **Editing** the record and photo: the person's home church staff, or its parish (D-016). Others read only.
+  - **Role here** and **Remove from this church** (with a reason): this church's Administrators; never your own; at least one Administrator stays.
+  - **Export** the current list to CSV (opens in Excel).
+  - **Requests** tab: approve, or decline with a note (Administrators; the parish for its outstations).
+  - API: `GET/POST /api/cms/groups/:id/members`, `GET /members.csv`, `GET/PUT /members/:personId`, `POST /members/:personId/photo-upload`, `PUT /photo`, `PUT /role`, `POST /remove`.
 
 ### 4.3. Birthdays
 
 - Lists members' birthdays — today's celebrants plus upcoming — as an engagement tool (drives greeting messages and Home-feed highlights).
+- **Implemented (Phase 6.1):** today's celebrants (with the age they're turning and their phone number) and the next 7 / 30 / 60 days; a parish can include its outstations. Greeting SMS arrive with Messages (Phase 7). API: `GET /api/cms/groups/:id/birthdays?days=&today=`.
 
 ### 4.4. Societies
 
@@ -258,26 +277,46 @@ The CMS is reached from the social platform via **More → Subscribe / Login**. 
 ### 4.5. Committees
 
 - Committees are societies flagged as committees. Manage committee membership separately from general societies.
+- **Implemented (Phase 6.2, D-038)** — societies and committees work the same way, on separate pages:
+  - **Staff** (Administrators, Managers): create with a name, description and optional leader; edit; archive / restore; delete once archived and empty.
+  - **Leader**: sees the societies they lead and keeps the roster — add people, set positions (Secretary, Treasurer…), take people off. Choosing a Parishioner as leader makes them a Society-Leader in this church.
+  - **Roster**: active members of the church; a parish society can include people from its outstations. The leader stays on the roster until someone else leads. Export to CSV, print.
+  - **Parish**: reads its outstations' societies (not editable).
+  - API: `GET/POST /api/cms/groups/:id/societies?kind=SOCIETY|COMMITTEE&archived=`, `GET/PUT/DELETE /societies/:sid`, `POST /societies/:sid/archive|restore`, `GET /societies/:sid/candidates?q=`, `POST /societies/:sid/roster`, `PUT/DELETE /societies/:sid/roster/:personId`, `GET /societies/:sid/roster.csv`.
 
 ### 4.6. Notifications
 
 - In-app notification center: list, single view, read/unseen tracking; generated by system events (new content, messages, subscription events).
+- **Notification preferences (Phase 7, D-052):** in the app, Your account → Notifications: switch each type off or on (in-app for now). Decisions about you, your subscription, your posts, books and refunds are always on. API: `GET/PUT /api/me/notification-preferences`.
+- **Implemented (Phase 6.3, D-039):** in the app (`/notifications`, bell badge) and the console (bell badge, Notifications page with "only this church"). Newest first, unread only, mark one or all as read. API: `GET /api/me/notifications?unread=&church=&page=`, `GET /api/me/notifications/unread`, `POST /api/me/notifications/read` `{ ids? , church? }`.
 
 ### 4.7. Messages
 
 - SMS & email blasts to members, societies, or committees (compose, recipient selection, delivery log). SMS consumes the church's paid SMS balance.
+- **Implemented (Phase 7, D-051):** console → **Messages** (Administrators and Managers of the church).
+  - **Channels:** SMS, email, in-app (a notification). SMS is paid from the **parish** subscription's SMS credit (an outstation uses its parish's); deaneries and above have no SMS (no subscription) — email and in-app only.
+  - **To:** everyone at the church (a parish may add its outstations), chosen societies/committees, chosen people, today's birthdays, or a **broadcast** to churches below (their Administrators and Managers, or all their members) — see §5.2 Messaging.
+  - **Text:** `{firstName}` and `{church}` are filled in per person. SMS ≤ 6 parts (160/153 characters per part, 70/67 with emoji or special letters); email and in-app need a subject.
+  - **Before sending**, a preview shows how many people can be reached and the SMS credit it will use; not enough credit blocks sending.
+  - **Sending** runs on the workers: credit is taken for everyone reachable when sending starts, given back for anyone it fails for; people without a phone / email / the app, or who switched church messages off (in-app), are **skipped** with the reason.
+  - **Log:** every message with status (Queued, Sending, Sent, Partly sent, Failed), counts and SMS used; open one for the per-person delivery list. The sender is notified if anything failed.
+  - Birthdays → **Send greetings** opens a birthday message. A daily **birthday digest** notifies each church's Administrators and Managers of today's celebrants.
+  - API: `GET /api/cms/groups/:id/messages/options`, `POST /messages/preview`, `POST /messages` (202), `GET /messages?page=&channel=`, `GET /messages/:mid`, `GET /messages/:mid/recipients?page=&status=`.
 
 ### 4.8. Users & Roles
 
 - Church admin accounts: create/edit/deactivate CMS users, assign roles (Administrator, Manager, Society-Leader, Parishioner) and permissions.
+- **Implemented (Phase 6.3, D-039):** list of everyone with a CMS role here (role, what they lead, last sign-in); Administrators change roles in place or give a Parishioner a role. "Deactivating" someone is setting them back to Parishioner, or removing them from the church (D-037). API: `GET /api/cms/groups/:id/staff`; role changes use `PUT /members/:personId/role`.
 
 ### 4.9. Profile Settings
 
 - The logged-in user's own profile: photo, password change, personal details.
+- **Implemented (Phase 6.3, D-039):** in the console (avatar → Your profile) and the app (More → Your account): email, phone, address, occupation, photo; password change (ends other sessions). Names, birth date and sacraments are kept by the home church. Platform accounts: password only. API: `GET/PUT /api/me/profile`, `POST /api/me/photo-upload`, `PUT /api/me/photo`, `POST /api/me/password`.
 
 ### 4.10. Themes & Settings
 
 - Church-level branding (theme selection) and settings: language, currency display, operational toggles (e.g. manual transaction dates — for the external accounting feed).
+- **Implemented (Phase 6.3, D-039):** theme, language, currency, back-dated collections. Administrators change; Managers read. Applying the church theme in the app comes with the church page work. API: `GET/PUT /api/cms/groups/:id/settings`.
 
 ### 4.11. Billing
 
@@ -292,11 +331,13 @@ The CMS is reached from the social platform via **More → Subscribe / Login**. 
 - Where relevant, the CMS displays read-only financial summaries fetched from the external service; Ecclesios stores only external reference IDs.
 - **Hierarchy on money:** outstations may record day-to-day collections/dues locally, but every transaction is subject to **parish oversight/approval** (§5.2); deaneries and above see aggregated financial reports only.
 - **Pending collections:** outstation entries are stored in `pending_collections` with status `PENDING`. The parish approves (→ queued for sync to the accounting API → `SYNCED`) or rejects with a note. Only `PENDING` entries can be edited, and only by the recorder. See blueprint §8.1.
+- **Implemented (Phase 6.4, D-041):** console → **Collections**. Outstation staff record (amount, collection type, date — today unless back-dating is on, note); edit/delete while waiting. Parish staff see the queue; parish Administrators approve or reject with a reason; failed posts can be tried again. A **Finances** card (this month, this year, by collection, waiting, failed) appears on Collections and the dashboard, read-only from the accounting service. API: `GET/POST /api/cms/groups/:id/collections`, `PUT/DELETE /collections/:cid`, `POST /collections/:cid/review` `{ decision, note }`, `POST /collections/:cid/retry`, `GET /api/cms/groups/:id/finance`. `ACCOUNTING_PROVIDER=dev|none`.
 
 ### 4.13. Branch / Groups
 
 - Context switcher between the church groups a user administers (the `groups` tree: Outstation → Parish → Deanery → Diocese/Archdiocese → Metropolitan Province).
 - When switching context, the entire CMS re-scopes: navigation, dashboards, and data views reflect the selected group **and the oversight scope of its hierarchy level** (§5).
+- **Implemented (Phase 6.4, D-041):** console → **Groups** lists the groups directly under the current church (members, groups under each, open/closed; hidden suffragans marked). Administrators open a new group one level down (optionally naming its Administrator), rename it, close or reopen it. Click a group to see its figures and the groups under it. Dashboards add roll-up totals for everything below. API: `GET/POST /api/cms/groups/:id/children`, `PUT /children/:childId`, `POST /children/:childId/status`.
 - Contexts are the person's ACTIVE memberships with a CMS role — Administrator, Manager or Society-Leader (`GET /api/cms/contexts`, D-020). The sidebar follows the role in the selected church: Managers have no Users & Roles, Settings or Billing; Society-Leaders see Dashboard, Members, Birthdays, Societies, Committees and Notifications.
 
 ## 5. Hierarchy-Scoped RBAC
@@ -361,7 +402,7 @@ The archdiocese never gets write access to a suffragan. The Province's national 
 - **Subscription gate:** a church whose subscription expires is locked out of the CMS ("not subscribed" state) until renewed; the social platform remains accessible. Subscriptions are held at **parish level** (covering its outstations) unless a diocese procures centrally — deanery/province accounts are monitoring accounts and ride on existing subscriptions. The API answers gated routes with **402 SUBSCRIPTION_REQUIRED**; deaneries, dioceses and the province are not gated (D-020). Central diocesan procurement is a later addition.
 - **Moderation:** all Explore content requires Super-Admin approval; podcasts are restricted to the platform and explicitly privileged accounts.
 - **Audit trail:** significant CMS actions and logins are written to the audit log; **oversight actions** (approvals, overrides of outstation data by the parish) are logged with the acting user and group.
-- **OTP security:** both login flows are password → OTP; OTPs expire in 10 minutes and are single-use. OTP/auth endpoints are **rate-limited** (per IP and per identifier) to prevent brute-force enumeration; OTP delivery is logged server-side (pino) until an SMS/email gateway is wired in.
+- **OTP security:** both login flows are password → OTP; OTPs expire in 10 minutes and are single-use. OTP/auth endpoints are **rate-limited** (per IP and per identifier) to prevent brute-force enumeration; OTPs are sent by SMS (phone) or email (email address) through the gateways on a worker (D-050); in development the console gateways log them.
 - **Role-based routing:** after login, users land on the dashboard matching their role; navigation and API access are permission-filtered **by both role and hierarchy scope** (§5).
 - **Data isolation:** every API query is scoped to the caller's group plus its permitted descendant scope (enforced in the NestJS scope guard via `resolveAccess` and the materialised `groups.path` prefix — blueprint §3.5); cross-group access attempts are rejected and audited.
 - **Media handling:** all binaries (hymn audio/MIDI, notation PDFs, podcast episodes, member photos) live in S3-compatible object storage; the API issues short-lived presigned URLs and stores only object keys.

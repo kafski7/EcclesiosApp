@@ -1,4 +1,16 @@
-import { CAlert, CBadge, CButton, CForm, CFormInput, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from "@coreui/react";
+import {
+  CAlert,
+  CBadge,
+  CButton,
+  CForm,
+  CFormInput,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
+} from "@coreui/react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiClientError } from "@/lib/api";
@@ -20,14 +32,21 @@ export function PlatformTeachingsPage() {
       <div className="dash-head">
         <div>
           <h1>Teachings</h1>
-          <p className="dash-sub">Official catechesis. Drafts are visible only here until published.</p>
+          <p className="dash-sub">
+            Official catechesis. Drafts are visible only here until published.
+          </p>
         </div>
         <CButton color="primary" onClick={() => navigate("/platform/teachings/new")}>
           New teaching
         </CButton>
       </div>
       <div className="card panel mb-4">
-        <CFormInput placeholder="Search by title or summary" value={q} onChange={(e) => setQ(e.target.value)} className="mb-3" />
+        <CFormInput
+          placeholder="Search by title or summary"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="mb-3"
+        />
         <CTable hover responsive className="cms-table">
           <CTableHead>
             <CTableRow>
@@ -53,7 +72,11 @@ export function PlatformTeachingsPage() {
                 <CTableDataCell>{t.topics.map((x) => x.name).join(", ")}</CTableDataCell>
                 <CTableDataCell>{t.readingMinutes} min</CTableDataCell>
                 <CTableDataCell>
-                  {t.status === "PUBLISHED" ? <CBadge color="success">Published</CBadge> : <CBadge color="secondary">Draft</CBadge>}
+                  {t.status === "PUBLISHED" ? (
+                    <CBadge color="success">Published</CBadge>
+                  ) : (
+                    <CBadge color="secondary">Draft</CBadge>
+                  )}
                 </CTableDataCell>
               </CTableRow>
             ))}
@@ -85,7 +108,13 @@ function Topics() {
               {t.teachingCount} published · {t.description}
             </span>
             {t.teachingCount === 0 ? (
-              <CButton size="sm" color="danger" variant="ghost" className="ms-auto" onClick={() => confirm(`Delete the topic ${t.name}?`) && remove.mutate(t.slug)}>
+              <CButton
+                size="sm"
+                color="danger"
+                variant="ghost"
+                className="ms-auto"
+                onClick={() => confirm(`Delete the topic ${t.name}?`) && remove.mutate(t.slug)}
+              >
                 Delete
               </CButton>
             ) : null}
@@ -96,16 +125,39 @@ function Topics() {
         className="d-flex gap-2 flex-wrap"
         onSubmit={(e) => {
           e.preventDefault();
-          if (name.trim()) add.mutate({ name: name.trim(), description: description.trim() }, { onSuccess: () => { setName(""); setDescription(""); } });
+          if (name.trim())
+            add.mutate(
+              { name: name.trim(), description: description.trim() },
+              {
+                onSuccess: () => {
+                  setName("");
+                  setDescription("");
+                },
+              },
+            );
         }}
       >
-        <CFormInput style={{ maxWidth: 220 }} placeholder="New topic" value={name} onChange={(e) => setName(e.target.value)} />
-        <CFormInput style={{ flex: 1, minWidth: 220 }} placeholder="Short description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <CFormInput
+          style={{ maxWidth: 220 }}
+          placeholder="New topic"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <CFormInput
+          style={{ flex: 1, minWidth: 220 }}
+          placeholder="Short description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
         <CButton type="submit" color="primary" variant="outline" disabled={add.isPending}>
           Add topic
         </CButton>
       </CForm>
-      {err ? <CAlert color="danger" className="mt-2">{err instanceof ApiClientError ? err.message : "Something went wrong."}</CAlert> : null}
+      {err ? (
+        <CAlert color="danger" className="mt-2">
+          {err instanceof ApiClientError ? err.message : "Something went wrong."}
+        </CAlert>
+      ) : null}
     </div>
   );
 }

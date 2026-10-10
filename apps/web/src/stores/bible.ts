@@ -1,22 +1,31 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { BibleProgress } from "@/lib/continue";
 
-/** Reader preferences, remembered on this device (D-023). null translation = use the server default. */
+/**
+ * Bible preferences, remembered on this device (D-023). null translation = use the server default.
+ * Text size moved to stores/reader.ts (D-045), shared by every reading view.
+ */
 interface BibleState {
   translation: string | null;
-  fontScale: number;
+  /** The last chapter opened on this device, for Home's Continue row (D-044). */
+  lastRead: BibleProgress | null;
   setTranslation: (code: string) => void;
-  setFontScale: (scale: number) => void;
+  setLastRead: (p: Omit<BibleProgress, "at">) => void;
 }
 
 export const useBiblePrefs = create<BibleState>()(
   persist(
     (set) => ({
       translation: null,
-      fontScale: 1,
+      lastRead: null,
       setTranslation: (translation) => set({ translation }),
-      setFontScale: (fontScale) => set({ fontScale: Math.min(1.5, Math.max(0.85, fontScale)) }),
+      setLastRead: (p) => set({ lastRead: { ...p, at: Date.now() } }),
     }),
-    { name: "ecclesios.bible" },
+    // Drop the old fontScale from saved state (now in "ecclesios.reader").
+    {
+      name: "ecclesios.bible",
+      partialize: (s) => ({ translation: s.translation, lastRead: s.lastRead }),
+    },
   ),
 );

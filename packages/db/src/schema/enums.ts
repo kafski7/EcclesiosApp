@@ -27,6 +27,10 @@ import {
   BOOK_STATUSES,
   ORDER_STATUSES,
   REFUND_STATUSES,
+  MESSAGE_CHANNELS,
+  MESSAGE_STATUSES,
+  RECIPIENT_STATUSES,
+  NOTIFICATION_CHANNELS,
 } from "@ecclesios/shared/domain";
 
 // DB enums are generated from the shared constants, so TS types and Postgres can't drift.
@@ -56,7 +60,13 @@ export const accountingEntityEnum = pgEnum("accounting_entity_enum", [
   "TRANSACTION",
 ]);
 export const liturgicalColorEnum = pgEnum("liturgical_color_enum", LITURGICAL_COLORS);
-export const readingKindEnum = pgEnum("reading_kind_enum", ["FIRST", "PSALM", "SECOND", "ALLELUIA", "GOSPEL"]);
+export const readingKindEnum = pgEnum("reading_kind_enum", [
+  "FIRST",
+  "PSALM",
+  "SECOND",
+  "ALLELUIA",
+  "GOSPEL",
+]);
 export const celebrationRankEnum = pgEnum("celebration_rank_enum", CELEBRATION_RANKS);
 export const mediaKindEnum = pgEnum("media_kind_enum", MEDIA_KINDS);
 export const mediaAccessEnum = pgEnum("media_access_enum", ACCESS_LEVELS_MEDIA);
@@ -75,3 +85,10 @@ export const bookFormatEnum = pgEnum("book_format_enum", BOOK_FORMATS);
 export const bookCategoryEnum = pgEnum("book_category_enum", BOOK_CATEGORIES);
 export const orderStatusEnum = pgEnum("order_status_enum", ORDER_STATUSES);
 export const refundStatusEnum = pgEnum("refund_status_enum", REFUND_STATUSES);
+export const messageChannelEnum = pgEnum("message_channel_enum", MESSAGE_CHANNELS);
+export const messageStatusEnum = pgEnum("message_status_enum", MESSAGE_STATUSES);
+export const messageRecipientStatusEnum = pgEnum(
+  "message_recipient_status_enum",
+  RECIPIENT_STATUSES,
+);
+export const notificationChannelEnum = pgEnum("notification_channel_enum", NOTIFICATION_CHANNELS);

@@ -9,8 +9,16 @@ describe("readerLocation", () => {
     expect([...l.highlight!]).toEqual([13, 14, 15, 16]);
   });
   it("uses the path, then falls back to John 1", () => {
-    expect(readerLocation({ book: "gen", chapter: "3" }, null)).toEqual({ book: "GEN", chapter: 3, highlight: null });
-    expect(readerLocation({ book: "xyz" }, "Nonsense 1:1")).toEqual({ book: "JHN", chapter: 1, highlight: null });
+    expect(readerLocation({ book: "gen", chapter: "3" }, null)).toEqual({
+      book: "GEN",
+      chapter: 3,
+      highlight: null,
+    });
+    expect(readerLocation({ book: "xyz" }, "Nonsense 1:1")).toEqual({
+      book: "JHN",
+      chapter: 1,
+      highlight: null,
+    });
   });
   it("builds chapter paths", () => {
     expect(chapterPath("1CO", 13)).toBe("/bible/1co/13");
@@ -30,7 +38,11 @@ describe("verseSegments", () => {
 describe("adjustForTranslation (D-024)", () => {
   it("opens Psalm 23 from a reading as Psalm 22 in Douay-Rheims, without highlights", () => {
     const loc = readerLocation({}, "Psalm 23:1-4");
-    expect(adjustForTranslation(loc, true, "VULGATE")).toEqual({ book: "PSA", chapter: 22, highlight: null });
+    expect(adjustForTranslation(loc, true, "VULGATE")).toEqual({
+      book: "PSA",
+      chapter: 22,
+      highlight: null,
+    });
     expect(adjustForTranslation(loc, true, "HEBREW")).toBe(loc);
   });
   it("leaves direct navigation alone", () => {

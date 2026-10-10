@@ -1,5 +1,17 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, date, index, jsonb, pgTable, smallint, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  date,
+  index,
+  jsonb,
+  pgTable,
+  smallint,
+  text,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { id, timestamps } from "./_common";
 import { celebrationRankEnum, liturgicalColorEnum, readingKindEnum } from "./enums";
 
@@ -70,6 +82,9 @@ export const saints = pgTable(
   },
   (t) => [
     index("saints_feast_idx").on(t.feastMonth, t.feastDay),
-    check("saints_feast_chk", sql`${t.feastMonth} BETWEEN 1 AND 12 AND ${t.feastDay} BETWEEN 1 AND 31`),
+    check(
+      "saints_feast_chk",
+      sql`${t.feastMonth} BETWEEN 1 AND 12 AND ${t.feastDay} BETWEEN 1 AND 31`,
+    ),
   ],
 );

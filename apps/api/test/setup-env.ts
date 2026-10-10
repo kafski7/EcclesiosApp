@@ -16,3 +16,8 @@ try {
 for (const [k, v] of Object.entries(defaults)) process.env[k] ??= v;
 process.env.NODE_ENV = "test";
 process.env.AUTH_RATE_IP_MAX = "1000"; // keep the per-IP bucket out of the way; identifier limit is tested
+// Phase 7 (D-050): jobs run inline in the test process — no Redis needed, results visible at once.
+process.env.QUEUE_DRIVER = "inline";
+process.env.SMS_PROVIDER = "console";
+process.env.EMAIL_PROVIDER = "console";
+process.env.BIRTHDAY_DIGEST_CRON = "";

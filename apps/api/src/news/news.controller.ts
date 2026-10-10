@@ -1,5 +1,22 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req } from "@nestjs/common";
-import { NewsQuerySchema, NewsSlugSchema, NewsStatusChangeSchema, UpsertNewsSchema, type Principal } from "@ecclesios/shared";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
+import {
+  NewsQuerySchema,
+  NewsSlugSchema,
+  NewsStatusChangeSchema,
+  UpsertNewsSchema,
+  type Principal,
+} from "@ecclesios/shared";
 import type { Request } from "express";
 import type { z } from "zod";
 import { CurrentPrincipal } from "../common/principal.decorator";
@@ -46,7 +63,11 @@ export class NewsAdminController {
 
   @Post()
   @HttpCode(201)
-  create(@Body(new ZodPipe(UpsertNewsSchema)) b: z.output<typeof UpsertNewsSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  create(
+    @Body(new ZodPipe(UpsertNewsSchema)) b: z.output<typeof UpsertNewsSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.news.upsert(p!.id, null, b, ip(req));
   }
 
@@ -73,7 +94,11 @@ export class NewsAdminController {
 
   @Delete(":slug")
   @HttpCode(204)
-  async remove(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async remove(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     await this.news.remove(p!.id, slug, ip(req));
   }
 }

@@ -25,11 +25,31 @@ describe("listing workflow (D-036)", () => {
     expect(nextBookStatus("DRAFT", "approve")).toBe(null);
   });
   it("content edits only off the shelf", () => {
-    expect(["DRAFT", "PENDING", "PUBLISHED", "REJECTED", "UNLISTED"].map((s) => canEditBookContent(s as never))).toEqual([true, false, false, true, true]);
+    expect(
+      ["DRAFT", "PENDING", "PUBLISHED", "REJECTED", "UNLISTED"].map((s) =>
+        canEditBookContent(s as never),
+      ),
+    ).toEqual([true, false, false, true, true]);
   });
   it("submit needs a file, a description, rights and a valid price", () => {
-    expect(bookProblems({ title: "T", description: "short", fileKey: null, priceMinor: 50, rightsConfirmed: false })).toHaveLength(5);
-    expect(bookProblems({ title: "Title", description: "x".repeat(30), fileKey: "k", priceMinor: 0, rightsConfirmed: true })).toEqual([]);
+    expect(
+      bookProblems({
+        title: "T",
+        description: "short",
+        fileKey: null,
+        priceMinor: 50,
+        rightsConfirmed: false,
+      }),
+    ).toHaveLength(5);
+    expect(
+      bookProblems({
+        title: "Title",
+        description: "x".repeat(30),
+        fileKey: "k",
+        priceMinor: 0,
+        rightsConfirmed: true,
+      }),
+    ).toEqual([]);
   });
 });
 
@@ -66,24 +86,40 @@ describe("money", () => {
     expect(parsePrice("abc")).toBe(null);
   });
   it("balance", () => {
-    expect(sellerBalance({ earnedMinor: 10000, refundedMinor: 2000, paidOutMinor: 5000 })).toBe(3000);
+    expect(sellerBalance({ earnedMinor: 10000, refundedMinor: 2000, paidOutMinor: 5000 })).toBe(
+      3000,
+    );
   });
 });
 
 describe("orders and refunds", () => {
   const now = new Date("2026-10-10T12:00:00Z");
   const day = 86_400_000;
-  const base = { status: "PAID" as const, paidAt: new Date(now.getTime() - 2 * day), percentRead: 3, now, refundedBefore: false, pendingRequest: false };
+  const base = {
+    status: "PAID" as const,
+    paidAt: new Date(now.getTime() - 2 * day),
+    percentRead: 3,
+    now,
+    refundedBefore: false,
+    pendingRequest: false,
+  };
   it("order transitions and expiry", () => {
     expect(canMoveOrder("PENDING", "PAID")).toBe(true);
     expect(canMoveOrder("PAID", "PENDING")).toBe(false);
     expect(canMoveOrder("PAID", "REFUNDED")).toBe(true);
-    expect(isOrderExpired({ status: "PENDING", createdAt: new Date(now.getTime() - 2 * 3_600_000) }, now)).toBe(true);
+    expect(
+      isOrderExpired(
+        { status: "PENDING", createdAt: new Date(now.getTime() - 2 * 3_600_000) },
+        now,
+      ),
+    ).toBe(true);
     expect(isOrderExpired({ status: "PAID", createdAt: new Date(0) }, now)).toBe(false);
   });
   it("refund rules", () => {
     expect(refundBlocker(base)).toBe(null);
-    expect(refundBlocker({ ...base, paidAt: new Date(now.getTime() - 8 * day) })).toBe("WINDOW_CLOSED");
+    expect(refundBlocker({ ...base, paidAt: new Date(now.getTime() - 8 * day) })).toBe(
+      "WINDOW_CLOSED",
+    );
     expect(refundBlocker({ ...base, percentRead: 10 })).toBe("READ_TOO_MUCH");
     expect(refundBlocker({ ...base, refundedBefore: true })).toBe("ALREADY_REFUNDED");
     expect(refundBlocker({ ...base, pendingRequest: true })).toBe("ALREADY_REQUESTED");

@@ -114,8 +114,8 @@
 - [x] API: `GET /api/public/readings/:date|today` (computed context even when not loaded); `PUT /api/platform/readings/:date` for Super-Admins
 - [x] Seed: 2 weeks around the seed date — sample citations, labelled placeholder text (licensing)
 - [x] Web: Readings page — prev / today / next + date picker, season and cycle chips, one tab per reading, citation links into the Bible
-- [ ] Admin UI for the readings calendar (Super-Admin) *(Phase 8, reference data)*
-- [ ] Licensed lectionary text source chosen and loaded *(Phase 10, before launch — D-022)*
+- [ ] Admin UI for the readings calendar (Super-Admin) _(Phase 8, reference data)_
+- [ ] Licensed lectionary text source chosen and loaded _(Phase 10, before launch — D-022)_
 
 ### 5.2 Bible _(functionality §3.8, D-023)_
 
@@ -128,8 +128,8 @@
 - [x] Offline: chapters already opened are stored in IndexedDB (Dexie) for translations that allow it
 - [x] Psalm numbering per translation (Douay-Rheims uses Vulgate numbers) — D-024
 - [x] Importer verified against the real WEBC and DRA files (73 books each)
-- [ ] Download a whole translation for offline reading *(Phase 9, PWA polish)*
-- [ ] Load the full WEBC and DRA text on each environment (run the importer) — and before launch *(Phase 10)*
+- [ ] Download a whole translation for offline reading _(Phase 9, PWA polish)_
+- [ ] Load the full WEBC and DRA text on each environment (run the importer) — and before launch _(Phase 10)_
 
 ### 5.3 Saints _(functionality §3.3, D-025)_
 
@@ -139,8 +139,8 @@
 - [x] API: saint of the day for a local date; directory with search and month filter; saint page; Super-Admin upsert/unpublish
 - [x] Web: Saint of the Day card (Home + Saints), directory with search and month pills, saint detail page
 - [x] Portraits via object storage (media module, 5.4) — upload UI in Phase 8
-- [ ] Links from a saint to readings and hymns *(after Hymnal, 5.4)*
-- [ ] Admin UI for saints *(Phase 8, reference data)*; grow the directory to the full General Roman Calendar before launch
+- [ ] Links from a saint to readings and hymns _(after Hymnal, 5.4)_
+- [ ] Admin UI for saints _(Phase 8, reference data)_; grow the directory to the full General Roman Calendar before launch
 
 ### 5.4 Hymnal _(functionality §3.6, D-026)_
 
@@ -243,45 +243,104 @@
 
 ## Phase 6 — CMS Operational Modules (API + admin)
 
-- [ ] **Groups/Branch management** _(functionality §4.13)_: create/edit groups in the hierarchy; **context switcher** that re-scopes the whole CMS (nav, dashboards, data) per selected group + hierarchy level
-- [ ] **Members** _(functionality §4.2)_: CRUD, personal + sacramental records, photo (object storage), deceased flag, society affiliations, profile page, print/export
-- [ ] **Membership requests UI** _(functionality §2.5, D-016)_: Members → Requests for the church (and its outstations for a parish); approve or reject with a reason (API done in Phase 3.5)
+Built in slices (D-037): **6.1** register, requests, birthdays · **6.2** societies & committees · **6.3** users & roles, settings, notifications, profile · **6.4** groups, metropolitan visibility, collections, accounting link, per-level dashboards.
+
+### 6.4 Groups, roll-ups, collections, accounting link _(D-040, D-041)_ — built
+
+- [x] Phones typed the local way everywhere (`phone.ts`), field errors on the member form (D-040)
+- [x] Shared: `groups.ts`, collection dates / money / categories with tests; contracts for groups, collections, finance; dashboard roll-up; settings visibility
+- [x] API: children list / open / rename / close; dashboard roll-ups honouring hidden suffragans (`ScopeService.visibleWithin`); metropolitan visibility in Settings; collections record / edit / delete / review / retry; accounting gateway (`dev` stand-in, `none`); finance summary; notifications for new entries and decisions
+- [x] Console: Groups (+ drill-down), Collections (record, queue, reject reason, try again), Finances card, roll-up row and hidden note on the dashboard, visibility setting
+- [x] e2e (`groups-collections.e2e-spec.ts`): local phone numbers, record / dates / back-dating / zero, other outstation and parish refused, approve → SYNCED, Manager can't review, failure → retry, reject needs a reason + notification, edit/delete while waiting, finance totals, groups open / duplicate code / Manager refused / close hides from sign-up / open children block, dean / parish / outstation roll-ups, hidden suffragan
+- [ ] Move posting to a BullMQ worker with retries _(Phase 7)_
+- [ ] A real accounting provider + category → account mapping (`external_accounting_refs`) _(when chosen)_
+- [ ] Church country (default dialling code) instead of Ghana-only local numbers _(with multi-country)_
+- [ ] Roll-ups computed in SQL for very large provinces _(Phase 9, performance)_
+
+### 6.3 Accounts, notifications, Users & Roles, Settings _(D-039)_ — built
+
+- [x] Shared: `account.ts` (claim rule, staff order, badges, relative time, safe links) with tests; contracts; new auth error codes
+- [x] Auth: claim a register entry (code → set password), change password (ends other sessions) — unit-tested in `auth-core.spec.ts`
+- [x] API: `/api/me/profile` (+ photo), `/api/me/password`, `/api/me/notifications` (list, unread, read), `/cms/groups/:id/staff`, `/cms/groups/:id/settings`; registration points staff-added people to claim; Society-Leader dashboard; scope guard "any of" capabilities
+- [x] Console: bell with badge, Notifications, Your profile (avatar), Users & Roles, Settings, leader dashboard, "Claim your account" link; fixed off-centre avatar initials
+- [x] App: Notifications page and badge, Your account (contact, photo, password), claim on the sign-in page, claim hint on sign-up
+- [x] e2e (`account.e2e-spec.ts`): claim flow, own profile and password, notifications order / unread / read / safe links, staff list and who manages, settings, leader dashboard
+- [ ] Apply the church theme to its page and the app _(with church pages)_
+- [ ] Notification fan-out and email/SMS copies _(Phase 7 workers)_
+
+### 6.2 Societies & committees _(D-038)_ — built
+
+- [x] Shared: `societies.ts` (rights for staff / leader / parish, leader promotion, roster removal and delete rules, positions, roster order) with tests; contracts
+- [x] API: list (staff all, leaders their own; archived), create / edit / archive / restore / delete, leader rules (+ Parishioner → Society-Leader), candidates (church + outstations for a parish), roster add / position / remove, CSV (audited); register removal also ends leadership
+- [x] Console: Societies and Committees pages (cards, archived tab, new), society page (roster, positions, add people, edit, leader, archive, delete, export, print)
+- [x] e2e: staff vs leader vs parish vs neighbours/dean/outstation, outstation members on a parish roster, positions, leader can't be removed, non-members refused, CSV, create with promotion + audit, duplicate names, leader from elsewhere refused, archive / delete rules
+- [ ] Members see their own societies and society notices in the app _(with Messages, Phase 7)_
+
+### 6.1 Register, requests, birthdays _(D-037)_ — built
+
+- [x] Shared: `register.ts` (birthdays incl. 29 Feb, age turning, last-Administrator rule, sacramental-record checks, formula-safe CSV) with tests; register contracts
+- [x] API: register list + filters + parish-with-outstations, CSV export (audited), add member without the app (no duplicates), profile, edit record (home-church rule), photo upload, change role (Administrators, not yourself, keep one), remove with reason (LEFT; clears home and society places), birthdays
+- [x] Console: Members (register, filters, export), Requests tab, Add member, profile with edit / photo / print / role / remove, Birthdays; dashboard links to requests; Society-Leaders no longer see Members/Birthdays
+- [x] e2e: who reads (own, parish → outstation; not neighbours, dean, or outstation → parish), filters, CSV, add / duplicates / staff role, record checks, parish edits outstation record, roles and last Administrator, removal + audit, birthdays order and age
+- [x] Merge a register entry with an app account when a person who was added by staff signs up later _(6.3: claim, D-039)_
+
+- [x] **Groups/Branch management** _(6.4)_ _(functionality §4.13)_: create/edit groups in the hierarchy; **context switcher** that re-scopes the whole CMS (nav, dashboards, data) per selected group + hierarchy level
+- [x] **Members** _(functionality §4.2)_: CRUD, personal + sacramental records, photo (object storage), deceased flag, society affiliations, profile page, print/export _(6.1)_
+- [x] **Membership requests UI** _(functionality §2.5, D-016; 6.1)_: Members → Requests for the church (and its outstations for a parish); approve or reject with a reason (API done in Phase 3.5)
 - [ ] **Home-church transfers** _(D-016)_: request from the member's profile; receiving church (or parish) approves; previous home notified; sacramental-record edit rights move
-- [ ] **Roles per membership** in Users & Roles: change a person's role in this church only
-- [ ] **Birthdays** _(functionality §4.3)_: today's celebrants + upcoming
-- [ ] **Societies** _(functionality §4.4)_: CRUD + membership rosters
-- [ ] **Committees** _(functionality §4.5)_: committee-flagged societies, separate roster management
-- [ ] **Metropolitan visibility setting** UI for suffragan dioceses _(functionality §5.3)_
-- [ ] **Pending collections**: outstation entry → parish approval queue → BullMQ sync to accounting API _(blueprint §8.1)_
+- [x] **Roles per membership**: change a person's role in this church only _(on the member profile, 6.1; Users & Roles page in 6.3)_
+- [x] **Birthdays** _(functionality §4.3)_: today's celebrants + upcoming _(6.1)_
+- [x] **Societies** _(functionality §4.4)_: CRUD + membership rosters _(6.2)_
+- [x] **Committees** _(functionality §4.5)_: committee-flagged societies, separate roster management _(6.2)_
+- [x] **Metropolitan visibility setting** _(6.4)_ UI for suffragan dioceses _(functionality §5.3)_
+- [x] **Pending collections** _(6.4; worker in Phase 7)_: outstation entry → parish approval queue → BullMQ sync to accounting API _(blueprint §8.1)_
 - [ ] **Hierarchy-scoped data rules** _(functionality §5)_ — implement and test per module:
-  - [ ] Own-group full CRUD everywhere
-  - [ ] Parish → outstation: view/approve/override records; **transaction approval queue**
+  - [x] Own-group full CRUD everywhere
+  - [x] Parish → outstation: view/approve/override records; **transaction approval queue**
   - [ ] Deanery → parishes: read-only monitoring (stats, registers, activity, financial summaries)
   - [ ] Diocese → deaneries: aggregated monitoring
   - [ ] Province → national: aggregated reporting
   - [ ] No lateral/upward access (automated tests for each denial)
-- [ ] **Notifications** _(functionality §4.6)_: notification center API + admin UI, read/unseen tracking, system-event generation
-- [ ] **Users & Roles** _(functionality §4.8)_: church-level user CRUD, role + permission assignment, activation/deactivation
-- [ ] **Profile Settings** _(functionality §4.9)_: own photo, password change, details
-- [ ] **Themes & Settings** _(functionality §4.10)_: theme selection, language, currency display, operational toggles
-- [ ] **Dashboard** _(functionality §4.1)_: per-level dashboard (own stats + roll-ups per hierarchy scope)
-- [ ] **Accounting linkage** _(functionality §4.12)_: read-only financial summaries fetched from the external accounting API (can stub the external service for now); outstation collections recorded locally → parish approval queue
+- [x] **Notifications** _(functionality §4.6)_: notification center API + admin UI, read/unseen tracking _(6.3; generation by workers in Phase 7)_
+- [x] **Users & Roles** _(functionality §4.8)_: church-level user CRUD, role + permission assignment, activation/deactivation _(6.3)_
+- [x] **Profile Settings** _(functionality §4.9)_: own photo, password change, details _(6.3)_
+- [x] **Themes & Settings** _(functionality §4.10)_: theme selection, language, currency display, operational toggles _(6.3)_
+- [x] **Dashboard** _(6.4)_ _(functionality §4.1)_: per-level dashboard (own stats + roll-ups per hierarchy scope)
+- [x] **Accounting linkage** _(6.4, dev stand-in)_ _(functionality §4.12)_: read-only financial summaries fetched from the external accounting API (can stub the external service for now); outstation collections recorded locally → parish approval queue
 - [ ] E2E tests: role × level access matrix from blueprint §3.3
+
+## Phase S — Social Platform redesign (`apps/web` only, docs/social.md)
+
+Runs alongside Phase 7+. Console (`apps/admin`) is out of scope. Slices from social.md §15.1.
+
+- [x] **S1 — Shell** (D-042): sidebar navigation-only; profile → top-right account menu beside notifications; Church Management link in the account menu for authorized accounts only; visitor Sign in / Create account; one global search → `/search` (interim fan-out); phone search button; `lib/social-shell.ts` + tests
+- [x] **S2 — Cards & interactions** (D-043): card family in `components/cards/` used everywhere; shared Skeleton / EmptyState / ErrorState (Try again) / LoadMore on every data page; reactions ignore double taps, report failures, announce changes; sign-in prompts return to the page (`?next=`, open-redirect safe); church page Load more fixed
+- [x] **S3 — Home & Explore refresh** (D-044): Home _Continue_ row (episode, books, Bible), Today strip where the rail is hidden, accessible feed tabs; Explore past events, search kept in the URL, your churches + Find a church
+- [x] **S4 — Reading & media** (D-045): one text size across reading views; Bible verse select → copy / share; Share on Readings, saints, news; ARIA tabs for readings, tunes, notifications; podcast episode pages; _Latest_ teaching
+- [x] **Layout fixes** (D-046): light sidebar with gold active item; Today card first in the right rail; rail scrolls with the page then sticks (no inner scroll bar)
+- [x] **Brand images** (D-047): light/dark tab favicons, favicon in the sidebar, gold monstrance with radiance on sign-in
+- [ ] PWA icons: 192 and 512 px PNGs of the favicon for the install manifest (replace `icon.svg`)
+- [x] **S5 — You** (D-049): Join on church pages; `/me` profile with Your churches (leave, cancel, unfollow); move home church — API, app and console approval; Saved episodes → episode pages; library order; notifications by day. Public profiles → Phase 8; notification preferences → Phase 7
+- [x] **Console brand images** (D-048): light/dark tab favicons, gold favicon in the dark sidebar, burgundy on sign-in
+- [ ] Verify each slice leaves `apps/admin` unchanged (admin tests + visual check)
 
 ## Phase 7 — Communication
 
-- [ ] **BullMQ + Redis** infrastructure: queues, workers, retries; nothing inline in request handlers _(functionality §6)_
-- [ ] **SMS/Email gateway integration** (also replaces console-log OTP delivery) _(blueprint §6)_
-- [ ] **Messages module** _(functionality §4.7)_: compose SMS/email, recipient selection (members/societies/committees), delivery log, SMS balance consumption
-- [ ] **Cross-level broadcasts** _(blueprint §3.3)_: parish → own outstations; deanery → parishes; diocesan; national — enforce in the scope guard
-- [ ] Birthday digest worker (daily job) + notification fan-out worker
-- [ ] Follow/new-episode podcast notifications wired to the same worker infra
+- [x] **BullMQ + Redis** infrastructure: queues, workers, retries; nothing inline in request handlers _(functionality §6)_ — `Jobs` service, queues `messages` / `notifications` / `scheduled` / `accounting`, exponential backoff, `pnpm worker` for production (D-050)
+- [x] **SMS/Email gateway integration** (also replaces console-log OTP delivery) _(blueprint §6)_ — Hubtel SMS, SMTP email, console stand-ins for dev; OTPs go through the `otp.send` job (D-050)
+- [x] **Messages module** _(functionality §4.7)_: compose SMS/email/in-app, recipient selection (church, societies/committees, chosen people, today's birthdays), delivery log, SMS balance consumption with refunds for failures (D-051)
+- [x] **Cross-level broadcasts** _(blueprint §3.3)_: parish → own outstations; deanery → parishes; diocesan; national — `inBroadcastReach`, never into a suffragan from the archdiocese (D-051)
+- [x] Birthday digest worker (daily job) + notification fan-out worker (D-052)
+- [x] Follow/new-episode podcast notifications wired to the same worker infra — all existing notifications moved to the fan-out worker (D-052)
+- [x] **Notification preferences** (moved from S5, D-049): per-type on/off for in-app (and later SMS/email/push), checked once in the fan-out worker; new table via drizzle-kit; settings page in the app (`/account#notifications`) (D-052)
+- [ ] Later: SMS/email/push channels on preferences; delivery receipts (Hubtel callbacks); scheduled sends; SMS top-up payments (with Phase 8 billing)
 
 ## Phase 8 — Platform Administration (Super-Admin)
 
 - [ ] Platform reference-data management: themes, subscription plans, icons, currencies, languages _(blueprint §4 User Types)_
 - [ ] Creator/podcast privilege management UI (grant/revoke per account) — **members apply to become content creators**; Super-Admin approves into `member_privileges` (D-017)
 - [ ] **Book sellers**: members apply for `SELL_BOOKS`; Super-Admin grants/revokes; a **seller studio in the web app** for member sellers (the API already supports them; platform creators use the console) _(D-036)_
+- [ ] **Public member profiles** (S5 → here, D-049, with D-035's @handles): handle, short bio, visibility; what others may see; no member search beyond D-035's rules
 - [ ] Explore moderation queue (full flow with audit trail)
 - [ ] Church subscription management: list churches, plans, expiries; manual interventions
 - [ ] **Online payment for church subscriptions** through the same Hubtel gateway (replaces manual activation, D-021) _(D-036)_
@@ -294,7 +353,7 @@
 - [ ] **`sessions` table** for multi-device refresh tokens (D-007)
 - [ ] Move the web refresh token from localStorage to an httpOnly, SameSite cookie (D-012)
 - [ ] **PWA polish**: offline app shell, offline readings/Bible/hymns via IndexedDB, update prompts _(functionality §6)_
-- [ ] **Global search**: one search box in the top bar opening a results page across every section — readings, saints, hymns, Bible, teachings, podcasts, Explore, news; full-text audit (`tsvector`/`pg_trgm`) _(blueprint §6)_
+- [ ] **Global search** _(box + `/search` page built in S1 as a client fan-out, D-042 — this item is the server endpoint)_: one search box in the top bar opening a results page across every section — readings, saints, hymns, Bible, teachings, podcasts, Explore, news; full-text audit (`tsvector`/`pg_trgm`) _(blueprint §6)_
 - [ ] Audit-trail coverage check: logins, oversight actions, moderation, messaging all recorded
 - [ ] Performance pass: feed pagination, N+1 audit on group-scoped queries, DB indexes verified under realistic seed volume
 - [ ] Accessibility pass on the social platform (keyboard nav, contrast, screen-reader labels)
@@ -317,7 +376,7 @@
 
 - [ ] Scaffold `apps/mobile` with **Expo (React Native)**; NativeWind with the shared Tailwind tokens _(blueprint §5, §6)_
 - [ ] Reuse `packages/shared` types + API client for the mobile app
-- [ ] Social platform surfaces: Home, Readings, Saints, Hymnal (audio), Podcasts, Bible, Teachings, Explore (browse)
+- [ ] Social platform surfaces: Home, Readings, Saints, Hymnal, Podcasts, Bible, Teachings, Explore (browse)
 - [ ] **Push notifications**: Expo push, opt-in channels (Saint of the Day, daily Readings, new episodes, society messages, birthdays) _(functionality §6)_
 - [ ] Offline: resumable downloads (Expo FileSystem/SQLite); downloaded Bible translations on-device
 - [ ] App Store / Play Store accounts, builds, review compliance

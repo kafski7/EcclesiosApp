@@ -23,7 +23,11 @@ export class HubtelGateway implements PaymentGateway {
   async initiate(i: InitiateInput) {
     const res = await this.http("https://payproxyapi.hubtel.com/items/initiate", {
       method: "POST",
-      headers: { authorization: this.auth, "content-type": "application/json", accept: "application/json" },
+      headers: {
+        authorization: this.auth,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
       body: JSON.stringify({
         totalAmount: i.amountMinor / 100,
         description: i.description.slice(0, 100),
@@ -34,16 +38,30 @@ export class HubtelGateway implements PaymentGateway {
         clientReference: i.clientReference,
       }),
     });
-    const body = (await res.json().catch(() => null)) as { data?: { checkoutUrl?: string; checkoutId?: string } } | null;
-    if (!res.ok || !body?.data?.checkoutUrl) throw new GatewayError(`Hubtel initiate failed (${res.status})`);
-    return { checkoutUrl: body.data.checkoutUrl, gatewayRef: body.data.checkoutId ?? null, raw: body };
+    const body = (await res.json().catch(() => null)) as {
+      data?: { checkoutUrl?: string; checkoutId?: string };
+    } | null;
+    if (!res.ok || !body?.data?.checkoutUrl)
+      throw new GatewayError(`Hubtel initiate failed (${res.status})`);
+    return {
+      checkoutUrl: body.data.checkoutUrl,
+      gatewayRef: body.data.checkoutId ?? null,
+      raw: body,
+    };
   }
 
   async status(clientReference: string): Promise<GatewayStatus> {
     const url = `https://api-txnstatus.hubtel.com/transactions/${encodeURIComponent(this.cfg.merchantAccount)}/status?clientReference=${encodeURIComponent(clientReference)}`;
-    const res = await this.http(url, { headers: { authorization: this.auth, accept: "application/json" } });
+    const res = await this.http(url, {
+      headers: { authorization: this.auth, accept: "application/json" },
+    });
     const body = (await res.json().catch(() => null)) as {
-      data?: { status?: string; amount?: number; transactionId?: string; externalTransactionId?: string };
+      data?: {
+        status?: string;
+        amount?: number;
+        transactionId?: string;
+        externalTransactionId?: string;
+      };
     } | null;
     if (!res.ok || !body?.data) throw new GatewayError(`Hubtel status failed (${res.status})`);
     return parseHubtelStatus(body.data, body);
@@ -56,7 +74,12 @@ export function parseHubtelStatus(
   raw: unknown,
 ): GatewayStatus {
   const s = (d.status ?? "").toLowerCase();
-  const state = s === "paid" || s === "success" || s === "successful" ? "PAID" : s === "unpaid" || s === "pending" || s === "" ? "PENDING" : "FAILED";
+  const state =
+    s === "paid" || s === "success" || s === "successful"
+      ? "PAID"
+      : s === "unpaid" || s === "pending" || s === ""
+        ? "PENDING"
+        : "FAILED";
   return {
     state,
     amountMinor: typeof d.amount === "number" ? Math.round(d.amount * 100) : null,

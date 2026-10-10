@@ -39,7 +39,10 @@ export class SaintsService {
     private readonly media: MediaService,
   ) {}
 
-  private async withImage<T extends { imageUrl: string | null }>(item: T, key: string | null): Promise<T> {
+  private async withImage<T extends { imageUrl: string | null }>(
+    item: T,
+    key: string | null,
+  ): Promise<T> {
     return key ? { ...item, imageUrl: await this.media.presignGet(key) } : item;
   }
 
@@ -48,8 +51,12 @@ export class SaintsService {
     const rows = await this.db
       .select()
       .from(saints)
-      .where(and(eq(saints.isPublished, true), eq(saints.feastMonth, month), eq(saints.feastDay, day)));
-    const ordered = await Promise.all(saintsOn(rows, date).map((r) => this.withImage(summary(r), r.imageKey)));
+      .where(
+        and(eq(saints.isPublished, true), eq(saints.feastMonth, month), eq(saints.feastDay, day)),
+      );
+    const ordered = await Promise.all(
+      saintsOn(rows, date).map((r) => this.withImage(summary(r), r.imageKey)),
+    );
     return { date, saint: ordered[0] ?? null, others: ordered.slice(1) };
   }
 
@@ -82,7 +89,10 @@ export class SaintsService {
       .where(and(eq(saints.slug, slug), eq(saints.isPublished, true)))
       .limit(1);
     if (!r) throw new DomainError(404, "SAINT_NOT_FOUND", "We couldn't find that saint.");
-    return this.withImage({ ...summary(r), born: r.born, died: r.died, biography: r.biography, source: r.source }, r.imageKey);
+    return this.withImage(
+      { ...summary(r), born: r.born, died: r.died, biography: r.biography, source: r.source },
+      r.imageKey,
+    );
   }
 
   /** Super-Admin: create or replace by slug. Unpublished saints are hidden from the public. */
@@ -107,36 +117,72 @@ export class SaintsService {
       .values(values)
       .onConflictDoUpdate({ target: saints.slug, set: { ...values, updatedAt: new Date() } })
       .returning();
-    await this.audit.write({ actorType: "USER", actorId: userId, action: "saints.upserted", entityType: "saint", entityId: slug, ip });
-    return { ...summary(r!), born: r!.born, died: r!.died, biography: r!.biography, source: r!.source, isPublished: r!.isPublished };
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: "saints.upserted",
+      entityType: "saint",
+      entityId: slug,
+      ip,
+    });
+    return {
+      ...summary(r!),
+      born: r!.born,
+      died: r!.died,
+      biography: r!.biography,
+      source: r!.source,
+      isPublished: r!.isPublished,
+    };
   }
 
   // ------------------------------------------------------------------ portraits (Super-Admin)
 
   private async idOf(slug: string) {
-    const [r] = await this.db.select({ id: saints.id, imageKey: saints.imageKey }).from(saints).where(eq(saints.slug, slug)).limit(1);
+    const [r] = await this.db
+      .select({ id: saints.id, imageKey: saints.imageKey })
+      .from(saints)
+      .where(eq(saints.slug, slug))
+      .limit(1);
     if (!r) throw new DomainError(404, "SAINT_NOT_FOUND", "We couldn't find that saint.");
     return r;
   }
 
   async presignPortrait(slug: string, contentType: string, bytes: number) {
     const { id } = await this.idOf(slug);
-    if (!PORTRAIT_TYPES.includes(contentType)) throw new DomainError(400, "UPLOAD_REJECTED", "Use a JPEG, PNG or WebP image.");
-    if (bytes > PORTRAIT_MAX_BYTES) throw new DomainError(400, "UPLOAD_REJECTED", "The image is too large (max 5 MB).");
-    return this.media.presignPut(this.media.newKey(`saints/${id}`, contentType), contentType, bytes);
+    if (!PORTRAIT_TYPES.includes(contentType))
+      throw new DomainError(400, "UPLOAD_REJECTED", "Use a JPEG, PNG or WebP image.");
+    if (bytes > PORTRAIT_MAX_BYTES)
+      throw new DomainError(400, "UPLOAD_REJECTED", "The image is too large (max 5 MB).");
+    return this.media.presignPut(
+      this.media.newKey(`saints/${id}`, contentType),
+      contentType,
+      bytes,
+    );
   }
 
   async setPortrait(userId: string, slug: string, key: string | null, ip: string) {
     const { id, imageKey } = await this.idOf(slug);
     if (key) {
-      if (!key.startsWith(`saints/${id}/`)) throw new DomainError(400, "UPLOAD_REJECTED", "That upload doesn't belong to this saint.");
+      if (!key.startsWith(`saints/${id}/`))
+        throw new DomainError(400, "UPLOAD_REJECTED", "That upload doesn't belong to this saint.");
       const head = await this.media.head(key);
       if (!head || !head.contentType || !PORTRAIT_TYPES.includes(head.contentType))
-        throw new DomainError(400, "UPLOAD_REJECTED", "The image hasn't finished uploading or isn't an image.");
+        throw new DomainError(
+          400,
+          "UPLOAD_REJECTED",
+          "The image hasn't finished uploading or isn't an image.",
+        );
     }
     await this.db.update(saints).set({ imageKey: key }).where(eq(saints.id, id));
     if (imageKey && imageKey !== key) await this.media.remove(imageKey);
-    await this.audit.write({ actorType: "USER", actorId: userId, action: key ? "saints.portrait_set" : "saints.portrait_removed", entityType: "saint", entityId: slug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: key ? "saints.portrait_set" : "saints.portrait_removed",
+      entityType: "saint",
+      entityId: slug,
+      ip,
+    });
     return this.bySlug(slug).catch(() => null);
   }
 }

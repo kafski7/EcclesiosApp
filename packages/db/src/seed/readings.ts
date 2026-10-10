@@ -7,12 +7,42 @@
 import { addDays, liturgicalDay, toIsoDate } from "@ecclesios/shared/domain";
 
 const SAMPLE_WEEKDAYS: { first: string; psalm: string; response: string; gospel: string }[] = [
-  { first: "Job 38:1, 12-21; 40:3-5", psalm: "Psalm 139:1-3, 7-10, 13-14", response: "Guide me, Lord, along the everlasting way.", gospel: "Luke 10:13-16" },
-  { first: "Job 42:1-3, 5-6, 12-17", psalm: "Psalm 119:66, 71, 75, 91, 125, 130", response: "Lord, let your face shine on me.", gospel: "Luke 10:17-24" },
-  { first: "Galatians 1:6-12", psalm: "Psalm 111:1-2, 7-10", response: "The Lord will remember his covenant for ever.", gospel: "Luke 10:25-37" },
-  { first: "Galatians 1:13-24", psalm: "Psalm 139:1-3, 13-15", response: "Guide me, Lord, along the everlasting way.", gospel: "Luke 10:38-42" },
-  { first: "Galatians 2:1-2, 7-14", psalm: "Psalm 117:1-2", response: "Go out to all the world and tell the Good News.", gospel: "Luke 11:1-4" },
-  { first: "Galatians 3:1-5", psalm: "Luke 1:69-75", response: "Blessed be the Lord, the God of Israel; he has come to his people.", gospel: "Luke 11:5-13" },
+  {
+    first: "Job 38:1, 12-21; 40:3-5",
+    psalm: "Psalm 139:1-3, 7-10, 13-14",
+    response: "Guide me, Lord, along the everlasting way.",
+    gospel: "Luke 10:13-16",
+  },
+  {
+    first: "Job 42:1-3, 5-6, 12-17",
+    psalm: "Psalm 119:66, 71, 75, 91, 125, 130",
+    response: "Lord, let your face shine on me.",
+    gospel: "Luke 10:17-24",
+  },
+  {
+    first: "Galatians 1:6-12",
+    psalm: "Psalm 111:1-2, 7-10",
+    response: "The Lord will remember his covenant for ever.",
+    gospel: "Luke 10:25-37",
+  },
+  {
+    first: "Galatians 1:13-24",
+    psalm: "Psalm 139:1-3, 13-15",
+    response: "Guide me, Lord, along the everlasting way.",
+    gospel: "Luke 10:38-42",
+  },
+  {
+    first: "Galatians 2:1-2, 7-14",
+    psalm: "Psalm 117:1-2",
+    response: "Go out to all the world and tell the Good News.",
+    gospel: "Luke 11:1-4",
+  },
+  {
+    first: "Galatians 3:1-5",
+    psalm: "Luke 1:69-75",
+    response: "Blessed be the Lord, the God of Israel; he has come to his people.",
+    gospel: "Luke 11:5-13",
+  },
 ];
 
 const SAMPLE_SUNDAY = {
@@ -33,7 +63,12 @@ export interface SeedReadingDay {
   date: string;
   celebration: string | null;
   source: string;
-  readings: { kind: "FIRST" | "PSALM" | "SECOND" | "ALLELUIA" | "GOSPEL"; citation: string; response: string | null; text: string[] }[];
+  readings: {
+    kind: "FIRST" | "PSALM" | "SECOND" | "ALLELUIA" | "GOSPEL";
+    citation: string;
+    response: string | null;
+    text: string[];
+  }[];
 }
 
 /** 3 days back to 10 days ahead of `today`. */
@@ -48,10 +83,30 @@ export function sampleReadingDays(today = toIsoDate(new Date())): SeedReadingDay
         celebration: SAMPLE_SUNDAY.celebration,
         source: "Sample data — not for publication",
         readings: [
-          { kind: "FIRST", citation: SAMPLE_SUNDAY.first, response: null, text: placeholder(SAMPLE_SUNDAY.first) },
-          { kind: "PSALM", citation: SAMPLE_SUNDAY.psalm, response: SAMPLE_SUNDAY.response, text: placeholder(SAMPLE_SUNDAY.psalm) },
-          { kind: "SECOND", citation: SAMPLE_SUNDAY.second, response: null, text: placeholder(SAMPLE_SUNDAY.second) },
-          { kind: "GOSPEL", citation: SAMPLE_SUNDAY.gospel, response: null, text: placeholder(SAMPLE_SUNDAY.gospel) },
+          {
+            kind: "FIRST",
+            citation: SAMPLE_SUNDAY.first,
+            response: null,
+            text: placeholder(SAMPLE_SUNDAY.first),
+          },
+          {
+            kind: "PSALM",
+            citation: SAMPLE_SUNDAY.psalm,
+            response: SAMPLE_SUNDAY.response,
+            text: placeholder(SAMPLE_SUNDAY.psalm),
+          },
+          {
+            kind: "SECOND",
+            citation: SAMPLE_SUNDAY.second,
+            response: null,
+            text: placeholder(SAMPLE_SUNDAY.second),
+          },
+          {
+            kind: "GOSPEL",
+            citation: SAMPLE_SUNDAY.gospel,
+            response: null,
+            text: placeholder(SAMPLE_SUNDAY.gospel),
+          },
         ],
       });
       continue;

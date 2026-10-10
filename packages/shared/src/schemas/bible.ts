@@ -31,7 +31,10 @@ export const BibleBookSchema = z.object({
   chapters: z.number().int(),
 });
 export type BibleBook = z.infer<typeof BibleBookSchema>;
-export const BibleBookListSchema = z.object({ translation: TranslationCodeSchema, items: z.array(BibleBookSchema) });
+export const BibleBookListSchema = z.object({
+  translation: TranslationCodeSchema,
+  items: z.array(BibleBookSchema),
+});
 
 export const BibleVerseSchema = z.object({
   verse: z.number().int(),
@@ -68,4 +71,8 @@ export const BibleSearchHitSchema = z.object({
 export type BibleSearchHit = z.infer<typeof BibleSearchHitSchema>;
 export const BibleSearchResponseSchema = z.object({ items: z.array(BibleSearchHitSchema) });
 
-export const BIBLE_ERROR_CODES = ["TRANSLATION_NOT_FOUND", "BOOK_NOT_FOUND", "CHAPTER_NOT_FOUND"] as const;
+export const BIBLE_ERROR_CODES = [
+  "TRANSLATION_NOT_FOUND",
+  "BOOK_NOT_FOUND",
+  "CHAPTER_NOT_FOUND",
+] as const;

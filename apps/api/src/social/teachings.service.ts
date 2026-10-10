@@ -31,8 +31,10 @@ type Row = typeof teachings.$inferSelect;
 type UpsertTeaching = z.output<typeof UpsertTeachingSchema>;
 type UpsertTopic = z.output<typeof UpsertTopicSchema>;
 
-const notFound = () => new DomainError(404, "TEACHING_NOT_FOUND", "We couldn't find that teaching.");
-const topicNotFound = (slug: string) => new DomainError(400, "TOPIC_NOT_FOUND", `There is no topic "${slug}".`);
+const notFound = () =>
+  new DomainError(404, "TEACHING_NOT_FOUND", "We couldn't find that teaching.");
+const topicNotFound = (slug: string) =>
+  new DomainError(400, "TOPIC_NOT_FOUND", `There is no topic "${slug}".`);
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 const ftsDoc = sql`(setweight(to_tsvector('english', ${teachings.title}), 'A') || setweight(to_tsvector('english', ${teachings.summary}), 'B') || setweight(to_tsvector('english', ${teachings.plain}), 'C'))`;
 
@@ -49,13 +51,18 @@ export class TeachingsService {
   private async topicsFor(ids: string[]) {
     if (!ids.length) return new Map<string, { slug: string; name: string }[]>();
     const rows = await this.db
-      .select({ teachingId: teachingTopicLinks.teachingId, slug: teachingTopics.slug, name: teachingTopics.name })
+      .select({
+        teachingId: teachingTopicLinks.teachingId,
+        slug: teachingTopics.slug,
+        name: teachingTopics.name,
+      })
       .from(teachingTopicLinks)
       .innerJoin(teachingTopics, eq(teachingTopics.id, teachingTopicLinks.topicId))
       .where(inArray(teachingTopicLinks.teachingId, ids))
       .orderBy(asc(teachingTopicLinks.position));
     const map = new Map<string, { slug: string; name: string }[]>();
-    for (const r of rows) map.set(r.teachingId, [...(map.get(r.teachingId) ?? []), { slug: r.slug, name: r.name }]);
+    for (const r of rows)
+      map.set(r.teachingId, [...(map.get(r.teachingId) ?? []), { slug: r.slug, name: r.name }]);
     return map;
   }
 
@@ -77,7 +84,12 @@ export class TeachingsService {
     const [r] = await this.db
       .select()
       .from(teachings)
-      .where(and(eq(teachings.slug, slug), includeDrafts ? undefined : eq(teachings.status, "PUBLISHED")))
+      .where(
+        and(
+          eq(teachings.slug, slug),
+          includeDrafts ? undefined : eq(teachings.status, "PUBLISHED"),
+        ),
+      )
       .limit(1);
     if (!r) throw notFound();
     return r;
@@ -89,7 +101,12 @@ export class TeachingsService {
       .select({ t: teachings })
       .from(teachingRelations)
       .innerJoin(teachings, eq(teachings.id, teachingRelations.toId))
-      .where(and(eq(teachingRelations.fromId, row.id), onlyPublished ? eq(teachings.status, "PUBLISHED") : undefined))
+      .where(
+        and(
+          eq(teachingRelations.fromId, row.id),
+          onlyPublished ? eq(teachings.status, "PUBLISHED") : undefined,
+        ),
+      )
       .orderBy(asc(teachingRelations.position));
     const picked = explicit.map((x) => x.t);
     if (picked.length < RELATED_MAX) {
@@ -101,7 +118,10 @@ export class TeachingsService {
           and(
             inArray(
               teachingTopicLinks.topicId,
-              this.db.select({ id: teachingTopicLinks.topicId }).from(teachingTopicLinks).where(eq(teachingTopicLinks.teachingId, row.id)),
+              this.db
+                .select({ id: teachingTopicLinks.topicId })
+                .from(teachingTopicLinks)
+                .where(eq(teachingTopicLinks.teachingId, row.id)),
             ),
             ne(teachings.id, row.id),
             eq(teachings.status, "PUBLISHED"),
@@ -136,7 +156,11 @@ export class TeachingsService {
     const query = sql`websearch_to_tsquery('english', ${term})`;
     let topicId: string | undefined;
     if (topic) {
-      const [t] = await this.db.select({ id: teachingTopics.id }).from(teachingTopics).where(eq(teachingTopics.slug, topic)).limit(1);
+      const [t] = await this.db
+        .select({ id: teachingTopics.id })
+        .from(teachingTopics)
+        .where(eq(teachingTopics.slug, topic))
+        .limit(1);
       if (!t) throw new DomainError(404, "TOPIC_NOT_FOUND", "We couldn't find that topic.");
       topicId = t.id;
     }
@@ -149,10 +173,16 @@ export class TeachingsService {
           topicId
             ? sql`exists (select 1 from ${teachingTopicLinks} l where l.teaching_id = ${qcol(teachings, teachings.id)} and l.topic_id = ${topicId})`
             : undefined,
-          term ? or(sql`${ftsDoc} @@ ${query}`, ilike(teachings.title, `%${escapeLike(term)}%`)) : undefined,
+          term
+            ? or(sql`${ftsDoc} @@ ${query}`, ilike(teachings.title, `%${escapeLike(term)}%`))
+            : undefined,
         ),
       )
-      .orderBy(...(term ? [desc(sql`ts_rank(${ftsDoc}, ${query})`), asc(teachings.title)] : [asc(teachings.title)]))
+      .orderBy(
+        ...(term
+          ? [desc(sql`ts_rank(${ftsDoc}, ${query})`), asc(teachings.title)]
+          : [asc(teachings.title)]),
+      )
       .limit(PAGE + 1)
       .offset((page - 1) * PAGE);
     return { items: await this.summaries(rows.slice(0, PAGE)), page, hasMore: rows.length > PAGE };
@@ -171,11 +201,17 @@ export class TeachingsService {
     const rows = await this.db
       .select()
       .from(teachings)
-      .where(q.trim() ? or(ilike(teachings.title, like), ilike(teachings.summary, like)) : undefined)
+      .where(
+        q.trim() ? or(ilike(teachings.title, like), ilike(teachings.summary, like)) : undefined,
+      )
       .orderBy(desc(teachings.updatedAt))
       .limit(300);
     const base = await this.summaries(rows);
-    return base.map((b, i) => ({ ...b, status: rows[i]!.status, updatedAt: rows[i]!.updatedAt.toISOString() }));
+    return base.map((b, i) => ({
+      ...b,
+      status: rows[i]!.status,
+      updatedAt: rows[i]!.updatedAt.toISOString(),
+    }));
   }
 
   private async knownSlugs() {
@@ -209,15 +245,28 @@ export class TeachingsService {
   }
 
   /** Create (slug null) or update. Teaching links written in the body join the explicit related list. */
-  async upsert(userId: string, slug: string | null, body: UpsertTeaching, ip: string): Promise<AdminTeaching> {
+  async upsert(
+    userId: string,
+    slug: string | null,
+    body: UpsertTeaching,
+    ip: string,
+  ): Promise<AdminTeaching> {
     const blocks = parseLesson(body.body);
-    const topicRows = await this.db.select().from(teachingTopics).where(inArray(teachingTopics.slug, body.topics));
+    const topicRows = await this.db
+      .select()
+      .from(teachingTopics)
+      .where(inArray(teachingTopics.slug, body.topics));
     for (const t of body.topics) if (!topicRows.some((x) => x.slug === t)) throw topicNotFound(t);
 
     const finalSlug = slug ?? (await this.freeSlug(slugify(body.title)));
-    const wanted = [...new Set([...body.related, ...lessonReferences(blocks).teachings])].filter((s) => s !== finalSlug);
+    const wanted = [...new Set([...body.related, ...lessonReferences(blocks).teachings])].filter(
+      (s) => s !== finalSlug,
+    );
     const targets = wanted.length
-      ? await this.db.select({ id: teachings.id, slug: teachings.slug }).from(teachings).where(inArray(teachings.slug, wanted))
+      ? await this.db
+          .select({ id: teachings.id, slug: teachings.slug })
+          .from(teachings)
+          .where(inArray(teachings.slug, wanted))
       : [];
 
     await this.db.transaction(async (tx) => {
@@ -232,23 +281,45 @@ export class TeachingsService {
       };
       let id: string;
       if (slug) {
-        const [row] = await tx.update(teachings).set(values).where(eq(teachings.slug, slug)).returning({ id: teachings.id });
+        const [row] = await tx
+          .update(teachings)
+          .set(values)
+          .where(eq(teachings.slug, slug))
+          .returning({ id: teachings.id });
         if (!row) throw notFound();
         id = row.id;
       } else {
-        const [row] = await tx.insert(teachings).values({ ...values, slug: finalSlug }).returning({ id: teachings.id });
+        const [row] = await tx
+          .insert(teachings)
+          .values({ ...values, slug: finalSlug })
+          .returning({ id: teachings.id });
         id = row!.id;
       }
       await tx.delete(teachingTopicLinks).where(eq(teachingTopicLinks.teachingId, id));
       await tx.insert(teachingTopicLinks).values(
-        body.topics.map((t, position) => ({ teachingId: id, topicId: topicRows.find((x) => x.slug === t)!.id, position })),
+        body.topics.map((t, position) => ({
+          teachingId: id,
+          topicId: topicRows.find((x) => x.slug === t)!.id,
+          position,
+        })),
       );
       await tx.delete(teachingRelations).where(eq(teachingRelations.fromId, id));
-      const ordered = wanted.map((w) => targets.find((t) => t.slug === w)).filter((t): t is { id: string; slug: string } => !!t);
+      const ordered = wanted
+        .map((w) => targets.find((t) => t.slug === w))
+        .filter((t): t is { id: string; slug: string } => !!t);
       if (ordered.length)
-        await tx.insert(teachingRelations).values(ordered.map((t, position) => ({ fromId: id, toId: t.id, position })));
+        await tx
+          .insert(teachingRelations)
+          .values(ordered.map((t, position) => ({ fromId: id, toId: t.id, position })));
     });
-    await this.audit.write({ actorType: "USER", actorId: userId, action: slug ? "teaching.updated" : "teaching.created", entityType: "teaching", entityId: finalSlug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: slug ? "teaching.updated" : "teaching.created",
+      entityType: "teaching",
+      entityId: finalSlug,
+      ip,
+    });
     return this.adminDetail(finalSlug);
   }
 
@@ -256,7 +327,11 @@ export class TeachingsService {
     const root = base || "teaching";
     for (let i = 1; ; i++) {
       const candidate = i === 1 ? root : `${root}-${i}`;
-      const [hit] = await this.db.select({ id: teachings.id }).from(teachings).where(eq(teachings.slug, candidate)).limit(1);
+      const [hit] = await this.db
+        .select({ id: teachings.id })
+        .from(teachings)
+        .where(eq(teachings.slug, candidate))
+        .limit(1);
       if (!hit) return candidate;
     }
   }
@@ -266,13 +341,29 @@ export class TeachingsService {
     const r = await this.bySlug(slug, true);
     if (status === "PUBLISHED") {
       const problems = lintLesson(r.body, await this.knownSlugs());
-      if (problems.length) throw new DomainError(409, "LESSON_HAS_PROBLEMS", "Fix the lesson's problems before publishing.", { problems });
+      if (problems.length)
+        throw new DomainError(
+          409,
+          "LESSON_HAS_PROBLEMS",
+          "Fix the lesson's problems before publishing.",
+          { problems },
+        );
     }
     await this.db
       .update(teachings)
-      .set({ status, ...(status === "PUBLISHED" && !r.publishedAt ? { publishedAt: new Date() } : {}) })
+      .set({
+        status,
+        ...(status === "PUBLISHED" && !r.publishedAt ? { publishedAt: new Date() } : {}),
+      })
       .where(eq(teachings.id, r.id));
-    await this.audit.write({ actorType: "USER", actorId: userId, action: `teaching.${status.toLowerCase()}`, entityType: "teaching", entityId: slug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: `teaching.${status.toLowerCase()}`,
+      entityType: "teaching",
+      entityId: slug,
+      ip,
+    });
     return this.adminDetail(slug);
   }
 
@@ -280,17 +371,32 @@ export class TeachingsService {
     const r = await this.bySlug(slug, true);
     await this.db.delete(teachings).where(eq(teachings.id, r.id));
     await deleteReactions(this.db, "TEACHING", r.id);
-    await this.audit.write({ actorType: "USER", actorId: userId, action: "teaching.deleted", entityType: "teaching", entityId: slug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: "teaching.deleted",
+      entityType: "teaching",
+      entityId: slug,
+      ip,
+    });
   }
 
   // topics
   async upsertTopic(slug: string | null, body: UpsertTopic) {
     if (slug) {
-      const [row] = await this.db.update(teachingTopics).set(body).where(eq(teachingTopics.slug, slug)).returning();
+      const [row] = await this.db
+        .update(teachingTopics)
+        .set(body)
+        .where(eq(teachingTopics.slug, slug))
+        .returning();
       if (!row) throw new DomainError(404, "TOPIC_NOT_FOUND", "We couldn't find that topic.");
     } else {
       const base = slugify(body.name) || "topic";
-      const [hit] = await this.db.select({ id: teachingTopics.id }).from(teachingTopics).where(eq(teachingTopics.slug, base)).limit(1);
+      const [hit] = await this.db
+        .select({ id: teachingTopics.id })
+        .from(teachingTopics)
+        .where(eq(teachingTopics.slug, base))
+        .limit(1);
       if (hit) throw new DomainError(409, "TOPIC_EXISTS", "A topic with that name already exists.");
       await this.db.insert(teachingTopics).values({ ...body, slug: base });
     }
@@ -299,10 +405,23 @@ export class TeachingsService {
 
   /** Topics in use can't be deleted (move their teachings first). */
   async removeTopic(slug: string) {
-    const [t] = await this.db.select({ id: teachingTopics.id }).from(teachingTopics).where(eq(teachingTopics.slug, slug)).limit(1);
+    const [t] = await this.db
+      .select({ id: teachingTopics.id })
+      .from(teachingTopics)
+      .where(eq(teachingTopics.slug, slug))
+      .limit(1);
     if (!t) throw new DomainError(404, "TOPIC_NOT_FOUND", "We couldn't find that topic.");
-    const [used] = await this.db.select({ x: teachingTopicLinks.teachingId }).from(teachingTopicLinks).where(eq(teachingTopicLinks.topicId, t.id)).limit(1);
-    if (used) throw new DomainError(409, "TOPIC_IN_USE", "Move this topic's teachings to another topic first.");
+    const [used] = await this.db
+      .select({ x: teachingTopicLinks.teachingId })
+      .from(teachingTopicLinks)
+      .where(eq(teachingTopicLinks.topicId, t.id))
+      .limit(1);
+    if (used)
+      throw new DomainError(
+        409,
+        "TOPIC_IN_USE",
+        "Move this topic's teachings to another topic first.",
+      );
     await this.db.delete(teachingTopics).where(eq(teachingTopics.id, t.id));
     return { items: await this.topics(true) };
   }

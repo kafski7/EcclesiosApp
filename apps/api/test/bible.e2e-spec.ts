@@ -27,7 +27,9 @@ describe("translations", () => {
     const r = await http().get("/api/public/bible/webc/books").expect(200);
     expect(r.body.items.length).toBe(73);
     expect(r.body.items[16]).toMatchObject({ code: "TOB", deutero: true });
-    expect(r.body.items.find((b: { code: string }) => b.code === "LUK").chapters).toBeGreaterThanOrEqual(11);
+    expect(
+      r.body.items.find((b: { code: string }) => b.code === "LUK").chapters,
+    ).toBeGreaterThanOrEqual(11);
   });
 
   it("unknown translation → 404", async () => {
@@ -51,8 +53,12 @@ describe("chapters", () => {
   });
 
   it("missing book / chapter / bad number", async () => {
-    expect((await http().get("/api/public/bible/WEBC/XXX/1").expect(404)).body.error.code).toBe("BOOK_NOT_FOUND");
-    expect((await http().get("/api/public/bible/WEBC/LUK/999").expect(404)).body.error.code).toBe("CHAPTER_NOT_FOUND");
+    expect((await http().get("/api/public/bible/WEBC/XXX/1").expect(404)).body.error.code).toBe(
+      "BOOK_NOT_FOUND",
+    );
+    expect((await http().get("/api/public/bible/WEBC/LUK/999").expect(404)).body.error.code).toBe(
+      "CHAPTER_NOT_FOUND",
+    );
     await http().get("/api/public/bible/WEBC/LUK/ten").expect(400);
   });
 });

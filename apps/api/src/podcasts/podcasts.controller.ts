@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import {
   AddAttachmentSchema,
   AttachAudioSchema,
@@ -22,11 +34,14 @@ import { Public } from "../common/public.decorator";
 import { ZodPipe } from "../common/zod.pipe";
 import { PodcastsService } from "./podcasts.service";
 
-const uuid = new ParseUUIDPipe({ exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id.") });
+const uuid = new ParseUUIDPipe({
+  exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id."),
+});
 const slugPipe = new ZodPipe(PodcastSlugSchema);
 const ip = (req: Request) => req.ip ?? "unknown";
 const member = (p: Principal | undefined) => {
-  if (p?.kind !== "member") throw new DomainError(403, "NOT_ALLOWED", "Following is for member accounts.");
+  if (p?.kind !== "member")
+    throw new DomainError(403, "NOT_ALLOWED", "Following is for member accounts.");
   return p.id;
 };
 
@@ -74,13 +89,19 @@ export class PodcastFollowsController {
 
   @Put(":slug/follow")
   @HttpCode(204)
-  async follow(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined) {
+  async follow(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     await this.podcasts.follow(member(p), slug);
   }
 
   @Delete(":slug/follow")
   @HttpCode(204)
-  async unfollow(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined) {
+  async unfollow(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     await this.podcasts.unfollow(member(p), slug);
   }
 }

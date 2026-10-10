@@ -20,14 +20,23 @@ describe("parseHymnQuery (D-026)", () => {
   });
   it("anything else is text (first line, title, lyrics)", () => {
     expect(parseHymnQuery("  silent   night ", BOOKS).text).toBe("silent night");
-    expect(parseHymnQuery("Psalm 23", BOOKS)).toEqual({ book: null, number: null, text: "Psalm 23" });
+    expect(parseHymnQuery("Psalm 23", BOOKS)).toEqual({
+      book: null,
+      number: null,
+      text: "Psalm 23",
+    });
     expect(parseHymnQuery("", BOOKS).text).toBe("");
   });
 });
 
 describe("numbers and ordering", () => {
   it("sorts numerically with letter suffixes", () => {
-    expect(["10a", "2", "11", "10"].sort((a, b) => hymnNumberKey(a) - hymnNumberKey(b))).toEqual(["2", "10", "10a", "11"]);
+    expect(["10a", "2", "11", "10"].sort((a, b) => hymnNumberKey(a) - hymnNumberKey(b))).toEqual([
+      "2",
+      "10",
+      "10a",
+      "11",
+    ]);
   });
   it("puts the reader's country first", () => {
     const rows = [

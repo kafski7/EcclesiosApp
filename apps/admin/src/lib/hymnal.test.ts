@@ -18,7 +18,10 @@ describe("verse editor format", () => {
 describe("numbers and files", () => {
   it("parses book numbers", () => {
     expect(parseNumbers("NCH 56, ch12a; bogus")).toEqual({
-      numbers: [{ book: "NCH", number: "56" }, { book: "CH", number: "12a" }],
+      numbers: [
+        { book: "NCH", number: "56" },
+        { book: "CH", number: "12a" },
+      ],
       bad: ["bogus"],
     });
   });

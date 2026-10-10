@@ -31,7 +31,11 @@ export const chapterKey = (translation: string, book: string, chapter: number) =
 
 export async function saveChapter(c: BibleChapter) {
   try {
-    await open()?.chapters.put({ key: chapterKey(c.translation.code, c.book.code, c.chapter), savedAt: Date.now(), chapter: c });
+    await open()?.chapters.put({
+      key: chapterKey(c.translation.code, c.book.code, c.chapter),
+      savedAt: Date.now(),
+      chapter: c,
+    });
   } catch {
     /* storage full or blocked: reading still works online */
   }

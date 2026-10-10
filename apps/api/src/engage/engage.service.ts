@@ -1,5 +1,13 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { books, hymns, podcastEpisodes, podcasts, posts, reactions, teachings } from "@ecclesios/db";
+import {
+  books,
+  hymns,
+  podcastEpisodes,
+  podcasts,
+  posts,
+  reactions,
+  teachings,
+} from "@ecclesios/db";
 import type { EngageState, SavedItem } from "@ecclesios/shared";
 import {
   engageHref,
@@ -26,23 +34,41 @@ export class EngageService {
     let rows: { id: string }[];
     switch (kind) {
       case "POST":
-        rows = await this.db.select({ id: posts.id }).from(posts).where(and(inArray(posts.id, ids), eq(posts.status, "APPROVED")));
+        rows = await this.db
+          .select({ id: posts.id })
+          .from(posts)
+          .where(and(inArray(posts.id, ids), eq(posts.status, "APPROVED")));
         break;
       case "TEACHING":
-        rows = await this.db.select({ id: teachings.id }).from(teachings).where(and(inArray(teachings.id, ids), eq(teachings.status, "PUBLISHED")));
+        rows = await this.db
+          .select({ id: teachings.id })
+          .from(teachings)
+          .where(and(inArray(teachings.id, ids), eq(teachings.status, "PUBLISHED")));
         break;
       case "EPISODE":
         rows = await this.db
           .select({ id: podcastEpisodes.id })
           .from(podcastEpisodes)
           .innerJoin(podcasts, eq(podcasts.id, podcastEpisodes.podcastId))
-          .where(and(inArray(podcastEpisodes.id, ids), eq(podcastEpisodes.status, "PUBLISHED"), eq(podcasts.isPublished, true)));
+          .where(
+            and(
+              inArray(podcastEpisodes.id, ids),
+              eq(podcastEpisodes.status, "PUBLISHED"),
+              eq(podcasts.isPublished, true),
+            ),
+          );
         break;
       case "HYMN":
-        rows = await this.db.select({ id: hymns.id }).from(hymns).where(and(inArray(hymns.id, ids), eq(hymns.isPublished, true)));
+        rows = await this.db
+          .select({ id: hymns.id })
+          .from(hymns)
+          .where(and(inArray(hymns.id, ids), eq(hymns.isPublished, true)));
         break;
       case "BOOK":
-        rows = await this.db.select({ id: books.id }).from(books).where(and(inArray(books.id, ids), eq(books.status, "PUBLISHED")));
+        rows = await this.db
+          .select({ id: books.id })
+          .from(books)
+          .where(and(inArray(books.id, ids), eq(books.status, "PUBLISHED")));
         break;
     }
     return new Set(rows.map((r) => r.id));
@@ -50,12 +76,16 @@ export class EngageService {
 
   /** Like counts for any keys, plus the member's own liked / saved state. */
   async state(keys: string[], memberId: string | null): Promise<EngageState[]> {
-    const parsed = keys.map(parseEngageKey).filter((x): x is { kind: EngageKind; id: string } => !!x);
+    const parsed = keys
+      .map(parseEngageKey)
+      .filter((x): x is { kind: EngageKind; id: string } => !!x);
     if (!parsed.length) return [];
     const byKind = new Map<EngageKind, string[]>();
     for (const p of parsed) byKind.set(p.kind, [...(byKind.get(p.kind) ?? []), p.id]);
     const match = sql.join(
-      [...byKind].map(([kind, ids]) => sql`(${reactions.kind} = ${kind} and ${inArray(reactions.itemId, ids)})`),
+      [...byKind].map(
+        ([kind, ids]) => sql`(${reactions.kind} = ${kind} and ${inArray(reactions.itemId, ids)})`,
+      ),
       sql` or `,
     );
     const [counts, mine] = await Promise.all([
@@ -80,14 +110,30 @@ export class EngageService {
   }
 
   /** Set or clear a like / save. Idempotent. Only public items can be liked or saved. */
-  async set(memberId: string, kind: EngageKind, itemId: string, type: ReactionType, on: boolean): Promise<EngageState> {
+  async set(
+    memberId: string,
+    kind: EngageKind,
+    itemId: string,
+    type: ReactionType,
+    on: boolean,
+  ): Promise<EngageState> {
     if (on) {
       if (!(await this.liveIds(kind, [itemId])).has(itemId)) throw notFound();
-      await this.db.insert(reactions).values({ memberId, kind, itemId, type }).onConflictDoNothing();
+      await this.db
+        .insert(reactions)
+        .values({ memberId, kind, itemId, type })
+        .onConflictDoNothing();
     } else {
       await this.db
         .delete(reactions)
-        .where(and(eq(reactions.memberId, memberId), eq(reactions.kind, kind), eq(reactions.itemId, itemId), eq(reactions.type, type)));
+        .where(
+          and(
+            eq(reactions.memberId, memberId),
+            eq(reactions.kind, kind),
+            eq(reactions.itemId, itemId),
+            eq(reactions.type, type),
+          ),
+        );
     }
     return (await this.state([engageKey(kind, itemId)], memberId))[0]!;
   }
@@ -103,23 +149,56 @@ export class EngageService {
     const ids = (k: EngageKind) => rows.filter((r) => r.kind === k).map((r) => r.itemId);
     const [p, t, e, h, bk] = await Promise.all([
       ids("POST").length
-        ? this.db.select({ id: posts.id, title: posts.title, kind: posts.kind }).from(posts).where(and(inArray(posts.id, ids("POST")), eq(posts.status, "APPROVED")))
+        ? this.db
+            .select({ id: posts.id, title: posts.title, kind: posts.kind })
+            .from(posts)
+            .where(and(inArray(posts.id, ids("POST")), eq(posts.status, "APPROVED")))
         : [],
       ids("TEACHING").length
-        ? this.db.select({ id: teachings.id, title: teachings.title, slug: teachings.slug }).from(teachings).where(and(inArray(teachings.id, ids("TEACHING")), eq(teachings.status, "PUBLISHED")))
+        ? this.db
+            .select({ id: teachings.id, title: teachings.title, slug: teachings.slug })
+            .from(teachings)
+            .where(and(inArray(teachings.id, ids("TEACHING")), eq(teachings.status, "PUBLISHED")))
         : [],
       ids("EPISODE").length
         ? this.db
-            .select({ id: podcastEpisodes.id, title: podcastEpisodes.title, podcastSlug: podcasts.slug, podcastTitle: podcasts.title })
+            .select({
+              id: podcastEpisodes.id,
+              title: podcastEpisodes.title,
+              podcastSlug: podcasts.slug,
+              podcastTitle: podcasts.title,
+            })
             .from(podcastEpisodes)
             .innerJoin(podcasts, eq(podcasts.id, podcastEpisodes.podcastId))
-            .where(and(inArray(podcastEpisodes.id, ids("EPISODE")), eq(podcastEpisodes.status, "PUBLISHED"), eq(podcasts.isPublished, true)))
+            .where(
+              and(
+                inArray(podcastEpisodes.id, ids("EPISODE")),
+                eq(podcastEpisodes.status, "PUBLISHED"),
+                eq(podcasts.isPublished, true),
+              ),
+            )
         : [],
       ids("HYMN").length
-        ? this.db.select({ id: hymns.id, slug: hymns.slug, title: hymns.title, firstLine: hymns.firstLine }).from(hymns).where(and(inArray(hymns.id, ids("HYMN")), eq(hymns.isPublished, true)))
+        ? this.db
+            .select({
+              id: hymns.id,
+              slug: hymns.slug,
+              title: hymns.title,
+              firstLine: hymns.firstLine,
+            })
+            .from(hymns)
+            .where(and(inArray(hymns.id, ids("HYMN")), eq(hymns.isPublished, true)))
         : [],
       ids("BOOK").length
-        ? this.db.select({ id: books.id, slug: books.slug, title: books.title, authorName: books.authorName }).from(books).where(and(inArray(books.id, ids("BOOK")), eq(books.status, "PUBLISHED")))
+        ? this.db
+            .select({
+              id: books.id,
+              slug: books.slug,
+              title: books.title,
+              authorName: books.authorName,
+            })
+            .from(books)
+            .where(and(inArray(books.id, ids("BOOK")), eq(books.status, "PUBLISHED")))
         : [],
     ]);
     const out: SavedItem[] = [];
@@ -127,19 +206,59 @@ export class EngageService {
       const at = r.createdAt.toISOString();
       if (r.kind === "POST") {
         const x = p.find((y) => y.id === r.itemId);
-        if (x) out.push({ kind: "POST", id: x.id, title: x.title, subtitle: x.kind === "EVENT" ? "Event" : "Explore", href: engageHref("POST", x), savedAt: at });
+        if (x)
+          out.push({
+            kind: "POST",
+            id: x.id,
+            title: x.title,
+            subtitle: x.kind === "EVENT" ? "Event" : "Explore",
+            href: engageHref("POST", x),
+            savedAt: at,
+          });
       } else if (r.kind === "TEACHING") {
         const x = t.find((y) => y.id === r.itemId);
-        if (x) out.push({ kind: "TEACHING", id: x.id, title: x.title, subtitle: "Teaching", href: engageHref("TEACHING", x), savedAt: at });
+        if (x)
+          out.push({
+            kind: "TEACHING",
+            id: x.id,
+            title: x.title,
+            subtitle: "Teaching",
+            href: engageHref("TEACHING", x),
+            savedAt: at,
+          });
       } else if (r.kind === "EPISODE") {
         const x = e.find((y) => y.id === r.itemId);
-        if (x) out.push({ kind: "EPISODE", id: x.id, title: x.title, subtitle: x.podcastTitle, href: engageHref("EPISODE", x), savedAt: at });
+        if (x)
+          out.push({
+            kind: "EPISODE",
+            id: x.id,
+            title: x.title,
+            subtitle: x.podcastTitle,
+            href: engageHref("EPISODE", x),
+            savedAt: at,
+          });
       } else if (r.kind === "BOOK") {
         const x = bk.find((y) => y.id === r.itemId);
-        if (x) out.push({ kind: "BOOK", id: x.id, title: x.title, subtitle: x.authorName, href: engageHref("BOOK", x), savedAt: at });
+        if (x)
+          out.push({
+            kind: "BOOK",
+            id: x.id,
+            title: x.title,
+            subtitle: x.authorName,
+            href: engageHref("BOOK", x),
+            savedAt: at,
+          });
       } else {
         const x = h.find((y) => y.id === r.itemId);
-        if (x) out.push({ kind: "HYMN", id: x.id, title: hymnDisplayTitle(x.title, x.firstLine), subtitle: "Hymn", href: engageHref("HYMN", x), savedAt: at });
+        if (x)
+          out.push({
+            kind: "HYMN",
+            id: x.id,
+            title: hymnDisplayTitle(x.title, x.firstLine),
+            subtitle: "Hymn",
+            href: engageHref("HYMN", x),
+            savedAt: at,
+          });
       }
     }
     return out;

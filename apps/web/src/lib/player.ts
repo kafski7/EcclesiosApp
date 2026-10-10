@@ -11,11 +11,14 @@ export interface Track {
 }
 
 /** Which buttons an episode row offers. Locked episodes offer none (badge instead). */
-export function episodeActions(e: Pick<Episode, "mediaKind" | "hasAudio" | "youtubeId" | "available">) {
+export function episodeActions(
+  e: Pick<Episode, "mediaKind" | "hasAudio" | "youtubeId" | "available">,
+) {
   if (!e.available) return { listen: false, watch: false, locked: true, primary: null };
   const listen = e.hasAudio;
   const watch = Boolean(e.youtubeId);
-  const primary = e.mediaKind === "YOUTUBE" && watch ? "watch" : listen ? "listen" : watch ? "watch" : null;
+  const primary =
+    e.mediaKind === "YOUTUBE" && watch ? "watch" : listen ? "listen" : watch ? "watch" : null;
   return { listen, watch, locked: false, primary } as const;
 }
 
@@ -31,7 +34,10 @@ export function formatClock(sec: number): string {
 
 /** Seek within [0, duration]. */
 export const clampSeek = (pos: number, delta: number, duration: number) =>
-  Math.min(Math.max(0, pos + delta), Number.isFinite(duration) && duration > 0 ? duration : pos + Math.max(delta, 0));
+  Math.min(
+    Math.max(0, pos + delta),
+    Number.isFinite(duration) && duration > 0 ? duration : pos + Math.max(delta, 0),
+  );
 
 /** Don't resume the last few seconds — start over instead. */
 export const resumePosition = (saved: number, duration: number | null) =>

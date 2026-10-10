@@ -36,7 +36,9 @@ export class BibleService {
     const [t] = await this.db
       .select()
       .from(bibleTranslations)
-      .where(and(eq(bibleTranslations.code, code.toUpperCase()), eq(bibleTranslations.isActive, true)))
+      .where(
+        and(eq(bibleTranslations.code, code.toUpperCase()), eq(bibleTranslations.isActive, true)),
+      )
       .limit(1);
     if (!t) throw notFound("TRANSLATION_NOT_FOUND", "That Bible translation isn't available.");
     return t;
@@ -70,10 +72,19 @@ export class BibleService {
     const verses = await this.db
       .select({ verse: bibleVerses.verse, text: bibleVerses.text, woj: bibleVerses.woj })
       .from(bibleVerses)
-      .where(and(eq(bibleVerses.translationId, t.id), eq(bibleVerses.book, book.code), eq(bibleVerses.chapter, chapter)))
+      .where(
+        and(
+          eq(bibleVerses.translationId, t.id),
+          eq(bibleVerses.book, book.code),
+          eq(bibleVerses.chapter, chapter),
+        ),
+      )
       .orderBy(asc(bibleVerses.verse));
     if (!verses.length)
-      throw notFound("CHAPTER_NOT_FOUND", `${book.name} ${chapter} isn't available in ${t.name} yet.`);
+      throw notFound(
+        "CHAPTER_NOT_FOUND",
+        `${book.name} ${chapter} isn't available in ${t.name} yet.`,
+      );
 
     // prev / next across book boundaries, over the chapters this translation actually has
     const chapters = await this.db
@@ -112,12 +123,25 @@ export class BibleService {
     const t = await this.translation(code);
     const query = sql`websearch_to_tsquery('english', ${q})`;
     const rows = await this.db
-      .select({ book: bibleVerses.book, chapter: bibleVerses.chapter, verse: bibleVerses.verse, text: bibleVerses.text })
+      .select({
+        book: bibleVerses.book,
+        chapter: bibleVerses.chapter,
+        verse: bibleVerses.verse,
+        text: bibleVerses.text,
+      })
       .from(bibleVerses)
-      .where(and(eq(bibleVerses.translationId, t.id), sql`to_tsvector('english', ${bibleVerses.text}) @@ ${query}`))
+      .where(
+        and(
+          eq(bibleVerses.translationId, t.id),
+          sql`to_tsvector('english', ${bibleVerses.text}) @@ ${query}`,
+        ),
+      )
       .limit(500);
     return rows
-      .sort((a, b) => canonIndex(a.book) - canonIndex(b.book) || a.chapter - b.chapter || a.verse - b.verse)
+      .sort(
+        (a, b) =>
+          canonIndex(a.book) - canonIndex(b.book) || a.chapter - b.chapter || a.verse - b.verse,
+      )
       .slice(0, limit)
       .map((r) => ({ ...r, bookName: bookByCode(r.book)?.name ?? r.book }));
   }

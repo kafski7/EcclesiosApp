@@ -38,7 +38,13 @@ describe("GET /api/public/readings/:date", () => {
 
   it("an unloaded date still returns the computed liturgical context", async () => {
     const r = await http().get(`/api/public/readings/${FAR_DATE}`).expect(200);
-    expect(r.body).toMatchObject({ date: FAR_DATE, season: "CHRISTMAS", color: "WHITE", available: false, readings: [] });
+    expect(r.body).toMatchObject({
+      date: FAR_DATE,
+      season: "CHRISTMAS",
+      color: "WHITE",
+      available: false,
+      readings: [],
+    });
   });
 
   it("rejects impossible dates", async () => {
@@ -54,7 +60,12 @@ describe("PUT /api/platform/readings/:date (Super-Admin)", () => {
     source: "Test source",
     readings: [
       { kind: "FIRST", citation: "Isaiah 9:1-6", response: null, text: ["Paragraph one."] },
-      { kind: "PSALM", citation: "Psalm 96:1-3, 11-13", response: "Today is born our Savior.", text: ["Verse."] },
+      {
+        kind: "PSALM",
+        citation: "Psalm 96:1-3, 11-13",
+        response: "Today is born our Savior.",
+        text: ["Verse."],
+      },
       { kind: "GOSPEL", citation: "Luke 2:1-14", response: null, text: ["Paragraph."] },
     ],
   };
@@ -75,9 +86,17 @@ describe("PUT /api/platform/readings/:date (Super-Admin)", () => {
 
   it("creates, then replaces, keeping order", async () => {
     const t = await token(SUPER, undefined, "admin-login");
-    const r = await http().put(`/api/platform/readings/${FAR_DATE}`).set(auth(t)).send(body).expect(200);
+    const r = await http()
+      .put(`/api/platform/readings/${FAR_DATE}`)
+      .set(auth(t))
+      .send(body)
+      .expect(200);
     expect(r.body).toMatchObject({ available: true, celebration: "The Nativity of the Lord" });
-    expect(r.body.readings.map((x: { kind: string }) => x.kind)).toEqual(["FIRST", "PSALM", "GOSPEL"]);
+    expect(r.body.readings.map((x: { kind: string }) => x.kind)).toEqual([
+      "FIRST",
+      "PSALM",
+      "GOSPEL",
+    ]);
 
     const again = await http()
       .put(`/api/platform/readings/${FAR_DATE}`)

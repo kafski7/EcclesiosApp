@@ -77,4 +77,10 @@ export const SEED_CHURCH_PROFILES = [
   },
 ];
 
-export const SEED_COMMENTS = [{ post: "Preparing well for Sunday Mass", author: "Kofi", body: "Thank you, Father. Reading ahead really helps." }];
+export const SEED_COMMENTS = [
+  {
+    post: "Preparing well for Sunday Mass",
+    author: "Kofi",
+    body: "Thank you, Father. Reading ahead really helps.",
+  },
+];

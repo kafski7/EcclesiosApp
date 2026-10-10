@@ -1,6 +1,6 @@
 import { type CanActivate, type ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { hasCapability, type MemberAccess } from "@ecclesios/shared/domain";
+import { hasCapability, type Capability, type MemberAccess } from "@ecclesios/shared/domain";
 import type { Request } from "express";
 import { AuditService } from "../audit/audit.service";
 import { DomainError } from "../auth/core/errors";
@@ -46,7 +46,8 @@ export class ScopeGuard implements CanActivate {
 
     const access = await this.scopes.resolve(p.id, target);
     req.access = access;
-    if (hasCapability(access, opts.need)) return true;
+    const needs: readonly Capability[] = typeof opts.need === "string" ? [opts.need] : opts.need;
+    if (needs.some((n) => hasCapability(access, n))) return true;
 
     await this.deny(
       req,

@@ -51,8 +51,13 @@ describe("reading", () => {
     const r = await http().get("/api/public/teachings/what-is-a-sacrament").expect(200);
     expect(r.body.body).toContain("[[CCC 1131]]");
     expect(r.body.readingMinutes).toBeGreaterThanOrEqual(1);
-    expect(r.body.related.map((t: { slug: string }) => t.slug).slice(0, 2)).toEqual(["baptism", "the-eucharist"]);
-    expect((await http().get("/api/public/teachings/nope").expect(404)).body.error.code).toBe("TEACHING_NOT_FOUND");
+    expect(r.body.related.map((t: { slug: string }) => t.slug).slice(0, 2)).toEqual([
+      "baptism",
+      "the-eucharist",
+    ]);
+    expect((await http().get("/api/public/teachings/nope").expect(404)).body.error.code).toBe(
+      "TEACHING_NOT_FOUND",
+    );
   });
 });
 
@@ -72,9 +77,18 @@ describe("authoring (Super-Admin only)", () => {
   it("creates a draft; body links become related; drafts are hidden", async () => {
     const t = await token(SUPER, undefined, "admin-login");
     const r = await http().post("/api/platform/teachings").set(auth(t)).send(lesson).expect(201);
-    expect(r.body).toMatchObject({ slug: "e2e-lesson", status: "DRAFT", relatedSlugs: ["baptism"], problems: [] });
+    expect(r.body).toMatchObject({
+      slug: "e2e-lesson",
+      status: "DRAFT",
+      relatedSlugs: ["baptism"],
+      problems: [],
+    });
     await http().get("/api/public/teachings/e2e-lesson").expect(404);
-    await http().post("/api/platform/teachings").set(auth(t)).send({ ...lesson, topics: ["nope"] }).expect(400);
+    await http()
+      .post("/api/platform/teachings")
+      .set(auth(t))
+      .send({ ...lesson, topics: ["nope"] })
+      .expect(400);
   });
 
   it("can't publish with problems; publishes once fixed", async () => {
@@ -85,18 +99,34 @@ describe("authoring (Super-Admin only)", () => {
       .send({ ...lesson, body: "Broken [[teaching:does-not-exist]] and [[CCC 9999]]." })
       .expect(200);
     expect(bad.body.problems.length).toBe(2);
-    const blocked = await http().post("/api/platform/teachings/e2e-lesson/status").set(auth(t)).send({ status: "PUBLISHED" }).expect(409);
+    const blocked = await http()
+      .post("/api/platform/teachings/e2e-lesson/status")
+      .set(auth(t))
+      .send({ status: "PUBLISHED" })
+      .expect(409);
     expect(blocked.body.error.code).toBe("LESSON_HAS_PROBLEMS");
 
     await http().put("/api/platform/teachings/e2e-lesson").set(auth(t)).send(lesson).expect(200);
-    await http().post("/api/platform/teachings/e2e-lesson/status").set(auth(t)).send({ status: "PUBLISHED" }).expect(200);
+    await http()
+      .post("/api/platform/teachings/e2e-lesson/status")
+      .set(auth(t))
+      .send({ status: "PUBLISHED" })
+      .expect(200);
     await http().get("/api/public/teachings/e2e-lesson").expect(200);
   });
 
   it("topics: create, refuse duplicates, refuse deleting one in use", async () => {
     const t = await token(SUPER, undefined, "admin-login");
-    await http().post("/api/platform/teachings/topics").set(auth(t)).send({ name: "E2E Topic" }).expect(201);
-    await http().post("/api/platform/teachings/topics").set(auth(t)).send({ name: "E2E Topic" }).expect(409);
+    await http()
+      .post("/api/platform/teachings/topics")
+      .set(auth(t))
+      .send({ name: "E2E Topic" })
+      .expect(201);
+    await http()
+      .post("/api/platform/teachings/topics")
+      .set(auth(t))
+      .send({ name: "E2E Topic" })
+      .expect(409);
     await http().delete("/api/platform/teachings/topics/sacraments").set(auth(t)).expect(409);
     await http().delete("/api/platform/teachings/topics/e2e-topic").set(auth(t)).expect(200);
   });

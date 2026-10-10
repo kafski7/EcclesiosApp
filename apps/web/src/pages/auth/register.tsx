@@ -2,11 +2,12 @@ import { RegisterRequestSchema, type ChurchOption, type RegisterResponse } from 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, MapPin, Search } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { AuthLayout, Field, FormAlert } from "@/components/auth/auth-layout";
 import { ApiClientError } from "@/lib/api";
 import { authErrorMessage, fieldErrors } from "@/lib/auth-errors";
 import { register, searchChurches } from "@/lib/auth";
+import { safeNext, withNext } from "@/lib/return-to";
 import { useSession } from "@/stores/session";
 
 const EMPTY = {
@@ -27,6 +28,8 @@ const EMPTY = {
  */
 export function RegisterPage() {
   const principal = useSession((s) => s.principal);
+  const [params] = useSearchParams();
+  const rawNext = params.get("next");
   const [parish, setParish] = useState<ChurchOption | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,8 +54,8 @@ export function RegisterPage() {
     },
   });
 
-  if (principal) return <Navigate to="/" replace />;
-  if (m.data) return <Submitted result={m.data} />;
+  if (principal) return <Navigate to={safeNext(rawNext)} replace />;
+  if (m.data) return <Submitted result={m.data} next={rawNext} />;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -78,7 +81,15 @@ export function RegisterPage() {
         right away; your church office will confirm your membership.
       </p>
       {apiError && apiError.code !== "VALIDATION_FAILED" ? (
-        <FormAlert>{authErrorMessage(apiError)}</FormAlert>
+        <FormAlert>
+          {authErrorMessage(apiError)}
+          {apiError.code === "CLAIM_ACCOUNT" ? (
+            <>
+              {" "}
+              <Link to="/login?claim=1">Claim your account</Link>
+            </>
+          ) : null}
+        </FormAlert>
       ) : null}
 
       <form className="auth-form" onSubmit={submit} noValidate>
@@ -127,7 +138,7 @@ export function RegisterPage() {
         <Field
           label="Phone number"
           error={errors.telephone}
-          hint="With country code, e.g. +233241234567"
+          hint="e.g. 024 123 4567 or +233 24 123 4567"
         >
           <input
             className="auth-input"
@@ -195,7 +206,7 @@ export function RegisterPage() {
         </p>
       </form>
       <p className="auth-x-switch">
-        Already have an account? <Link to="/login">Sign in</Link>
+        Already have an account? <Link to={withNext("/login", rawNext)}>Sign in</Link>
       </p>
     </AuthLayout>
   );
@@ -308,7 +319,7 @@ function churchContext(c: ChurchOption) {
   return where.filter(Boolean).join(" · ");
 }
 
-function Submitted({ result }: { result: RegisterResponse }) {
+function Submitted({ result, next }: { result: RegisterResponse; next: string | null }) {
   return (
     <AuthLayout>
       <h1 className="auth-x-sub">Welcome to Ecclesios</h1>
@@ -317,10 +328,10 @@ function Submitted({ result }: { result: RegisterResponse }) {
         <b>{result.membership.church.name}</b> has been asked to confirm your membership;
         members-only features for that church (notices, dues, societies) open once they do.
       </p>
-      <Link to="/" className="auth-btn auth-btn-outline">
+      <Link to={safeNext(next)} className="auth-btn auth-btn-outline">
         Continue to Ecclesios
       </Link>
-      <Link to="/login" className="auth-btn auth-btn-primary">
+      <Link to={withNext("/login", next)} className="auth-btn auth-btn-primary">
         Go to sign in
       </Link>
     </AuthLayout>

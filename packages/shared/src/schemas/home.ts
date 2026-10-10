@@ -67,7 +67,11 @@ const EpisodeFeedSchema = z.object({
 
 export const FeedItemSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("POST"), at: z.string().datetime(), post: PostSummarySchema }),
-  z.object({ type: z.literal("TEACHING"), at: z.string().datetime(), teaching: TeachingSummarySchema }),
+  z.object({
+    type: z.literal("TEACHING"),
+    at: z.string().datetime(),
+    teaching: TeachingSummarySchema,
+  }),
   z.object({ type: z.literal("EPISODE"), at: z.string().datetime(), episode: EpisodeFeedSchema }),
   z.object({ type: z.literal("NEWS"), at: z.string().datetime(), news: NewsSummarySchema }),
 ]);
@@ -77,5 +81,9 @@ export const HomeFeedQuerySchema = z.object({
   tab: z.enum(["for-you", "following"]).default("for-you"),
   page: z.coerce.number().int().min(1).max(20).default(1),
 });
-export const HomeFeedSchema = z.object({ items: z.array(FeedItemSchema), page: z.number().int(), hasMore: z.boolean() });
+export const HomeFeedSchema = z.object({
+  items: z.array(FeedItemSchema),
+  page: z.number().int(),
+  hasMore: z.boolean(),
+});
 export type HomeFeed = z.infer<typeof HomeFeedSchema>;

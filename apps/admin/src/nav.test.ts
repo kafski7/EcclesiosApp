@@ -7,10 +7,12 @@ describe("CMS sidebar per role × level (blueprint §3.3)", () => {
   it("parish Administrator sees everything, Billing included", () => {
     expect(labels(cmsNav("ADMINISTRATOR", "PARISH"))).toEqual([
       "Dashboard",
+      "Groups",
       "Members",
       "Birthdays",
       "Societies",
       "Committees",
+      "Collections",
       "Notifications",
       "Messages",
       "Users & Roles",
@@ -27,15 +29,19 @@ describe("CMS sidebar per role × level (blueprint §3.3)", () => {
     expect(l).toContain("Messages");
     for (const x of ["Users & Roles", "Settings", "Billing"]) expect(l).not.toContain(x);
   });
-  it("Society-Leaders: rosters only, no Messages", () => {
+  it("Society-Leaders: rosters only — no register, birthdays or Messages (D-037)", () => {
     expect(labels(cmsNav("SOCIETY_LEADER", "PARISH"))).toEqual([
       "Dashboard",
-      "Members",
-      "Birthdays",
       "Societies",
       "Committees",
       "Notifications",
     ]);
+  });
+  it("Groups everywhere but outstations; Collections only at parishes and outstations (D-041)", () => {
+    expect(labels(cmsNav("ADMINISTRATOR", "OUTSTATION"))).not.toContain("Groups");
+    expect(labels(cmsNav("ADMINISTRATOR", "OUTSTATION"))).toContain("Collections");
+    expect(labels(cmsNav("MANAGER", "DEANERY"))).toContain("Groups");
+    expect(labels(cmsNav("ADMINISTRATOR", "DEANERY"))).not.toContain("Collections");
   });
   it("Parishioners get nothing", () => {
     expect(labels(cmsNav("PARISHIONER", "PARISH"))).toEqual([]);

@@ -6,6 +6,7 @@ import {
   hasCapability,
   homeOf,
   homeTransferBlocker,
+  nextHomeTransferStatus,
   InvalidMembershipTransition,
   isJoinableLevel,
   nextMembershipStatus,
@@ -160,5 +161,15 @@ describe("Explore posting (D-017)", () => {
       true,
     );
     expect(canPostAsChurch({ kind: "user", role: "SUPER_ADMIN", privileges: [] }, "x")).toBe(false);
+  });
+});
+
+describe("home transfer status (D-049)", () => {
+  it("only an open request moves", () => {
+    expect(nextHomeTransferStatus("PENDING", "approve")).toBe("APPROVED");
+    expect(nextHomeTransferStatus("PENDING", "reject")).toBe("REJECTED");
+    expect(nextHomeTransferStatus("PENDING", "cancel")).toBe("CANCELLED");
+    for (const done of ["APPROVED", "REJECTED", "CANCELLED"] as const)
+      expect(nextHomeTransferStatus(done, "approve")).toBeNull();
   });
 });

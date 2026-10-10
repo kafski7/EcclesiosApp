@@ -3,7 +3,9 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { api } from "./query";
 
 /** The reader's country from the browser language ("en-GH" → "GH"), used to order book numbers (D-026). */
-export function readerCountry(lang = typeof navigator === "undefined" ? "" : navigator.language): string | undefined {
+export function readerCountry(
+  lang = typeof navigator === "undefined" ? "" : navigator.language,
+): string | undefined {
   const m = /^[a-z]{2,3}[-_]([A-Z]{2})\b/i.exec(lang);
   return m ? m[1]!.toUpperCase() : undefined;
 }
@@ -36,7 +38,8 @@ export function useHymnSearch(f: HymnFilters) {
   return useInfiniteQuery({
     queryKey: ["hymnal", "search", f.q.trim(), f.book, f.tag],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => api.get(`/public/hymnal/hymns?${hymnSearchParams(f, pageParam)}`, HymnListSchema),
+    queryFn: ({ pageParam }) =>
+      api.get(`/public/hymnal/hymns?${hymnSearchParams(f, pageParam)}`, HymnListSchema),
     getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
     staleTime: 5 * 60_000,
   });
@@ -46,7 +49,8 @@ export function useHymn(slug: string | undefined) {
   const country = readerCountry();
   return useQuery({
     queryKey: ["hymnal", "hymn", slug],
-    queryFn: () => api.get(`/public/hymnal/hymns/${slug}${country ? `?country=${country}` : ""}`, HymnSchema),
+    queryFn: () =>
+      api.get(`/public/hymnal/hymns/${slug}${country ? `?country=${country}` : ""}`, HymnSchema),
     enabled: !!slug,
     staleTime: 10 * 60_000,
   });

@@ -1,4 +1,9 @@
-import { EngageStateListSchema, EngageStateSchema, SavedListSchema, type EngageState } from "@ecclesios/shared";
+import {
+  EngageStateListSchema,
+  EngageStateSchema,
+  SavedListSchema,
+  type EngageState,
+} from "@ecclesios/shared";
 import { engageKey, type EngageKind } from "@ecclesios/shared/domain";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./query";
@@ -28,7 +33,14 @@ export function createBatcher(fetchMany: (keys: string[]) => Promise<EngageState
           try {
             const got = await fetchMany(part);
             for (const b of batch.filter((x) => part.includes(x.key)))
-              b.resolve(got.find((g) => g.key === b.key) ?? { key: b.key, likes: 0, liked: false, saved: false });
+              b.resolve(
+                got.find((g) => g.key === b.key) ?? {
+                  key: b.key,
+                  likes: 0,
+                  liked: false,
+                  saved: false,
+                },
+              );
           } catch (e) {
             for (const b of batch.filter((x) => part.includes(x.key))) b.reject(e);
           }
@@ -37,7 +49,10 @@ export function createBatcher(fetchMany: (keys: string[]) => Promise<EngageState
     });
 }
 
-const load = createBatcher(async (keys) => (await api.get(`/public/engage?items=${keys.join(",")}`, EngageStateListSchema)).items);
+const load = createBatcher(
+  async (keys) =>
+    (await api.get(`/public/engage?items=${keys.join(",")}`, EngageStateListSchema)).items,
+);
 
 export function useEngage(kind: EngageKind, id: string) {
   const principal = useSession((s) => s.principal);
@@ -49,6 +64,22 @@ export function useEngage(kind: EngageKind, id: string) {
   });
 }
 
+/** The optimistic state after a like/save tap (D-035). Repeating the current state is a no-op. */
+export function applyToggle(prev: EngageState, type: "like" | "save", on: boolean): EngageState {
+  if (type === "save") return { ...prev, saved: on };
+  if (on === prev.liked) return prev;
+  return { ...prev, liked: on, likes: Math.max(0, prev.likes + (on ? 1 : -1)) };
+}
+
+/** Short status text after Share, or null when the share sheet handled it (D-043). */
+export function shareNote(r: "shared" | "copied" | "failed"): string | null {
+  return r === "copied"
+    ? "Link copied"
+    : r === "failed"
+      ? "Couldn't share — copy the address instead"
+      : null;
+}
+
 export function useEngageToggle(kind: EngageKind, id: string) {
   const qc = useQueryClient();
   const principal = useSession((s) => s.principal);
@@ -56,16 +87,14 @@ export function useEngageToggle(kind: EngageKind, id: string) {
   const cacheKey = ["engage", key, principal?.id ?? null];
   return useMutation({
     mutationFn: ({ type, on }: { type: "like" | "save"; on: boolean }) =>
-      on ? api.put(`/engage/${kind}/${id}/${type}`, undefined, EngageStateSchema) : api.del(`/engage/${kind}/${id}/${type}`, EngageStateSchema),
+      on
+        ? api.put(`/engage/${kind}/${id}/${type}`, undefined, EngageStateSchema)
+        : api.del(`/engage/${kind}/${id}/${type}`, EngageStateSchema),
     // Optimistic: flip at once, roll back on error.
     onMutate: async ({ type, on }) => {
       await qc.cancelQueries({ queryKey: cacheKey });
       const prev = qc.getQueryData<EngageState>(cacheKey);
-      if (prev)
-        qc.setQueryData<EngageState>(cacheKey, {
-          ...prev,
-          ...(type === "like" ? { liked: on, likes: Math.max(0, prev.likes + (on === prev.liked ? 0 : on ? 1 : -1)) } : { saved: on }),
-        });
+      if (prev) qc.setQueryData<EngageState>(cacheKey, applyToggle(prev, type, on));
       return { prev };
     },
     onError: (_e, _v, ctx) => ctx?.prev && qc.setQueryData(cacheKey, ctx.prev),
@@ -86,7 +115,10 @@ export function useSaved() {
 }
 
 /** Phone share sheet when available, else copy the link. Returns what happened. */
-export async function shareLink(title: string, path: string): Promise<"shared" | "copied" | "failed"> {
+export async function shareLink(
+  title: string,
+  path: string,
+): Promise<"shared" | "copied" | "failed"> {
   const url = new URL(path, window.location.origin).toString();
   try {
     if (navigator.share) {

@@ -2,6 +2,7 @@
 @import "./styles/kit.css";
 @import "./styles/auth.css";
 @import "./styles/explore.css";
+@import "./styles/social.css";
 
 /* Tailwind theme mapped onto the kit tokens, so utilities and shadcn/ui use the same palette. */
 @theme inline {
@@ -30,3 +31,4 @@
     border-color: var(--line);
   }
 }
+@import "./styles/account.css";

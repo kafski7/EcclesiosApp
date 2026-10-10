@@ -13,7 +13,11 @@ import { TestGateway } from "./test.gateway";
       inject: [ENV],
       useFactory: (env: Env) =>
         env.PAYMENTS_GATEWAY === "hubtel"
-          ? new HubtelGateway({ clientId: env.HUBTEL_CLIENT_ID!, clientSecret: env.HUBTEL_CLIENT_SECRET!, merchantAccount: env.HUBTEL_MERCHANT_ACCOUNT! })
+          ? new HubtelGateway({
+              clientId: env.HUBTEL_CLIENT_ID!,
+              clientSecret: env.HUBTEL_CLIENT_SECRET!,
+              merchantAccount: env.HUBTEL_MERCHANT_ACCOUNT!,
+            })
           : new TestGateway(env.PUBLIC_WEB_URL),
     },
   ],

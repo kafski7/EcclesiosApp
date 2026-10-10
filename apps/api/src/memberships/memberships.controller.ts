@@ -12,10 +12,13 @@ import {
 } from "@nestjs/common";
 import {
   MembershipDecisionSchema,
+  RequestHomeTransferSchema,
+  type HomeTransferRequest,
   type JoinResponse,
   type MeResponse,
   type MembershipDecision,
   type Principal,
+  type RequestHomeTransfer,
 } from "@ecclesios/shared";
 import type { Request } from "express";
 import { DomainError } from "../auth/core/errors";
@@ -102,5 +105,47 @@ export class MembershipsController {
     @Req() req: Request,
   ) {
     return this.svc.decide(personId(p), id, body, ip(req));
+  }
+
+  // ------------------------------------------------------------------ home transfers (D-049)
+
+  /** Ask to make another church (where you're an active member) your home church. */
+  @Post("me/home-transfer")
+  @HttpCode(201)
+  async requestTransfer(
+    @Body(new ZodPipe(RequestHomeTransferSchema)) body: RequestHomeTransfer,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
+    return {
+      homeTransfer: await this.svc.requestTransfer(personId(p), body.toGroupId, body.reason, ip(req)),
+    };
+  }
+
+  /** Withdraw your open home-church request. */
+  @Delete("me/home-transfer")
+  @HttpCode(204)
+  async cancelTransfer(@CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+    await this.svc.cancelTransfer(personId(p), ip(req));
+  }
+
+  /** Open requests to move a home into this church — same approvers as joining (D-016). */
+  @Get("groups/:groupId/home-transfers")
+  async transfers(
+    @Param("groupId", uuid) groupId: string,
+    @CurrentPrincipal() p: Principal | undefined,
+  ): Promise<{ items: HomeTransferRequest[] }> {
+    return { items: await this.svc.transfersFor(personId(p), groupId) };
+  }
+
+  @Post("home-transfers/:id/decision")
+  @HttpCode(200)
+  decideTransfer(
+    @Param("id", uuid) id: string,
+    @Body(new ZodPipe(MembershipDecisionSchema)) body: MembershipDecision,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
+    return this.svc.decideTransfer(personId(p), id, body, ip(req));
   }
 }

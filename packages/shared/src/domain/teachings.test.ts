@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { lessonReferences, lessonText, lintLesson, parseInline, parseLesson, readingMinutes } from "./teachings.js";
+import {
+  lessonReferences,
+  lessonText,
+  lintLesson,
+  parseInline,
+  parseLesson,
+  readingMinutes,
+} from "./teachings.js";
 
 describe("parseInline (D-030)", () => {
   it("bold, italic and plain text", () => {
@@ -12,7 +19,9 @@ describe("parseInline (D-030)", () => {
     ]);
   });
   it("Bible, Catechism and teaching references", () => {
-    expect(parseInline("See [[John 6:51]], [[CCC 1324]] and [[teaching:baptism|Baptism]].")).toEqual([
+    expect(
+      parseInline("See [[John 6:51]], [[CCC 1324]] and [[teaching:baptism|Baptism]]."),
+    ).toEqual([
       { t: "text", v: "See " },
       { t: "bible", ref: "John 6:51" },
       { t: "text", v: ", " },
@@ -23,7 +32,9 @@ describe("parseInline (D-030)", () => {
     ]);
   });
   it("leaves unknown references as typed and never produces markup", () => {
-    expect(parseInline("[[CCC 9999]] <b>x</b>")).toEqual([{ t: "text", v: "[[CCC 9999]] <b>x</b>" }]);
+    expect(parseInline("[[CCC 9999]] <b>x</b>")).toEqual([
+      { t: "text", v: "[[CCC 9999]] <b>x</b>" },
+    ]);
   });
 });
 
@@ -51,7 +62,9 @@ describe("parseLesson", () => {
     expect(blocks[4]).toMatchObject({ ordered: true });
   });
   it("collects references and plain text", () => {
-    expect(lessonReferences(parseLesson("[[CCC 1324]] [[John 6:51]] [[CCC 1131]] [[CCC 1324]]"))).toEqual({
+    expect(
+      lessonReferences(parseLesson("[[CCC 1324]] [[John 6:51]] [[CCC 1131]] [[CCC 1324]]")),
+    ).toEqual({
       bible: ["John 6:51"],
       ccc: [1131, 1324],
       teachings: [],

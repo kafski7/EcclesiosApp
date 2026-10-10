@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { compareFeasts, feastLabel, isValidFeast, saintsOn, slugify, type FeastEntry } from "./saints.js";
+import {
+  compareFeasts,
+  feastLabel,
+  isValidFeast,
+  saintsOn,
+  slugify,
+  type FeastEntry,
+} from "./saints.js";
 
-const s = (slug: string, m: number, d: number, rank: FeastEntry["rank"]): FeastEntry => ({ slug, name: slug, feastMonth: m, feastDay: d, rank });
+const s = (slug: string, m: number, d: number, rank: FeastEntry["rank"]): FeastEntry => ({
+  slug,
+  name: slug,
+  feastMonth: m,
+  feastDay: d,
+  rank,
+});
 
 describe("feast dates", () => {
   it("validates month/day, allowing 29 February", () => {

@@ -2,13 +2,15 @@ import { Inject, Injectable } from "@nestjs/common";
 import { groupSettings, groups, memberships, roles } from "@ecclesios/db";
 import {
   canDecideMembership,
+  descendantsLikePattern,
+  hasCapability,
   pathIds,
   resolveMemberAccess,
   type GroupNode,
   type MemberAccess,
   type MembershipNode,
 } from "@ecclesios/shared/domain";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, like, or } from "drizzle-orm";
 import { DB, type Database } from "../db/db.module";
 
 export interface PersonScope {
@@ -78,6 +80,55 @@ export class ScopeService {
     } catch {
       return []; // fail closed (e.g. inconsistent path)
     }
+  }
+
+  /**
+   * The group and everything under it that this person may COUNT (readAggregates), judged per group
+   * with the same rules as the scope guard — so a suffragan set to "hidden" (blueprint §3.4) and
+   * everything under it is left out for the metropolitan archdiocese (D-041).
+   */
+  async visibleWithin(memberId: string, rootGroupId: string) {
+    const base = await this.load(memberId, rootGroupId);
+    if (!base.target)
+      return {
+        nodes: [] as (GroupNode & { parentId: string | null; isActive: boolean })[],
+        hiddenDioceses: 0,
+      };
+    const rows = await this.db
+      .select({
+        id: groups.id,
+        level: groups.level,
+        path: groups.path,
+        parentId: groups.parentGroupId,
+        isActive: groups.isActive,
+        vis: groupSettings.metropolitanVisibility,
+      })
+      .from(groups)
+      .leftJoin(groupSettings, eq(groupSettings.groupId, groups.id))
+      .where(
+        or(eq(groups.id, rootGroupId), like(groups.path, descendantsLikePattern(base.target.path))),
+      );
+    const nodes = rows.map((r) => ({
+      id: r.id,
+      level: r.level,
+      path: r.path,
+      parentId: r.parentId,
+      isActive: r.isActive,
+      metropolitanVisibility: r.vis ?? undefined,
+    }));
+    const byId = new Map<string, GroupNode>(nodes.map((n) => [n.id, n]));
+    const lookup = (id: string) => byId.get(id) ?? base.lookup(id);
+    const allowed = nodes.filter((n) => {
+      try {
+        return hasCapability(resolveMemberAccess(base.memberships, n, lookup), "readAggregates");
+      } catch {
+        return false;
+      }
+    });
+    const hiddenDioceses = nodes.filter(
+      (n) => n.level === "DIOCESE" && !allowed.includes(n),
+    ).length;
+    return { nodes: allowed, hiddenDioceses };
   }
 
   async canDecideMembership(memberId: string, targetGroupId: string): Promise<boolean> {

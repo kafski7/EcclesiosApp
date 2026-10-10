@@ -1,4 +1,13 @@
-import { CAlert, CBadge, CButton, CForm, CFormInput, CFormLabel, CFormSelect, CFormTextarea } from "@coreui/react";
+import {
+  CAlert,
+  CBadge,
+  CButton,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CFormTextarea,
+} from "@coreui/react";
 import type { MyPost, PostKind } from "@ecclesios/shared";
 import { parseLesson } from "@ecclesios/shared/domain";
 import { useMemo, useState } from "react";
@@ -27,7 +36,9 @@ export function ExploreMinePage() {
           <p className="dash-sub">Posts under your own name.</p>
         </div>
         {authoring.data?.asSelf ? (
-          <Link to="/platform/explore/write/new" className="btn btn-primary btn-sm">New post</Link>
+          <Link to="/platform/explore/write/new" className="btn btn-primary btn-sm">
+            New post
+          </Link>
         ) : null}
       </div>
       {authoring.data && !authoring.data.asSelf ? (
@@ -37,11 +48,20 @@ export function ExploreMinePage() {
         {mine.isPending ? <p className="muted">Loading…</p> : null}
         {mine.data && !mine.data.items.length ? <p className="muted mb-0">Nothing yet.</p> : null}
         {mine.data?.items.map((p) => (
-          <Link key={p.id} to={`/platform/explore/write/${p.id}`} className="d-flex gap-3 align-items-center py-2 border-bottom text-reset">
+          <Link
+            key={p.id}
+            to={`/platform/explore/write/${p.id}`}
+            className="d-flex gap-3 align-items-center py-2 border-bottom text-reset"
+          >
             <div className="flex-grow-1">
               <b>{p.title}</b>
-              <div className="small muted">{p.kind === "EVENT" ? "Event" : "Article"} · edited {new Date(p.updatedAt).toLocaleDateString()}</div>
-              {p.reviewNote && p.status !== "APPROVED" ? <div className="small text-danger">Reviewer: {p.reviewNote}</div> : null}
+              <div className="small muted">
+                {p.kind === "EVENT" ? "Event" : "Article"} · edited{" "}
+                {new Date(p.updatedAt).toLocaleDateString()}
+              </div>
+              {p.reviewNote && p.status !== "APPROVED" ? (
+                <div className="small text-danger">Reviewer: {p.reviewNote}</div>
+              ) : null}
             </div>
             <CBadge color={STATUS_COLOR[p.status]}>{p.status}</CBadge>
           </Link>
@@ -90,14 +110,20 @@ function Editor({ post }: { post: MyPost | null }) {
       { id: post?.id, body: payload() },
       {
         onSuccess: (p) =>
-          submit ? w.submit.mutate(p.id, { onSuccess: () => navigate("/platform/explore/mine") }) : !post && navigate(`/platform/explore/write/${p.id}`, { replace: true }),
+          submit
+            ? w.submit.mutate(p.id, { onSuccess: () => navigate("/platform/explore/mine") })
+            : !post && navigate(`/platform/explore/write/${p.id}`, { replace: true }),
       },
     );
   return (
     <>
-      <Link to="/platform/explore/mine" className="link mb-3 d-inline-block">← My posts</Link>
+      <Link to="/platform/explore/mine" className="link mb-3 d-inline-block">
+        ← My posts
+      </Link>
       <div className="d-flex gap-2 align-items-center mb-3">
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{post ? "Edit post" : "New post"}</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>
+          {post ? "Edit post" : "New post"}
+        </h1>
         {post ? <CBadge color={STATUS_COLOR[post.status]}>{post.status}</CBadge> : null}
       </div>
       <div className="dash-grid">
@@ -105,28 +131,55 @@ function Editor({ post }: { post: MyPost | null }) {
           <CForm onSubmit={(e) => e.preventDefault()}>
             <div className="mb-3">
               <CFormLabel htmlFor="k">Type</CFormLabel>
-              <CFormSelect id="k" value={kind} onChange={(e) => setKind(e.target.value as PostKind)} disabled={locked}>
+              <CFormSelect
+                id="k"
+                value={kind}
+                onChange={(e) => setKind(e.target.value as PostKind)}
+                disabled={locked}
+              >
                 <option value="ARTICLE">Article</option>
                 <option value="EVENT">Event</option>
               </CFormSelect>
             </div>
             <div className="mb-3">
               <CFormLabel htmlFor="t">Title</CFormLabel>
-              <CFormInput id="t" value={title} maxLength={160} onChange={(e) => setTitle(e.target.value)} disabled={locked} />
+              <CFormInput
+                id="t"
+                value={title}
+                maxLength={160}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={locked}
+              />
             </div>
             <div className="mb-3">
               <CFormLabel htmlFor="s">Summary</CFormLabel>
-              <CFormInput id="s" value={summary} maxLength={280} onChange={(e) => setSummary(e.target.value)} disabled={locked} />
+              <CFormInput
+                id="s"
+                value={summary}
+                maxLength={280}
+                onChange={(e) => setSummary(e.target.value)}
+                disabled={locked}
+              />
             </div>
             {kind === "EVENT" ? (
               <div className="d-flex gap-2 mb-3 flex-wrap">
                 <div className="flex-grow-1">
                   <CFormLabel htmlFor="st">Starts</CFormLabel>
-                  <CFormInput id="st" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+                  <CFormInput
+                    id="st"
+                    type="datetime-local"
+                    value={startsAt}
+                    onChange={(e) => setStartsAt(e.target.value)}
+                  />
                 </div>
                 <div className="flex-grow-1">
                   <CFormLabel htmlFor="en">Ends</CFormLabel>
-                  <CFormInput id="en" type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+                  <CFormInput
+                    id="en"
+                    type="datetime-local"
+                    value={endsAt}
+                    onChange={(e) => setEndsAt(e.target.value)}
+                  />
                 </div>
                 <div className="w-100">
                   <CFormLabel htmlFor="pl">Place</CFormLabel>
@@ -136,20 +189,58 @@ function Editor({ post }: { post: MyPost | null }) {
             ) : null}
             <div className="mb-3">
               <CFormLabel htmlFor="b">Text</CFormLabel>
-              <CFormTextarea id="b" rows={14} style={{ fontFamily: "ui-monospace, monospace", fontSize: 13 }} value={body} onChange={(e) => setBody(e.target.value)} disabled={locked} />
+              <CFormTextarea
+                id="b"
+                rows={14}
+                style={{ fontFamily: "ui-monospace, monospace", fontSize: 13 }}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                disabled={locked}
+              />
             </div>
             <div className="mb-3">
               <CFormLabel htmlFor="y">YouTube (optional)</CFormLabel>
-              <CFormInput id="y" value={youtube} onChange={(e) => setYoutube(e.target.value)} disabled={locked} />
+              <CFormInput
+                id="y"
+                value={youtube}
+                onChange={(e) => setYoutube(e.target.value)}
+                disabled={locked}
+              />
             </div>
-            {post?.problems.length ? <CAlert color="warning">{post.problems.join(" ")}</CAlert> : null}
+            {post?.problems.length ? (
+              <CAlert color="warning">{post.problems.join(" ")}</CAlert>
+            ) : null}
             {err ? <CAlert color="danger">{errText(err)}</CAlert> : null}
             {!locked ? (
               <div className="d-flex gap-2">
-                <CButton color="secondary" variant="outline" disabled={w.save.isPending || title.trim().length < 3} onClick={() => save(false)}>Save draft</CButton>
-                <CButton color="primary" disabled={w.save.isPending || w.submit.isPending || title.trim().length < 3} onClick={() => save(true)}>Submit</CButton>
+                <CButton
+                  color="secondary"
+                  variant="outline"
+                  disabled={w.save.isPending || title.trim().length < 3}
+                  onClick={() => save(false)}
+                >
+                  Save draft
+                </CButton>
+                <CButton
+                  color="primary"
+                  disabled={w.save.isPending || w.submit.isPending || title.trim().length < 3}
+                  onClick={() => save(true)}
+                >
+                  Submit
+                </CButton>
                 {post ? (
-                  <CButton color="danger" variant="ghost" onClick={() => confirm("Delete this post?") && w.remove.mutate(post.id, { onSuccess: () => navigate("/platform/explore/mine") })}>Delete</CButton>
+                  <CButton
+                    color="danger"
+                    variant="ghost"
+                    onClick={() =>
+                      confirm("Delete this post?") &&
+                      w.remove.mutate(post.id, {
+                        onSuccess: () => navigate("/platform/explore/mine"),
+                      })
+                    }
+                  >
+                    Delete
+                  </CButton>
                 ) : null}
               </div>
             ) : null}

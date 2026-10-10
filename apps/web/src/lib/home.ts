@@ -20,7 +20,8 @@ export function useHomeFeed(tab: HomeTab) {
   return useInfiniteQuery({
     queryKey: ["home", "feed", tab, principal?.id ?? null],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => api.get(`/public/home/feed?tab=${tab}&page=${pageParam}`, HomeFeedSchema),
+    queryFn: ({ pageParam }) =>
+      api.get(`/public/home/feed?tab=${tab}&page=${pageParam}`, HomeFeedSchema),
     getNextPageParam: (last) => (last.hasMore && last.page < 20 ? last.page + 1 : undefined),
     enabled: tab === "for-you" || principal?.kind === "member",
     staleTime: 60_000,

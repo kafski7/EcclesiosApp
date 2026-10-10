@@ -1,5 +1,8 @@
 import { SaintPortrait } from "@/components/saints/saint-portrait";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UserRound } from "lucide-react";
+import { TextSize, useReadScale } from "@/components/reader/text-size";
+import { ShareButton } from "@/components/ui/share-button";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { Link, useParams } from "react-router-dom";
 import { ApiClientError } from "@/lib/api";
 import { feastLabel, RANK_LABEL, useSaint } from "@/lib/saints";
@@ -8,19 +11,28 @@ import { feastLabel, RANK_LABEL, useSaint } from "@/lib/saints";
 export function SaintPage() {
   const { slug } = useParams();
   const q = useSaint(slug);
+  const readScale = useReadScale();
 
   return (
-    <div className="content-narrow mx-auto">
-      <Link to="/saints" className="link mb-4">
-        <ArrowLeft className="ic" aria-hidden /> All saints
-      </Link>
-      {q.isPending ? <p className="muted small">Loading…</p> : null}
+    <div className="content-narrow mx-auto" style={readScale}>
+      <div className="reader-top">
+        <Link to="/saints" className="link">
+          <ArrowLeft className="ic" aria-hidden /> All saints
+        </Link>
+        <TextSize />
+      </div>
+      {q.isPending ? <Skeleton variant="page" label="Loading the saint" /> : null}
       {q.isError ? (
-        <div className="card rail-card">
-          {q.error instanceof ApiClientError && q.error.code === "SAINT_NOT_FOUND"
-            ? "We couldn't find that saint."
-            : "This page could not be loaded."}
-        </div>
+        q.error instanceof ApiClientError && q.error.code === "SAINT_NOT_FOUND" ? (
+          <EmptyState icon={UserRound} title="We couldn't find that saint" />
+        ) : (
+          <ErrorState
+            title="This page could not be loaded"
+            error={q.error}
+            onRetry={() => q.refetch()}
+            retrying={q.isRefetching}
+          />
+        )
       ) : null}
       {q.data ? (
         <article className="card post" style={{ padding: 28 }}>
@@ -60,6 +72,10 @@ export function SaintPage() {
             ))}
           </div>
           {q.data.source ? <p className="all-credits">{q.data.source}</p> : null}
+          {/* Saints can be shared, not liked or saved (no reaction kind for saints yet). */}
+          <div className="reader-actions">
+            <ShareButton title={q.data.name} href={`/saints/${q.data.slug}`} />
+          </div>
         </article>
       ) : null}
     </div>

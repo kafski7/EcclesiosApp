@@ -7,7 +7,7 @@ import type {
 } from "@ecclesios/shared";
 import { PLATFORM_ROLES } from "@ecclesios/shared/domain";
 import { generateOtp, hmac, maskDestination, randomToken, safeEqual } from "./crypto";
-import { authError } from "./errors";
+import { authError, DomainError } from "./errors";
 import { JwtError, signJwt, verifyJwt } from "./jwt";
 import { formatOpaque, parseOpaque } from "./opaque-token";
 import type { RateLimiter } from "./rate-limit";
@@ -115,9 +115,81 @@ export class AuthCore {
       throw authError.disabled();
     }
 
+    return this.sendChallenge(kind, account, now, meta);
+  }
+
+  /**
+   * Claim (D-039): a person their church added to the register (no password yet) proves their
+   * email or phone with a code; verify-otp then asks them to set a password (first login).
+   */
+  async startClaim(identifier: string, meta: RequestMeta): Promise<LoginChallengeResponse> {
+    const id = identifier.trim().toLowerCase();
+    await this.d.rateLimiter.consume([
+      {
+        key: `ip:${meta.ip}`,
+        limit: this.d.config.rate.ipLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
+      {
+        key: `claim:${id}`,
+        limit: this.d.config.rate.identifierLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
+    ]);
+    const account = await this.d.stores.member.findByIdentifier(identifier.trim());
+    if (!account || account.passwordHash || !account.active) {
+      await this.audit("member", account?.id ?? null, "auth.claim.refused", meta);
+      throw new DomainError(
+        404,
+        "NOTHING_TO_CLAIM",
+        "We couldn't find a church record waiting to be claimed with these details.",
+      );
+    }
+    await this.audit("member", account.id, "auth.claim.started", meta);
+    return this.sendChallenge("member", account, this.now(), meta);
+  }
+
+  /** Change your own password (signed in). Ends other sessions and returns a fresh pair for this one. */
+  async changePassword(
+    kind: AccountKind,
+    accountId: string,
+    current: string,
+    next: string,
+    meta: RequestMeta,
+  ): Promise<TokenPair> {
+    await this.d.rateLimiter.consume([
+      {
+        key: `pw:${kind}:${accountId}`,
+        limit: this.d.config.rate.identifierLimit,
+        windowMs: this.d.config.rate.windowMs,
+      },
+    ]);
+    const store = this.d.stores[kind];
+    const account = await store.findById(accountId);
+    if (!account || !account.active) throw authError.invalidCredentials();
+    if (!account.passwordHash || !(await this.d.hasher.verify(account.passwordHash, current))) {
+      await this.audit(kind, accountId, "auth.password.change_failed", meta);
+      throw new DomainError(400, "WRONG_PASSWORD", "Your current password is not correct.");
+    }
+    const now = this.now();
+    await store.update(accountId, {
+      passwordHash: await this.d.hasher.hash(next),
+      refreshTokenHash: null,
+      refreshTokenExpiresAt: null,
+    });
+    await this.audit(kind, accountId, "auth.password.changed", meta);
+    return this.issueTokens(account, now);
+  }
+
+  private async sendChallenge(
+    kind: AccountKind,
+    account: AccountRecord,
+    now: Date,
+    meta: RequestMeta,
+  ): Promise<LoginChallengeResponse> {
     const code = generateOtp();
     const expiresAt = new Date(now.getTime() + this.d.config.otpTtlSec * 1000);
-    await store.update(account.id, {
+    await this.d.stores[kind].update(account.id, {
       failedLoginCount: 0,
       lockedUntil: null,
       otpHash: this.otpHash(kind, account.id, code),

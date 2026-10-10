@@ -9,7 +9,10 @@ import {
   MAX_TRANSCRIPT_CHARS,
 } from "../domain/podcasts.js";
 
-export const PodcastSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100);
+export const PodcastSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .max(100);
 export const EpisodeStatusSchema = z.enum(EPISODE_STATUSES);
 export const EpisodeMediaKindSchema = z.enum(EPISODE_MEDIA_KINDS);
 export const EpisodeAccessSchema = z.enum(ACCESS_LEVELS_MEDIA);
@@ -106,7 +109,13 @@ export const CoverUploadSchema = z.object({
 });
 export const AttachAudioSchema = z.object({
   key: z.string().min(5).max(300),
-  durationSec: z.number().int().min(1).max(24 * 3600).nullable().default(null),
+  durationSec: z
+    .number()
+    .int()
+    .min(1)
+    .max(24 * 3600)
+    .nullable()
+    .default(null),
 });
 /** Set or clear the episode's YouTube / YouTube Music link. */
 export const EpisodeYouTubeSchema = z.object({ url: z.string().trim().min(5).max(300).nullable() });
@@ -138,7 +147,11 @@ export const StudioPodcastSchema = PodcastSchema.omit({ episodes: true }).extend
 export type StudioPodcast = z.infer<typeof StudioPodcastSchema>;
 export const StudioPodcastListSchema = z.object({
   items: z.array(
-    PodcastSummarySchema.extend({ isPublished: z.boolean(), drafts: z.number().int(), followers: z.number().int() }),
+    PodcastSummarySchema.extend({
+      isPublished: z.boolean(),
+      drafts: z.number().int(),
+      followers: z.number().int(),
+    }),
   ),
   /** Whether the caller may create a new series. */
   canCreate: z.boolean(),

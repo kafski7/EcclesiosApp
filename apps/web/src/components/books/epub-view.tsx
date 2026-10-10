@@ -37,7 +37,12 @@ export function EpubView({
         const bytes = await res.arrayBuffer();
         if (cancelled || !host.current) return;
         book = ePub(bytes);
-        const r = book.renderTo(host.current, { width: "100%", height: "100%", flow: "paginated", spread: "none" });
+        const r = book.renderTo(host.current, {
+          width: "100%",
+          height: "100%",
+          flow: "paginated",
+          spread: "none",
+        });
         rendition.current = r;
         r.themes.register("night", { body: { background: "#16130f", color: "#e9e2d4" } });
         r.themes.register("day", { body: { background: "#fffdf8", color: "#2e2c27" } });
@@ -46,7 +51,9 @@ export function EpubView({
         await book.ready;
         await book.locations.generate(1600);
         r.on("relocated", (loc: { start: { cfi: string } }) => {
-          const pct = book ? Math.round((book.locations.percentageFromCfi(loc.start.cfi) || 0) * 100) : 0;
+          const pct = book
+            ? Math.round((book.locations.percentageFromCfi(loc.start.cfi) || 0) * 100)
+            : 0;
           onMove(loc.start.cfi, Math.min(100, Math.max(0, pct)));
         });
       } catch {

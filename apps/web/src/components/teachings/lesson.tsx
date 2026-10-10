@@ -11,7 +11,16 @@ export function Lesson({ blocks }: { blocks: readonly Block[] }) {
   return (
     <div className="lesson">
       {blocks.map((b, i) => {
-        if (b.type === "heading") return b.level === 2 ? <h2 key={i}><Spans xs={b.text} /></h2> : <h3 key={i}><Spans xs={b.text} /></h3>;
+        if (b.type === "heading")
+          return b.level === 2 ? (
+            <h2 key={i}>
+              <Spans xs={b.text} />
+            </h2>
+          ) : (
+            <h3 key={i}>
+              <Spans xs={b.text} />
+            </h3>
+          );
         if (b.type === "quote")
           return (
             <blockquote key={i} className="post-quote">
@@ -59,7 +68,11 @@ function Spans({ xs }: { xs: readonly Inline[] }) {
           case "ccc":
             // The Catechism text is not reproduced; the paragraph number is the reference (D-030).
             return (
-              <span key={i} className="ref ref-ccc" title={`Catechism of the Catholic Church, paragraph ${x.n}`}>
+              <span
+                key={i}
+                className="ref ref-ccc"
+                title={`Catechism of the Catholic Church, paragraph ${x.n}`}
+              >
                 CCC {x.n}
               </span>
             );

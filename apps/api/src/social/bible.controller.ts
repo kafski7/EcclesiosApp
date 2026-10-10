@@ -11,7 +11,9 @@ import { Public } from "../common/public.decorator";
 import { ZodPipe } from "../common/zod.pipe";
 import { BibleService } from "./bible.service";
 
-const int = new ParseIntPipe({ exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Chapter must be a number.") });
+const int = new ParseIntPipe({
+  exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Chapter must be a number."),
+});
 
 /** Public Bible endpoints (functionality §3.8, D-023). */
 @Public()
@@ -38,7 +40,11 @@ export class BibleController {
   }
 
   @Get(":translation/:book/:chapter")
-  chapter(@Param("translation") t: string, @Param("book") book: string, @Param("chapter", int) chapter: number): Promise<BibleChapter> {
+  chapter(
+    @Param("translation") t: string,
+    @Param("book") book: string,
+    @Param("chapter", int) chapter: number,
+  ): Promise<BibleChapter> {
     return this.bible.chapter(t, book, chapter);
   }
 }

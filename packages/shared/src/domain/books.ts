@@ -7,7 +7,10 @@ import type { PlatformPrivilege, PlatformRole } from "./levels.js";
 
 export const BOOK_FORMATS = ["EPUB", "PDF"] as const;
 export type BookFormat = (typeof BOOK_FORMATS)[number];
-export const BOOK_FILE_TYPES: Record<BookFormat, string> = { EPUB: "application/epub+zip", PDF: "application/pdf" };
+export const BOOK_FILE_TYPES: Record<BookFormat, string> = {
+  EPUB: "application/epub+zip",
+  PDF: "application/pdf",
+};
 export const BOOK_COVER_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export const MAX_BOOK_BYTES = 100 * 1024 * 1024;
 export const MAX_BOOK_COVER_BYTES = 5 * 1024 * 1024;
@@ -67,7 +70,8 @@ export function nextBookStatus(from: BookStatus, action: BookAction): BookStatus
   return BOOK_TRANSITIONS[from][action] ?? null;
 }
 
-export const canEditBookContent = (s: BookStatus) => s === "DRAFT" || s === "REJECTED" || s === "UNLISTED";
+export const canEditBookContent = (s: BookStatus) =>
+  s === "DRAFT" || s === "REJECTED" || s === "UNLISTED";
 
 /** Lowest price for a paid book: GHS 1.00. 0 = free. */
 export const MIN_PAID_PRICE_MINOR = 100;
@@ -87,7 +91,8 @@ export function bookProblems(b: BookForSubmit): string[] {
   if (b.title.trim().length < 2) p.push("Add a title.");
   if (b.description.trim().length < 30) p.push("Write a description of at least 30 characters.");
   if (!b.fileKey) p.push("Upload the book file (EPUB or PDF).");
-  if (b.priceMinor !== 0 && b.priceMinor < MIN_PAID_PRICE_MINOR) p.push("Paid books cost at least GHS 1.00.");
+  if (b.priceMinor !== 0 && b.priceMinor < MIN_PAID_PRICE_MINOR)
+    p.push("Paid books cost at least GHS 1.00.");
   if (!b.rightsConfirmed) p.push("Confirm that you hold the rights to publish this book.");
   return p;
 }
@@ -124,7 +129,8 @@ export const DEFAULT_COMMISSION_BPS = 2000;
  * so the two always add up to the price. Payment-gateway fees come out of the platform's share.
  */
 export function splitSale(priceMinor: number, commissionBps: number) {
-  if (!Number.isInteger(priceMinor) || priceMinor < 0) throw new Error("price must be whole pesewas");
+  if (!Number.isInteger(priceMinor) || priceMinor < 0)
+    throw new Error("price must be whole pesewas");
   if (!Number.isInteger(commissionBps) || commissionBps < 0 || commissionBps > MAX_COMMISSION_BPS)
     throw new Error("commission out of range");
   const platformMinor = Math.round((priceMinor * commissionBps) / 10_000);
@@ -160,7 +166,8 @@ const ORDER_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   CANCELLED: [],
   REFUNDED: [],
 };
-export const canMoveOrder = (from: OrderStatus, to: OrderStatus) => ORDER_TRANSITIONS[from].includes(to);
+export const canMoveOrder = (from: OrderStatus, to: OrderStatus) =>
+  ORDER_TRANSITIONS[from].includes(to);
 
 /** A pending order older than the TTL is treated as abandoned. */
 export const isOrderExpired = (o: { status: OrderStatus; createdAt: Date }, now: Date) =>
@@ -178,7 +185,8 @@ export const REFUND_MAX_PERCENT_READ = 10;
 export const REFUND_STATUSES = ["REQUESTED", "APPROVED", "DECLINED"] as const;
 export type RefundStatus = (typeof REFUND_STATUSES)[number];
 
-export type RefundBlocker = "NOT_PAID" | "WINDOW_CLOSED" | "READ_TOO_MUCH" | "ALREADY_REFUNDED" | "ALREADY_REQUESTED";
+export type RefundBlocker =
+  "NOT_PAID" | "WINDOW_CLOSED" | "READ_TOO_MUCH" | "ALREADY_REFUNDED" | "ALREADY_REQUESTED";
 
 export function refundBlocker(o: {
   status: OrderStatus;
@@ -193,7 +201,8 @@ export function refundBlocker(o: {
   if (o.status !== "PAID" || !o.paidAt) return "NOT_PAID";
   if (o.pendingRequest) return "ALREADY_REQUESTED";
   if (o.refundedBefore) return "ALREADY_REFUNDED";
-  if (o.now.getTime() - o.paidAt.getTime() > REFUND_WINDOW_DAYS * 86_400_000) return "WINDOW_CLOSED";
+  if (o.now.getTime() - o.paidAt.getTime() > REFUND_WINDOW_DAYS * 86_400_000)
+    return "WINDOW_CLOSED";
   if (o.percentRead >= REFUND_MAX_PERCENT_READ) return "READ_TOO_MUCH";
   return null;
 }

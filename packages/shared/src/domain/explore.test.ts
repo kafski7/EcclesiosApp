@@ -19,8 +19,18 @@ const priest: ExploreActor & { id: string } = {
   memberships: [{ group: g("parA1"), role: "ADMINISTRATOR", status: "ACTIVE" }],
 };
 const curate: ExploreActor & { id: string } = { ...priest, id: "m9" }; // second Administrator of the same parish
-const creator: ExploreActor & { id: string } = { id: "m2", kind: "member", privileges: ["AUTHOR_EXPLORE"], memberships: [] };
-const admin: ExploreActor & { id: string } = { id: "u1", kind: "user", role: "SUPER_ADMIN", privileges: [] };
+const creator: ExploreActor & { id: string } = {
+  id: "m2",
+  kind: "member",
+  privileges: ["AUTHOR_EXPLORE"],
+  memberships: [],
+};
+const admin: ExploreActor & { id: string } = {
+  id: "u1",
+  kind: "user",
+  role: "SUPER_ADMIN",
+  privileges: [],
+};
 
 describe("post workflow (D-031)", () => {
   it("draft → pending → approved → removed", () => {
@@ -30,7 +40,8 @@ describe("post workflow (D-031)", () => {
     expect(nextPostStatus("APPROVED", "remove")).toBe("REMOVED");
   });
   it("editing goes back to draft; removed is final", () => {
-    for (const s of ["PENDING", "APPROVED", "REJECTED"] as const) expect(nextPostStatus(s, "edit")).toBe("DRAFT");
+    for (const s of ["PENDING", "APPROVED", "REJECTED"] as const)
+      expect(nextPostStatus(s, "edit")).toBe("DRAFT");
     expect(() => nextPostStatus("REMOVED", "edit")).toThrow(InvalidPostTransition);
     expect(() => nextPostStatus("DRAFT", "approve")).toThrow(InvalidPostTransition);
   });
@@ -62,9 +73,13 @@ describe("postProblems", () => {
     expect(postProblems("EVENT", "x", { startsAt: at(10), endsAt: at(9), place: "Hall" })).toEqual([
       "The event must end after it starts.",
     ]);
-    expect(postProblems("EVENT", "x", { startsAt: at(10), endsAt: at(12), place: "Hall" })).toEqual([]);
+    expect(postProblems("EVENT", "x", { startsAt: at(10), endsAt: at(12), place: "Hall" })).toEqual(
+      [],
+    );
   });
   it("articles only need a body", () => {
-    expect(postProblems("ARTICLE", "  ", { startsAt: null, endsAt: null, place: null })).toHaveLength(1);
+    expect(
+      postProblems("ARTICLE", "  ", { startsAt: null, endsAt: null, place: null }),
+    ).toHaveLength(1);
   });
 });

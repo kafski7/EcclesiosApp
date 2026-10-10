@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import {
   AdminRefundSchema,
   AttachBookFileSchema,
@@ -28,11 +40,18 @@ import { PlatformRole } from "../platform/platform-role";
 import { BooksService } from "./books.service";
 import { BookStudioService } from "./studio.service";
 
-const uuid = new ParseUUIDPipe({ exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id.") });
+const uuid = new ParseUUIDPipe({
+  exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id."),
+});
 const slugPipe = new ZodPipe(BookSlugSchema);
 const ip = (req: Request) => req.ip ?? "unknown";
 const member = (p: Principal | undefined) => {
-  if (p?.kind !== "member") throw new DomainError(403, "NOT_ALLOWED", "Sign in with your Ecclesios account to buy and read books.");
+  if (p?.kind !== "member")
+    throw new DomainError(
+      403,
+      "NOT_ALLOWED",
+      "Sign in with your Ecclesios account to buy and read books.",
+    );
   return p.id;
 };
 
@@ -43,7 +62,10 @@ export class BooksPublicController {
   constructor(private readonly books: BooksService) {}
 
   @Get()
-  list(@Query(new ZodPipe(BookQuerySchema)) q: z.output<typeof BookQuerySchema>, @CurrentPrincipal() p: Principal | undefined) {
+  list(
+    @Query(new ZodPipe(BookQuerySchema)) q: z.output<typeof BookQuerySchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     return this.books.list(q, p);
   }
 
@@ -70,7 +92,11 @@ export class PaymentsCallbackController {
   @Post("hubtel/callback")
   @HttpCode(200)
   async hubtel(@Body() body: unknown) {
-    const b = body as { Data?: { ClientReference?: string }; data?: { clientReference?: string }; ClientReference?: string } | null;
+    const b = body as {
+      Data?: { ClientReference?: string };
+      data?: { clientReference?: string };
+      ClientReference?: string;
+    } | null;
     const ref = b?.Data?.ClientReference ?? b?.data?.clientReference ?? b?.ClientReference;
     await this.books.callback(typeof ref === "string" ? ref.slice(0, 40) : undefined);
     return { ok: true };
@@ -84,7 +110,11 @@ export class PaymentsCallbackController {
 
   @Post("test/:ref")
   @HttpCode(200)
-  testPay(@Param("ref") ref: string, @Body(new ZodPipe(z.object({ outcome: z.enum(["paid", "failed"]) }))) b: { outcome: "paid" | "failed" }) {
+  testPay(
+    @Param("ref") ref: string,
+    @Body(new ZodPipe(z.object({ outcome: z.enum(["paid", "failed"]) })))
+    b: { outcome: "paid" | "failed" },
+  ) {
     return this.books.testSettle(ref.slice(0, 40), b.outcome === "failed");
   }
 }
@@ -128,7 +158,10 @@ export class BooksController {
 
   @Delete(":slug/library")
   @HttpCode(204)
-  async removeFromLibrary(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined) {
+  async removeFromLibrary(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     await this.books.removeFree(member(p), slug);
   }
 
@@ -139,13 +172,21 @@ export class BooksController {
 
   @Put(":slug/progress")
   @HttpCode(204)
-  async progress(@Param("slug", slugPipe) slug: string, @Body(new ZodPipe(ProgressSchema)) b: z.output<typeof ProgressSchema>, @CurrentPrincipal() p: Principal | undefined) {
+  async progress(
+    @Param("slug", slugPipe) slug: string,
+    @Body(new ZodPipe(ProgressSchema)) b: z.output<typeof ProgressSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     await this.books.saveProgress(member(p), slug, b.locator, b.percent);
   }
 
   @Post(":slug/checkout")
   @HttpCode(201)
-  checkout(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  checkout(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.books.checkout(member(p), slug, ip(req));
   }
 }
@@ -167,7 +208,11 @@ export class BookStudioController {
 
   @Post()
   @HttpCode(201)
-  create(@Body(new ZodPipe(UpsertBookSchema)) b: z.output<typeof UpsertBookSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  create(
+    @Body(new ZodPipe(UpsertBookSchema)) b: z.output<typeof UpsertBookSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.create(p!, b, ip(req));
   }
 
@@ -187,36 +232,62 @@ export class BookStudioController {
   }
 
   @Put(":slug/price")
-  price(@Param("slug", slugPipe) slug: string, @Body(new ZodPipe(BookPriceSchema)) b: z.output<typeof BookPriceSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  price(
+    @Param("slug", slugPipe) slug: string,
+    @Body(new ZodPipe(BookPriceSchema)) b: z.output<typeof BookPriceSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.setPrice(p!, slug, b.priceMinor, ip(req));
   }
 
   @Post(":slug/upload")
   @HttpCode(201)
-  upload(@Param("slug", slugPipe) slug: string, @Body(new ZodPipe(BookUploadSchema)) b: z.output<typeof BookUploadSchema>, @CurrentPrincipal() p: Principal | undefined) {
+  upload(
+    @Param("slug", slugPipe) slug: string,
+    @Body(new ZodPipe(BookUploadSchema)) b: z.output<typeof BookUploadSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     return this.studio.presign(p!, slug, b.part, b.contentType, b.bytes);
   }
 
   @Put(":slug/files")
-  attach(@Param("slug", slugPipe) slug: string, @Body(new ZodPipe(AttachBookFileSchema)) b: z.output<typeof AttachBookFileSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  attach(
+    @Param("slug", slugPipe) slug: string,
+    @Body(new ZodPipe(AttachBookFileSchema)) b: z.output<typeof AttachBookFileSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.attach(p!, slug, b.part, b.key, ip(req));
   }
 
   @Post(":slug/submit")
   @HttpCode(200)
-  submit(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  submit(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.transition(p!, slug, "submit", ip(req));
   }
 
   @Post(":slug/unlist")
   @HttpCode(200)
-  unlist(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  unlist(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.transition(p!, slug, "unlist", ip(req));
   }
 
   @Delete(":slug")
   @HttpCode(204)
-  async remove(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async remove(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     await this.studio.remove(p!, slug, ip(req));
   }
 }
@@ -231,13 +302,23 @@ export class BooksAdminController {
   ) {}
 
   @Get()
-  list(@Query(new ZodPipe(z.object({ status: BookStatusSchema.optional() }))) q: { status?: z.infer<typeof BookStatusSchema> }) {
+  list(
+    @Query(new ZodPipe(z.object({ status: BookStatusSchema.optional() })))
+    q: {
+      status?: z.infer<typeof BookStatusSchema>;
+    },
+  ) {
     return this.studio.adminList(q.status);
   }
 
   @Post(":slug/decision")
   @HttpCode(200)
-  decide(@Param("slug", slugPipe) slug: string, @Body(new ZodPipe(BookDecisionSchema)) d: BookDecision, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  decide(
+    @Param("slug", slugPipe) slug: string,
+    @Body(new ZodPipe(BookDecisionSchema)) d: BookDecision,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.decide(p!.id, slug, d, ip(req));
   }
 
@@ -247,7 +328,11 @@ export class BooksAdminController {
   }
 
   @Put("settings")
-  setSettings(@Body(new ZodPipe(BookSettingsSchema)) b: z.output<typeof BookSettingsSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  setSettings(
+    @Body(new ZodPipe(BookSettingsSchema)) b: z.output<typeof BookSettingsSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.setSettings(p!.id, b.commissionBps, ip(req));
   }
 
@@ -257,7 +342,12 @@ export class BooksAdminController {
   }
 
   @Put("sellers/:key")
-  terms(@Param("key") key: string, @Body(new ZodPipe(SellerTermsSchema)) b: z.output<typeof SellerTermsSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  terms(
+    @Param("key") key: string,
+    @Body(new ZodPipe(SellerTermsSchema)) b: z.output<typeof SellerTermsSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.setTerms(p!.id, key, b.commissionBps, b.payoutTo, ip(req));
   }
 
@@ -268,7 +358,12 @@ export class BooksAdminController {
 
   @Post("sellers/:key/payouts")
   @HttpCode(201)
-  payout(@Param("key") key: string, @Body(new ZodPipe(RecordPayoutSchema)) b: z.output<typeof RecordPayoutSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  payout(
+    @Param("key") key: string,
+    @Body(new ZodPipe(RecordPayoutSchema)) b: z.output<typeof RecordPayoutSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.studio.recordPayout(p!.id, key, b.amountMinor, b.reference, ip(req));
   }
 
@@ -279,14 +374,24 @@ export class BooksAdminController {
 
   @Post("refunds/:id/decision")
   @HttpCode(204)
-  async refundDecision(@Param("id", uuid) id: string, @Body(new ZodPipe(RefundDecisionSchema)) b: z.output<typeof RefundDecisionSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async refundDecision(
+    @Param("id", uuid) id: string,
+    @Body(new ZodPipe(RefundDecisionSchema)) b: z.output<typeof RefundDecisionSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     if (b.decision === "approve") await this.books.approveRefund(p!.id, id, b.note, ip(req));
     else await this.books.declineRefund(p!.id, id, b.note, ip(req));
   }
 
   @Post("orders/:id/refund")
   @HttpCode(204)
-  async refundOrder(@Param("id", uuid) id: string, @Body(new ZodPipe(AdminRefundSchema)) b: z.output<typeof AdminRefundSchema>, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async refundOrder(
+    @Param("id", uuid) id: string,
+    @Body(new ZodPipe(AdminRefundSchema)) b: z.output<typeof AdminRefundSchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     await this.books.refundOrder(p!.id, id, b.note, ip(req));
   }
 }

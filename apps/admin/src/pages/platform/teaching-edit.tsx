@@ -1,13 +1,35 @@
-import { CAlert, CBadge, CButton, CForm, CFormCheck, CFormInput, CFormLabel, CFormText, CFormTextarea } from "@coreui/react";
+import {
+  CAlert,
+  CBadge,
+  CButton,
+  CForm,
+  CFormCheck,
+  CFormInput,
+  CFormLabel,
+  CFormText,
+  CFormTextarea,
+} from "@coreui/react";
 import type { AdminTeaching } from "@ecclesios/shared";
 import { lintLesson, parseLesson, readingMinutes } from "@ecclesios/shared/domain";
 import { Preview } from "@/components/lesson-preview";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiClientError } from "@/lib/api";
-import { SNIPPETS, useAdminTeaching, useAdminTopics, useDeleteTeaching, useSaveTeaching, useTeachingStatus } from "@/lib/teachings";
+import {
+  SNIPPETS,
+  useAdminTeaching,
+  useAdminTopics,
+  useDeleteTeaching,
+  useSaveTeaching,
+  useTeachingStatus,
+} from "@/lib/teachings";
 
-const errText = (e: unknown) => (e instanceof ApiClientError ? e.message : e instanceof Error ? e.message : "Something went wrong.");
+const errText = (e: unknown) =>
+  e instanceof ApiClientError
+    ? e.message
+    : e instanceof Error
+      ? e.message
+      : "Something went wrong.";
 
 /** Write / edit a teaching with a live preview and a problems list (D-030). */
 export function TeachingEditPage() {
@@ -18,7 +40,9 @@ export function TeachingEditPage() {
   if (!isNew && q.isError) return <CAlert color="danger">{errText(q.error)}</CAlert>;
   return (
     <>
-      <Link to="/platform/teachings" className="link mb-3 d-inline-block">← All teachings</Link>
+      <Link to="/platform/teachings" className="link mb-3 d-inline-block">
+        ← All teachings
+      </Link>
       <Editor key={q.data?.slug ?? "new"} teaching={isNew ? null : q.data!} />
     </>
   );
@@ -45,7 +69,8 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
   const saved = save.data ?? teaching;
 
   useEffect(() => {
-    if (save.data && !teaching) navigate(`/platform/teachings/${save.data.slug}`, { replace: true });
+    if (save.data && !teaching)
+      navigate(`/platform/teachings/${save.data.slug}`, { replace: true });
   }, [save.data, teaching, navigate]);
 
   const insert = (snippet: string) => {
@@ -66,7 +91,10 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
       summary,
       body,
       topics: chosen,
-      related: related.split(",").map((s) => s.trim()).filter(Boolean),
+      related: related
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
       reviewedBy: reviewedBy.trim() || null,
       source: source.trim() || null,
     });
@@ -77,8 +105,16 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
       <div className="col-lg-6">
         <section className="card panel">
           <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
-            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>{teaching ? "Edit teaching" : "New teaching"}</h1>
-            {teaching ? live ? <CBadge color="success">Published</CBadge> : <CBadge color="secondary">Draft</CBadge> : null}
+            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
+              {teaching ? "Edit teaching" : "New teaching"}
+            </h1>
+            {teaching ? (
+              live ? (
+                <CBadge color="success">Published</CBadge>
+              ) : (
+                <CBadge color="secondary">Draft</CBadge>
+              )
+            ) : null}
             {teaching ? (
               <span className="ms-auto d-flex gap-2">
                 <CButton
@@ -95,7 +131,10 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
                   size="sm"
                   color="danger"
                   variant="ghost"
-                  onClick={() => confirm(`Delete "${teaching.title}"?`) && del.mutate(teaching.slug, { onSuccess: () => navigate("/platform/teachings") })}
+                  onClick={() =>
+                    confirm(`Delete "${teaching.title}"?`) &&
+                    del.mutate(teaching.slug, { onSuccess: () => navigate("/platform/teachings") })
+                  }
                 >
                   Delete
                 </CButton>
@@ -108,11 +147,22 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
           <CForm onSubmit={submit}>
             <div className="mb-3">
               <CFormLabel htmlFor="tt">Title</CFormLabel>
-              <CFormInput id="tt" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <CFormInput
+                id="tt"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
             </div>
             <div className="mb-3">
               <CFormLabel htmlFor="ts">Summary</CFormLabel>
-              <CFormInput id="ts" value={summary} maxLength={300} onChange={(e) => setSummary(e.target.value)} required />
+              <CFormInput
+                id="ts"
+                value={summary}
+                maxLength={300}
+                onChange={(e) => setSummary(e.target.value)}
+                required
+              />
             </div>
             <div className="mb-3">
               <CFormLabel>Topics</CFormLabel>
@@ -123,7 +173,11 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
                     id={`topic-${t.slug}`}
                     label={t.name}
                     checked={chosen.includes(t.slug)}
-                    onChange={(e) => setChosen((c) => (e.target.checked ? [...c, t.slug] : c.filter((x) => x !== t.slug)))}
+                    onChange={(e) =>
+                      setChosen((c) =>
+                        e.target.checked ? [...c, t.slug] : c.filter((x) => x !== t.slug),
+                      )
+                    }
                   />
                 ))}
               </div>
@@ -141,30 +195,59 @@ function Editor({ teaching }: { teaching: AdminTeaching | null }) {
                     ["Link teaching", SNIPPETS.teaching],
                   ] as const
                 ).map(([label, snip]) => (
-                  <CButton key={label} size="sm" color="secondary" variant="outline" onClick={() => insert(snip)}>
+                  <CButton
+                    key={label}
+                    size="sm"
+                    color="secondary"
+                    variant="outline"
+                    onClick={() => insert(snip)}
+                  >
                     {label}
                   </CButton>
                 ))}
               </div>
-              <CFormTextarea id="tb" ref={area} rows={18} value={body} onChange={(e) => setBody(e.target.value)} style={{ fontFamily: "ui-monospace, monospace", fontSize: 13.5 }} />
+              <CFormTextarea
+                id="tb"
+                ref={area}
+                rows={18}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                style={{ fontFamily: "ui-monospace, monospace", fontSize: 13.5 }}
+              />
               <CFormText>
-                Blank line between paragraphs. **bold**, *italic*, ## heading, &gt; quote, - list. References: [[Luke 22:19]], [[CCC 1324]],
-                [[teaching:slug|label]]. About {readingMinutes(blocks)} min.
+                Blank line between paragraphs. **bold**, *italic*, ## heading, &gt; quote, - list.
+                References: [[Luke 22:19]], [[CCC 1324]], [[teaching:slug|label]]. About{" "}
+                {readingMinutes(blocks)} min.
               </CFormText>
             </div>
             <div className="mb-3">
               <CFormLabel htmlFor="tr">Related teachings (slugs, comma-separated)</CFormLabel>
-              <CFormInput id="tr" value={related} onChange={(e) => setRelated(e.target.value)} placeholder="baptism, the-eucharist" />
+              <CFormInput
+                id="tr"
+                value={related}
+                onChange={(e) => setRelated(e.target.value)}
+                placeholder="baptism, the-eucharist"
+              />
               <CFormText>Teachings linked in the lesson are added automatically.</CFormText>
             </div>
             <div className="row g-2 mb-3">
               <div className="col-md-6">
                 <CFormLabel htmlFor="rv">Reviewed by</CFormLabel>
-                <CFormInput id="rv" value={reviewedBy} onChange={(e) => setReviewedBy(e.target.value)} placeholder="Rev. Fr. …" />
+                <CFormInput
+                  id="rv"
+                  value={reviewedBy}
+                  onChange={(e) => setReviewedBy(e.target.value)}
+                  placeholder="Rev. Fr. …"
+                />
               </div>
               <div className="col-md-6">
                 <CFormLabel htmlFor="sc">Source</CFormLabel>
-                <CFormInput id="sc" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Ecclesios" />
+                <CFormInput
+                  id="sc"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  placeholder="Ecclesios"
+                />
               </div>
             </div>
             <CButton type="submit" color="primary" disabled={save.isPending || !chosen.length}>

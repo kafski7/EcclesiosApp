@@ -15,7 +15,13 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { id, timestamps } from "./_common";
-import { bookCategoryEnum, bookFormatEnum, bookStatusEnum, orderStatusEnum, refundStatusEnum } from "./enums";
+import {
+  bookCategoryEnum,
+  bookFormatEnum,
+  bookStatusEnum,
+  orderStatusEnum,
+  refundStatusEnum,
+} from "./enums";
 import { members, users } from "./identity";
 
 /**
@@ -49,15 +55,23 @@ export const books = pgTable(
     sellerMemberId: uuid("seller_member_id").references(() => members.id, { onDelete: "restrict" }),
     status: bookStatusEnum("status").notNull().default("DRAFT"),
     reviewNote: text("review_note"),
-    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     ...timestamps(),
   },
   (t) => [
-    check("books_one_seller_chk", sql`(${t.sellerUserId} IS NULL) <> (${t.sellerMemberId} IS NULL)`),
+    check(
+      "books_one_seller_chk",
+      sql`(${t.sellerUserId} IS NULL) <> (${t.sellerMemberId} IS NULL)`,
+    ),
     check("books_price_chk", sql`${t.priceMinor} = 0 OR ${t.priceMinor} >= 100`),
-    check("books_live_chk", sql`${t.status} <> 'PUBLISHED' OR (${t.fileKey} IS NOT NULL AND ${t.publishedAt} IS NOT NULL)`),
+    check(
+      "books_live_chk",
+      sql`${t.status} <> 'PUBLISHED' OR (${t.fileKey} IS NOT NULL AND ${t.publishedAt} IS NOT NULL)`,
+    ),
     index("books_shelf_idx").on(t.status, t.category, t.publishedAt),
     index("books_seller_user_idx").on(t.sellerUserId),
     index("books_seller_member_idx").on(t.sellerMemberId),
@@ -132,13 +146,17 @@ export const bookRefunds = pgTable(
     status: refundStatusEnum("status").notNull().default("REQUESTED"),
     percentRead: smallint("percent_read").notNull().default(0),
     note: text("note"),
-    decidedByUserId: uuid("decided_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    decidedByUserId: uuid("decided_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     decidedAt: timestamp("decided_at", { withTimezone: true }),
     ...timestamps(),
   },
   (t) => [
     index("book_refunds_status_idx").on(t.status, t.createdAt),
-    uniqueIndex("book_refunds_open_uq").on(t.orderId).where(sql`${t.status} = 'REQUESTED'`),
+    uniqueIndex("book_refunds_open_uq")
+      .on(t.orderId)
+      .where(sql`${t.status} = 'REQUESTED'`),
   ],
 );
 
@@ -154,7 +172,10 @@ export const bookSellers = pgTable(
     ...timestamps(),
   },
   (t) => [
-    check("book_sellers_one_chk", sql`(${t.sellerUserId} IS NULL) <> (${t.sellerMemberId} IS NULL)`),
+    check(
+      "book_sellers_one_chk",
+      sql`(${t.sellerUserId} IS NULL) <> (${t.sellerMemberId} IS NULL)`,
+    ),
     uniqueIndex("book_sellers_user_uq").on(t.sellerUserId),
     uniqueIndex("book_sellers_member_uq").on(t.sellerMemberId),
   ],
@@ -167,7 +188,9 @@ export const bookPayouts = pgTable("book_payouts", {
   sellerMemberId: uuid("seller_member_id").references(() => members.id, { onDelete: "restrict" }),
   amountMinor: integer("amount_minor").notNull(),
   reference: varchar("reference", { length: 120 }).notNull(),
-  recordedByUserId: uuid("recorded_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  recordedByUserId: uuid("recorded_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -67,7 +67,8 @@ export function nextPostStatus(from: PostStatus, action: PostAction): PostStatus
 }
 
 /** Super-Admins' own posts skip the queue: submitting publishes straight away. */
-export const submitSkipsQueue = (actor: ExploreActor) => actor.kind === "user" && actor.role === "SUPER_ADMIN";
+export const submitSkipsQueue = (actor: ExploreActor) =>
+  actor.kind === "user" && actor.role === "SUPER_ADMIN";
 
 export interface PostAuthorRef {
   authorUserId: string | null;
@@ -99,7 +100,8 @@ export function postProblems(kind: PostKind, body: string, ev: EventFields): str
   if (kind === "EVENT") {
     if (!ev.startsAt) problems.push("An event needs a start date and time.");
     if (!ev.place?.trim()) problems.push("Say where the event takes place.");
-    if (ev.startsAt && ev.endsAt && ev.endsAt <= ev.startsAt) problems.push("The event must end after it starts.");
+    if (ev.startsAt && ev.endsAt && ev.endsAt <= ev.startsAt)
+      problems.push("The event must end after it starts.");
   }
   return problems;
 }

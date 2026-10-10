@@ -86,6 +86,9 @@ export function LoginPage({ kind }: { kind: AccountKind }) {
         <p className="cms-auth-switch">
           {kind === "member" ? (
             <>
+              Added by your church but never signed in?{" "}
+              <a href={`${env.VITE_WEB_URL}/login?claim=1`}>Claim your account</a>
+              <br />
               Ecclesios staff? <Link to="/admin-login">Platform sign-in</Link> ·{" "}
               <a href={env.VITE_WEB_URL}>Back to Ecclesios</a>
             </>
@@ -133,7 +136,7 @@ function Credentials(props: {
             onChange={(e) => setIdentifier(e.target.value)}
             autoFocus
           />
-          <CFormText>Phone numbers start with the country code, e.g. +233…</CFormText>
+          <CFormText>Email, or a phone number like 024 123 4567.</CFormText>
         </div>
         <div className="mb-4">
           <CFormLabel htmlFor="password">Password</CFormLabel>

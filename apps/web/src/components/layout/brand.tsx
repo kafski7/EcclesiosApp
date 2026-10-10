@@ -1,18 +1,10 @@
 import { Link } from "react-router-dom";
 
-/** Kit .brand: gold cross (kit #i-logo path), serif wordmark. */
+/** Sidebar brand: the official Ecclesios favicon + wordmark. */
 export function Brand({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <Link to="/" className="brand" aria-label="Ecclesios home" onClick={onNavigate}>
-      <svg className="brand-cross" viewBox="0 0 24 24" aria-hidden>
-        <path
-          d="M12 3v18M7 7.8h10M9.4 21h5.2"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.4}
-          strokeLinecap="round"
-        />
-      </svg>
+      <img src="ecclesios-favicon-gold.png" alt="Ecclesios favicon" className="brand-mark" />
       <span className="brand-name">Ecclesios</span>
     </Link>
   );

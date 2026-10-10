@@ -27,6 +27,17 @@ function adopt(pair: TokenPair) {
 export const startSignIn = (identifier: string, password: string) =>
   api.post("/auth/login", { identifier, password }, LoginChallengeResponseSchema);
 
+/** Claim the record your church created (D-039): code to your phone/email, then set a password. */
+export const startClaim = (identifier: string) =>
+  api.post("/auth/claim", { identifier }, LoginChallengeResponseSchema);
+
+/** Change your own password (D-039); other sessions end, this one continues. */
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const pair = await api.post("/me/password", { currentPassword, newPassword }, TokenPairSchema);
+  adopt(pair);
+  return pair;
+}
+
 export async function verifyCode(challengeToken: string, otp: string) {
   const res = await api.post("/auth/verify-otp", { challengeToken, otp }, VerifyOtpResponseSchema);
   if (res.status === "AUTHENTICATED") adopt(res);

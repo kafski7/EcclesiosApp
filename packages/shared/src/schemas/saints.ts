@@ -3,7 +3,10 @@ import { CELEBRATION_RANKS, isValidFeast } from "../domain/saints.js";
 import { IsoDateSchema } from "./readings.js";
 
 export const CelebrationRankSchema = z.enum(CELEBRATION_RANKS);
-export const SaintSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lower-case words joined by hyphens").max(80);
+export const SaintSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lower-case words joined by hyphens")
+  .max(80);
 
 export const SaintSummarySchema = z.object({
   slug: SaintSlugSchema,
@@ -60,5 +63,8 @@ export const UpsertSaintSchema = z
     source: z.string().trim().max(200).nullable().default(null),
     isPublished: z.boolean().default(true),
   })
-  .refine((s) => isValidFeast(s.feastMonth, s.feastDay), { message: "Not a real calendar date", path: ["feastDay"] });
+  .refine((s) => isValidFeast(s.feastMonth, s.feastDay), {
+    message: "Not a real calendar date",
+    path: ["feastDay"],
+  });
 export type UpsertSaint = z.input<typeof UpsertSaintSchema>;

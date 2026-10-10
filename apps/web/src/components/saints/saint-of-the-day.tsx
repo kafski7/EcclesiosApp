@@ -4,7 +4,13 @@ import { Link } from "react-router-dom";
 import { feastLabel, RANK_LABEL, useSaintsToday } from "@/lib/saints";
 
 /** Kit .saint-card with today's saint (functionality §3.3). Falls back to `fallback` when none. */
-export function SaintOfTheDay({ fallback = null, headingLevel = 2 }: { fallback?: ReactNode; headingLevel?: 1 | 2 }) {
+export function SaintOfTheDay({
+  fallback = null,
+  headingLevel = 2,
+}: {
+  fallback?: ReactNode;
+  headingLevel?: 1 | 2;
+}) {
   const q = useSaintsToday();
   const s = q.data?.saint;
   if (!s) return <>{q.isPending ? null : fallback}</>;

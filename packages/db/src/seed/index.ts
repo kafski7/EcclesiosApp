@@ -21,7 +21,14 @@ import { SEED_CHURCH_PROFILES, SEED_COMMENTS, SEED_POSTS } from "./explore";
 import { SEED_TEACHINGS, TEACHING_TOPICS } from "./teachings";
 import { SEED_NEWS } from "./news";
 import { SEED_BOOK_COMMISSION_BPS, SEED_BOOKS } from "./books";
-import { hymnNumberKey, lessonText, normalizeHymnNumber, parseLesson, readingMinutes, slugify } from "@ecclesios/shared/domain";
+import {
+  hymnNumberKey,
+  lessonText,
+  normalizeHymnNumber,
+  parseLesson,
+  readingMinutes,
+  slugify,
+} from "@ecclesios/shared/domain";
 
 loadEnv();
 
@@ -82,16 +89,14 @@ async function main() {
       .values(d.PERMISSIONS.map(([code, module]) => ({ code, module })))
       .returning();
     const roleId = (code: string) => roleRows.find((r) => r.code === code)!.id;
-    await tx
-      .insert(s.rolePermissions)
-      .values(
-        Object.entries(d.ROLE_PERMISSIONS).flatMap(([role, codes]) =>
-          codes.map((c) => ({
-            roleId: roleId(role),
-            permissionId: permRows.find((p) => p.code === c)!.id,
-          })),
-        ),
-      );
+    await tx.insert(s.rolePermissions).values(
+      Object.entries(d.ROLE_PERMISSIONS).flatMap(([role, codes]) =>
+        codes.map((c) => ({
+          roleId: roleId(role),
+          permissionId: permRows.find((p) => p.code === c)!.id,
+        })),
+      ),
+    );
 
     // hierarchy (parents first — resolveGroups preserves order)
     for (const g of groups.values()) {
@@ -119,15 +124,13 @@ async function main() {
       const { privileges, ...row } = u;
       await tx.insert(s.users).values({ ...row, passwordHash, firstLogin: new Date() });
       if (privileges.length)
-        await tx
-          .insert(s.userPrivileges)
-          .values(
-            privileges.map((p) => ({
-              userId: u.id,
-              privilege: p,
-              grantedByUserId: d.PLATFORM_USERS[0]!.id,
-            })),
-          );
+        await tx.insert(s.userPrivileges).values(
+          privileges.map((p) => ({
+            userId: u.id,
+            privilege: p,
+            grantedByUserId: d.PLATFORM_USERS[0]!.id,
+          })),
+        );
     }
 
     // members — Kofi Asante is left with first_login = NULL to exercise the Set-Password path
@@ -279,18 +282,33 @@ async function main() {
     );
 
     // Bible (D-023): two public-domain translations, sample verses only
-    const translations = await tx.insert(s.bibleTranslations).values([...BIBLE_TRANSLATIONS]).returning();
+    const translations = await tx
+      .insert(s.bibleTranslations)
+      .values([...BIBLE_TRANSLATIONS])
+      .returning();
     for (const t of translations) {
-      await tx.insert(s.bibleVerses).values(sampleVerses(t.code).map((v) => ({ ...v, translationId: t.id })));
+      await tx
+        .insert(s.bibleVerses)
+        .values(sampleVerses(t.code).map((v) => ({ ...v, translationId: t.id })));
     }
 
     // hymnal (D-026): NCH + CH books, public-domain hymns, no media files
-    const bookRows = await tx.insert(s.hymnBooks).values([...HYMN_BOOKS]).returning();
+    const bookRows = await tx
+      .insert(s.hymnBooks)
+      .values([...HYMN_BOOKS])
+      .returning();
     const bookId = (code: string) => bookRows.find((b) => b.code === code)!.id;
     for (const h of SEED_HYMNS) {
       const [row] = await tx
         .insert(s.hymns)
-        .values({ slug: h.slug, title: h.title, firstLine: h.firstLine, author: h.author, verses: h.verses, source: "Public domain" })
+        .values({
+          slug: h.slug,
+          title: h.title,
+          firstLine: h.firstLine,
+          author: h.author,
+          verses: h.verses,
+          source: "Public domain",
+        })
         .returning({ id: s.hymns.id });
       if (h.numbers.length)
         await tx.insert(s.hymnNumbers).values(
@@ -301,8 +319,11 @@ async function main() {
             sortKey: hymnNumberKey(n.number),
           })),
         );
-      if (h.tags.length) await tx.insert(s.hymnTags).values(h.tags.map((tag) => ({ hymnId: row!.id, tag })));
-      await tx.insert(s.hymnTunes).values(h.tunes.map((t, position) => ({ ...t, position, hymnId: row!.id })));
+      if (h.tags.length)
+        await tx.insert(s.hymnTags).values(h.tags.map((tag) => ({ hymnId: row!.id, tag })));
+      await tx
+        .insert(s.hymnTunes)
+        .values(h.tunes.map((t, position) => ({ ...t, position, hymnId: row!.id })));
     }
 
     // podcasts (D-027): series + draft episodes (no audio in dev)
@@ -315,7 +336,9 @@ async function main() {
           ownerUserId: owner === "SUPER" ? d.seedId(900) : d.seedId(901),
         })
         .returning({ id: s.podcasts.id });
-      await tx.insert(s.podcastEpisodes).values(episodes.map((e) => ({ ...e, podcastId: row!.id })));
+      await tx
+        .insert(s.podcastEpisodes)
+        .values(episodes.map((e) => ({ ...e, podcastId: row!.id })));
     }
 
     // explore (D-031): church posts, a pending creator post, a profile, a comment
@@ -334,7 +357,10 @@ async function main() {
           summary: p.summary,
           body: p.body,
           startsAt,
-          endsAt: startsAt && p.durationHours ? new Date(startsAt.getTime() + p.durationHours * 3_600_000) : null,
+          endsAt:
+            startsAt && p.durationHours
+              ? new Date(startsAt.getTime() + p.durationHours * 3_600_000)
+              : null,
           place: p.place ?? null,
           submittedAt: p.status === "DRAFT" ? null : daysFromNow(-2),
           publishedAt: p.status === "APPROVED" ? daysFromNow(-1) : null,
@@ -343,13 +369,22 @@ async function main() {
         .returning({ id: s.posts.id });
       postIds.set(p.title, row!.id);
     }
-    await tx.insert(s.churchProfiles).values(SEED_CHURCH_PROFILES.map(({ church, ...x }) => ({ ...x, groupId: gid(church) })));
+    await tx
+      .insert(s.churchProfiles)
+      .values(SEED_CHURCH_PROFILES.map(({ church, ...x }) => ({ ...x, groupId: gid(church) })));
     await tx.insert(s.postComments).values(
-      SEED_COMMENTS.map((c) => ({ postId: postIds.get(c.post)!, memberId: d.memberByFirst(c.author).id, body: c.body })),
+      SEED_COMMENTS.map((c) => ({
+        postId: postIds.get(c.post)!,
+        memberId: d.memberByFirst(c.author).id,
+        body: c.body,
+      })),
     );
 
     // teachings (D-030): topics + short original lessons (published, for review)
-    const topicRows = await tx.insert(s.teachingTopics).values([...TEACHING_TOPICS]).returning();
+    const topicRows = await tx
+      .insert(s.teachingTopics)
+      .values([...TEACHING_TOPICS])
+      .returning();
     const teachingIds = new Map<string, string>();
     for (const t of SEED_TEACHINGS) {
       const blocks = parseLesson(t.body);
@@ -369,13 +404,21 @@ async function main() {
         .returning({ id: s.teachings.id });
       teachingIds.set(t.slug, row!.id);
       await tx.insert(s.teachingTopicLinks).values(
-        t.topics.map((slug, position) => ({ teachingId: row!.id, topicId: topicRows.find((x) => x.slug === slug)!.id, position })),
+        t.topics.map((slug, position) => ({
+          teachingId: row!.id,
+          topicId: topicRows.find((x) => x.slug === slug)!.id,
+          position,
+        })),
       );
     }
     for (const t of SEED_TEACHINGS)
       if (t.related.length)
         await tx.insert(s.teachingRelations).values(
-          t.related.map((r, position) => ({ fromId: teachingIds.get(t.slug)!, toId: teachingIds.get(r)!, position })),
+          t.related.map((r, position) => ({
+            fromId: teachingIds.get(t.slug)!,
+            toId: teachingIds.get(r)!,
+            position,
+          })),
         );
 
     // platform news (D-032)
@@ -389,7 +432,9 @@ async function main() {
     }
 
     // books (D-036): commission setting + draft catalogue entries (no files in the seed)
-    await tx.insert(s.platformSettings).values({ key: "books.commissionBps", value: SEED_BOOK_COMMISSION_BPS });
+    await tx
+      .insert(s.platformSettings)
+      .values({ key: "books.commissionBps", value: SEED_BOOK_COMMISSION_BPS });
     await tx.insert(s.books).values(
       SEED_BOOKS.map(({ owner, ...b }) => ({
         ...b,

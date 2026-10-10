@@ -13,7 +13,15 @@ describe("canon", () => {
   it("is the 73-book Catholic canon in Catholic order", () => {
     expect(CANON.length).toBe(73);
     expect(CANON.filter((b) => b.testament === "NT").length).toBe(27);
-    expect(CANON.filter((b) => b.deutero).map((b) => b.code)).toEqual(["TOB", "JDT", "1MA", "2MA", "WIS", "SIR", "BAR"]);
+    expect(CANON.filter((b) => b.deutero).map((b) => b.code)).toEqual([
+      "TOB",
+      "JDT",
+      "1MA",
+      "2MA",
+      "WIS",
+      "SIR",
+      "BAR",
+    ]);
     expect(CANON[16]!.code).toBe("TOB"); // after Nehemiah
     expect(new Set(CANON.map((b) => b.code)).size).toBe(73);
   });
@@ -36,7 +44,10 @@ describe("canon", () => {
 
 describe("parseReference", () => {
   it("single range", () => {
-    expect(parseReference("Luke 10:13-16")).toEqual({ book: "LUK", ranges: [{ chapter: 10, from: 13, to: 16 }] });
+    expect(parseReference("Luke 10:13-16")).toEqual({
+      book: "LUK",
+      ranges: [{ chapter: 10, from: 13, to: 16 }],
+    });
   });
   it("lists and several chapters", () => {
     expect(parseReference("Job 38:1, 12-21; 40:3-5")).toEqual({
@@ -49,7 +60,10 @@ describe("parseReference", () => {
     });
   });
   it("whole chapters, verse letters and dashes", () => {
-    expect(parseReference("Psalm 23")).toEqual({ book: "PSA", ranges: [{ chapter: 23, from: null, to: null }] });
+    expect(parseReference("Psalm 23")).toEqual({
+      book: "PSA",
+      ranges: [{ chapter: 23, from: null, to: null }],
+    });
     expect(parseReference("Isaiah 9:1-6a")!.ranges).toEqual([{ chapter: 9, from: 1, to: 6 }]);
     expect(parseReference("Mt 26:14—27:66")!.ranges).toEqual([
       { chapter: 26, from: 14, to: null },
@@ -57,7 +71,10 @@ describe("parseReference", () => {
     ]);
   });
   it("numbered books and bad input", () => {
-    expect(parseReference("1 John 3:2")).toEqual({ book: "1JN", ranges: [{ chapter: 3, from: 2, to: 2 }] });
+    expect(parseReference("1 John 3:2")).toEqual({
+      book: "1JN",
+      ranges: [{ chapter: 3, from: 2, to: 2 }],
+    });
     expect(parseReference("Hezekiah 1:1")).toBe(null);
     expect(parseReference("Luke ten")).toBe(null);
   });
@@ -68,7 +85,6 @@ describe("parseReference", () => {
     expect(highlightedVerses(parseReference("Psalm 23")!, 23)).toBe(null);
   });
 });
-
 
 describe("psalm numbering (D-024)", () => {
   it.each([

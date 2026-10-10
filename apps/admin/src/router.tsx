@@ -4,6 +4,19 @@ import { PlatformLayout } from "@/components/platform-layout";
 import { HomeRedirect, RequireAuth } from "@/components/require-auth";
 import { LoginPage } from "@/pages/auth/login";
 import { BillingPage } from "@/pages/cms/billing";
+import { BirthdaysPage } from "@/pages/cms/birthdays";
+import { MemberPage } from "@/pages/cms/member";
+import { MembersPage, RequestsPage } from "@/pages/cms/members";
+import { SocietiesPage } from "@/pages/cms/societies";
+import { CmsNotificationsPage } from "@/pages/cms/notifications";
+import { CollectionsPage } from "@/pages/cms/collections";
+import { GroupDetailPage, GroupsPage } from "@/pages/cms/groups";
+import { MessagePage, MessagesPage } from "@/pages/cms/messages";
+import { SettingsPage } from "@/pages/cms/settings";
+import { UsersPage } from "@/pages/cms/users";
+import { NotificationsPage } from "@/pages/notifications";
+import { ProfilePage } from "@/pages/profile";
+import { SocietyPage } from "@/pages/cms/society";
 import { DashboardPage } from "@/pages/cms/dashboard";
 import { ErrorPage, NotFoundPage } from "@/pages/errors";
 import { Placeholder } from "@/pages/placeholder";
@@ -48,24 +61,23 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardPage /> },
       { path: "billing", element: <BillingPage /> },
-      soon(
-        "members",
-        "Members",
-        "Phase 6",
-        "Member records, sacramental registers and membership requests.",
-      ),
-      soon("birthdays", "Birthdays", "Phase 6", "Today's celebrants and upcoming birthdays."),
-      soon("societies", "Societies", "Phase 6", "Societies, clubs and their rosters."),
-      soon("committees", "Committees", "Phase 6", "Committees and their members."),
-      soon("notifications", "Notifications", "Phase 6", "Your notification centre."),
-      soon(
-        "messages",
-        "Messages",
-        "Phase 7",
-        "SMS and email to members, societies and committees.",
-      ),
-      soon("users", "Users & Roles", "Phase 6", "Who manages this church, and with which role."),
-      soon("settings", "Settings", "Phase 6", "Theme, language, currency and visibility settings."),
+      { path: "members", element: <MembersPage /> },
+      { path: "members/requests", element: <RequestsPage /> },
+      { path: "members/:personId", element: <MemberPage /> },
+      { path: "birthdays", element: <BirthdaysPage /> },
+      { path: "societies", element: <SocietiesPage kind="SOCIETY" /> },
+      { path: "societies/:id", element: <SocietyPage kind="SOCIETY" /> },
+      { path: "committees", element: <SocietiesPage kind="COMMITTEE" /> },
+      { path: "committees/:id", element: <SocietyPage kind="COMMITTEE" /> },
+      { path: "groups", element: <GroupsPage /> },
+      { path: "groups/:id", element: <GroupDetailPage /> },
+      { path: "collections", element: <CollectionsPage /> },
+      { path: "notifications", element: <CmsNotificationsPage /> },
+      { path: "profile", element: <ProfilePage /> },
+      { path: "messages", element: <MessagesPage /> },
+      { path: "messages/:id", element: <MessagePage /> },
+      { path: "users", element: <UsersPage /> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
   {
@@ -93,6 +105,8 @@ export const router = createBrowserRouter([
       { path: "explore", element: <ExploreModerationPage /> },
       { path: "explore/mine", element: <ExploreMinePage /> },
       { path: "explore/write/:id", element: <ExploreWritePage /> },
+      { path: "notifications", element: <NotificationsPage /> },
+      { path: "profile", element: <ProfilePage /> },
       soon(
         "creators",
         "Creators",

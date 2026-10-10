@@ -2,22 +2,30 @@ import { Inject, Injectable } from "@nestjs/common";
 import {
   follows,
   groups,
+  homeTransfers,
   memberPrivileges,
   members,
   memberships,
-  notificationTypes,
-  notifications,
   roles,
 } from "@ecclesios/db";
 import type {
+  HomeTransferRequest,
   MeResponse,
   MembershipDecision,
   MembershipRequest,
+  MyHomeTransfer,
   MyMembership,
 } from "@ecclesios/shared";
-import { InvalidMembershipTransition, nextMembershipStatus } from "@ecclesios/shared/domain";
-import { and, asc, eq } from "drizzle-orm";
+import {
+  homeTransferBlocker,
+  InvalidMembershipTransition,
+  nextHomeTransferStatus,
+  nextMembershipStatus,
+} from "@ecclesios/shared/domain";
+import { alias } from "drizzle-orm/pg-core";
+import { and, asc, eq, ne } from "drizzle-orm";
 import { AuditService } from "../audit/audit.service";
+import { NotifyService } from "../notify/notify.service";
 import { DomainError } from "../auth/core/errors";
 import { DB, type Database } from "../db/db.module";
 import { ScopeService } from "../rbac/scope.service";
@@ -25,6 +33,14 @@ import { ChurchesService } from "./churches.service";
 
 const notFound = () =>
   new DomainError(404, "MEMBERSHIP_NOT_FOUND", "That membership request no longer exists.");
+const transferNotFound = () =>
+  new DomainError(404, "TRANSFER_NOT_FOUND", "That home-church request no longer exists.");
+const BLOCKER_MESSAGE: Record<string, string> = {
+  NOT_AN_ACTIVE_MEMBER: "You can only move your home to a church where you're an active member.",
+  ALREADY_HOME: "That's already your home church.",
+};
+const fromGroups = alias(groups, "from_groups");
+const toGroups = alias(groups, "to_groups");
 const notAllowed = () =>
   new DomainError(
     403,
@@ -40,13 +56,14 @@ export class MembershipsService {
     private readonly churches: ChurchesService,
     private readonly scopes: ScopeService,
     private readonly audit: AuditService,
+    private readonly notify: NotifyService,
   ) {}
 
   // ------------------------------------------------------------------ me
   async me(memberId: string): Promise<MeResponse> {
     const [p] = await this.db.select().from(members).where(eq(members.id, memberId)).limit(1);
     if (!p) throw new DomainError(404, "NOT_FOUND", "Account not found.");
-    const [mine, followed, grants] = await Promise.all([
+    const [mine, followed, grants, transfer] = await Promise.all([
       this.myMemberships(memberId),
       this.db
         .select({ id: groups.id, name: groups.name, level: groups.level })
@@ -58,6 +75,7 @@ export class MembershipsService {
         .select({ privilege: memberPrivileges.privilege })
         .from(memberPrivileges)
         .where(eq(memberPrivileges.memberId, memberId)),
+      this.openTransfer(memberId),
     ]);
     return {
       id: p.id,
@@ -68,6 +86,7 @@ export class MembershipsService {
       privileges: grants.map((g) => g.privilege),
       memberships: mine,
       follows: followed,
+      homeTransfer: transfer,
     };
   }
 
@@ -183,10 +202,23 @@ export class MembershipsService {
       throw e;
     }
     // Leaving the home church clears it; the person can transfer or join again (D-016).
-    await this.db
-      .update(memberships)
-      .set({ status: "LEFT", isHome: false })
-      .where(eq(memberships.id, m.id));
+    // A request to move the home here can no longer be approved, so it is cancelled (D-049).
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(memberships)
+        .set({ status: "LEFT", isHome: false })
+        .where(eq(memberships.id, m.id));
+      await tx
+        .update(homeTransfers)
+        .set({ status: "CANCELLED", decidedAt: new Date() })
+        .where(
+          and(
+            eq(homeTransfers.memberId, memberId),
+            eq(homeTransfers.toGroupId, groupId),
+            eq(homeTransfers.status, "PENDING"),
+          ),
+        );
+    });
     await this.audit.write({
       actorType: "MEMBER",
       actorId: memberId,
@@ -295,22 +327,235 @@ export class MembershipsService {
     return { id: m.id, status: to };
   }
 
-  private async notifyPerson(memberId: string, groupId: string, title: string, body?: string) {
-    const [type] = await this.db
-      .select({ id: notificationTypes.id })
-      .from(notificationTypes)
-      .where(eq(notificationTypes.code, "SYSTEM"))
+  // ------------------------------------------------------------------ home transfers (D-016, D-049)
+  private async openTransfer(memberId: string): Promise<MyHomeTransfer | null> {
+    const [t] = await this.db
+      .select({
+        id: homeTransfers.id,
+        requestedAt: homeTransfers.createdAt,
+        from: { id: fromGroups.id, name: fromGroups.name, level: fromGroups.level },
+        to: { id: toGroups.id, name: toGroups.name, level: toGroups.level },
+      })
+      .from(homeTransfers)
+      .innerJoin(toGroups, eq(homeTransfers.toGroupId, toGroups.id))
+      .leftJoin(fromGroups, eq(homeTransfers.fromGroupId, fromGroups.id))
+      .where(and(eq(homeTransfers.memberId, memberId), eq(homeTransfers.status, "PENDING")))
       .limit(1);
-    if (!type) return;
+    if (!t) return null;
+    return {
+      id: t.id,
+      from: t.from?.id ? t.from : null,
+      to: t.to,
+      requestedAt: t.requestedAt.toISOString(),
+    };
+  }
+
+  /** Ask to make `toGroupId` (where the person is ACTIVE) their home church. */
+  async requestTransfer(
+    memberId: string,
+    toGroupId: string,
+    reason: string | undefined,
+    ip: string,
+  ): Promise<MyHomeTransfer> {
+    const mine = await this.db
+      .select({
+        groupId: memberships.groupId,
+        status: memberships.status,
+        isHome: memberships.isHome,
+      })
+      .from(memberships)
+      .where(eq(memberships.memberId, memberId));
+    const blocker = homeTransferBlocker(mine, toGroupId);
+    if (blocker) throw new DomainError(409, blocker, BLOCKER_MESSAGE[blocker] ?? blocker);
+    if (await this.openTransfer(memberId))
+      throw new DomainError(
+        409,
+        "TRANSFER_PENDING",
+        "You already have a home-church request waiting. Cancel it first.",
+      );
+    const church = await this.churches.findJoinable(toGroupId);
+    if (!church)
+      throw new DomainError(404, "CHURCH_NOT_FOUND", "That church isn't available.");
+    const from = mine.find((m) => m.isHome && m.status === "ACTIVE")?.groupId ?? null;
+
+    try {
+      await this.db
+        .insert(homeTransfers)
+        .values({ memberId, fromGroupId: from, toGroupId, reason: reason ?? null });
+    } catch (e) {
+      // home_transfers_one_open_uq: a parallel request won the race. Newer drizzle versions wrap
+      // the driver error, so look at the cause too.
+      const pg = e as { code?: string; cause?: { code?: string } };
+      if (pg.code === "23505" || pg.cause?.code === "23505")
+        throw new DomainError(409, "TRANSFER_PENDING", "You already have a home-church request waiting.");
+      throw e;
+    }
+
+    const [p] = await this.db
+      .select({ f: members.firstName, l: members.lastName })
+      .from(members)
+      .where(eq(members.id, memberId));
+    await this.churches.notifyApprovers(
+      church,
+      `${p?.f ?? "Someone"} ${p?.l ?? ""} asked to make ${church.name} their home church`.trim(),
+      `/admin/members/requests?church=${church.id}`,
+    );
+    await this.audit.write({
+      actorType: "MEMBER",
+      actorId: memberId,
+      groupId: toGroupId,
+      action: "home_transfer.requested",
+      metadata: { from },
+      ip,
+    });
+    return (await this.openTransfer(memberId))!;
+  }
+
+  async cancelTransfer(memberId: string, ip: string): Promise<void> {
+    const open = await this.openTransfer(memberId);
+    if (!open) throw transferNotFound();
     await this.db
-      .insert(notifications)
-      .values({
-        typeId: type.id,
-        groupId,
-        recipientMemberId: memberId,
-        title,
-        body: body ?? null,
-        link: "/me",
-      });
+      .update(homeTransfers)
+      .set({ status: "CANCELLED", decidedAt: new Date() })
+      .where(and(eq(homeTransfers.id, open.id), eq(homeTransfers.status, "PENDING")));
+    await this.audit.write({
+      actorType: "MEMBER",
+      actorId: memberId,
+      groupId: open.to.id,
+      action: "home_transfer.cancelled",
+      entityType: "home_transfer",
+      entityId: open.id,
+      ip,
+    });
+  }
+
+  /** Open requests to move a home INTO `groupId` — same approvers as joining (D-016). */
+  async transfersFor(deciderId: string, groupId: string): Promise<HomeTransferRequest[]> {
+    if (!(await this.scopes.canDecideMembership(deciderId, groupId))) throw notAllowed();
+    const rows = await this.db
+      .select({
+        id: homeTransfers.id,
+        reason: homeTransfers.reason,
+        requestedAt: homeTransfers.createdAt,
+        person: {
+          id: members.id,
+          firstName: members.firstName,
+          lastName: members.lastName,
+          email: members.email,
+          telephone: members.telephone,
+        },
+        from: { id: fromGroups.id, name: fromGroups.name, level: fromGroups.level },
+        to: { id: toGroups.id, name: toGroups.name, level: toGroups.level },
+      })
+      .from(homeTransfers)
+      .innerJoin(members, eq(homeTransfers.memberId, members.id))
+      .innerJoin(toGroups, eq(homeTransfers.toGroupId, toGroups.id))
+      .leftJoin(fromGroups, eq(homeTransfers.fromGroupId, fromGroups.id))
+      .where(and(eq(homeTransfers.toGroupId, groupId), eq(homeTransfers.status, "PENDING")))
+      .orderBy(asc(homeTransfers.createdAt));
+    return rows.map((r) => ({
+      ...r,
+      from: r.from?.id ? r.from : null,
+      requestedAt: r.requestedAt.toISOString(),
+    }));
+  }
+
+  async decideTransfer(deciderId: string, id: string, d: MembershipDecision, ip: string) {
+    const [t] = await this.db
+      .select({
+        id: homeTransfers.id,
+        status: homeTransfers.status,
+        memberId: homeTransfers.memberId,
+        fromGroupId: homeTransfers.fromGroupId,
+        toGroupId: homeTransfers.toGroupId,
+      })
+      .from(homeTransfers)
+      .where(eq(homeTransfers.id, id))
+      .limit(1);
+    if (!t) throw transferNotFound();
+    if (!(await this.scopes.canDecideMembership(deciderId, t.toGroupId))) throw notAllowed();
+    const to = nextHomeTransferStatus(t.status, d.decision);
+    if (!to)
+      throw new DomainError(409, "INVALID_TRANSITION", "This request has already been decided.");
+
+    await this.db.transaction(async (tx) => {
+      if (to === "APPROVED") {
+        // The person may have left the church since asking.
+        const [target] = await tx
+          .select({ id: memberships.id, status: memberships.status })
+          .from(memberships)
+          .where(and(eq(memberships.memberId, t.memberId), eq(memberships.groupId, t.toGroupId)))
+          .limit(1);
+        if (target?.status !== "ACTIVE")
+          throw new DomainError(
+            409,
+            "NOT_AN_ACTIVE_MEMBER",
+            "This person is no longer an active member here.",
+          );
+        // One home per person (memberships_one_home_uq): clear the old home first.
+        await tx
+          .update(memberships)
+          .set({ isHome: false })
+          .where(
+            and(
+              eq(memberships.memberId, t.memberId),
+              eq(memberships.isHome, true),
+              ne(memberships.id, target.id),
+            ),
+          );
+        await tx.update(memberships).set({ isHome: true }).where(eq(memberships.id, target.id));
+      }
+      await tx
+        .update(homeTransfers)
+        .set({
+          status: to,
+          decidedByMemberId: deciderId,
+          decidedAt: new Date(),
+          decisionNote: d.note ?? null,
+        })
+        .where(and(eq(homeTransfers.id, t.id), eq(homeTransfers.status, "PENDING")));
+    });
+
+    const [toChurch] = await this.db
+      .select({ name: groups.name })
+      .from(groups)
+      .where(eq(groups.id, t.toGroupId));
+    await this.notifyPerson(
+      t.memberId,
+      t.toGroupId,
+      to === "APPROVED"
+        ? `${toChurch?.name ?? "Your church"} is now your home church`
+        : `${toChurch?.name ?? "The church"} declined your home-church request`,
+      d.note,
+    );
+    // The previous home is told it no longer keeps this person's records (D-016).
+    if (to === "APPROVED" && t.fromGroupId) {
+      const prev = await this.churches.findJoinable(t.fromGroupId);
+      const [p] = await this.db
+        .select({ f: members.firstName, l: members.lastName })
+        .from(members)
+        .where(eq(members.id, t.memberId));
+      if (prev)
+        await this.churches.notifyApprovers(
+          prev,
+          `${p?.f ?? "A member"} ${p?.l ?? ""} moved their home church to ${toChurch?.name ?? "another church"}`.trim(),
+          `/admin/members/${t.memberId}`,
+        );
+    }
+    await this.audit.write({
+      actorType: "MEMBER",
+      actorId: deciderId,
+      groupId: t.toGroupId,
+      action: `home_transfer.${d.decision}`,
+      entityType: "home_transfer",
+      entityId: t.id,
+      metadata: { member: t.memberId, from: t.fromGroupId },
+      ip,
+    });
+    return { id: t.id, status: to };
+  }
+
+  private notifyPerson(memberId: string, groupId: string, title: string, body?: string) {
+    return this.notify.people("SYSTEM", { memberIds: [memberId] }, { title, body, link: "/me" }, groupId);
   }
 }

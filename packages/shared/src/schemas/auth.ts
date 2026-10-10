@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { E164, normalisePhone } from "../domain/phone.js";
 import { MEMBER_ACCESS_ORDER } from "../domain/memberships.js";
 import { PlatformRoleSchema } from "../enums.js";
 
@@ -8,8 +9,10 @@ export const IdentifierSchema = z
   .trim()
   .min(3)
   .max(254)
-  .refine((v) => v.includes("@") || /^\+[1-9]\d{7,14}$/.test(v), {
-    message: "Enter an email address or a telephone number like +233241234567",
+  // Phones are tidied to E.164 (D-040), so "024 123 4567" signs in as +233241234567.
+  .transform((v) => (v.includes("@") ? v : normalisePhone(v)))
+  .refine((v) => v.includes("@") || E164.test(v), {
+    message: "Enter an email address or a phone number like 024 123 4567",
   });
 
 /** Password policy: 10–128 chars, at least one letter and one digit. */
@@ -122,5 +125,8 @@ export const AUTH_ERROR_CODES = [
   "INVALID_TEMP_TOKEN",
   "INVALID_REFRESH_TOKEN",
   "RATE_LIMITED",
+  "NOTHING_TO_CLAIM",
+  "CLAIM_ACCOUNT",
+  "WRONG_PASSWORD",
 ] as const;
 export type AuthErrorCode = (typeof AUTH_ERROR_CODES)[number];

@@ -14,7 +14,8 @@ export const SEED_BOOKS = [
     category: "CLASSICS" as const,
     description:
       "A fifteenth-century guide to the interior life, read by Christians for six hundred years: short chapters on humility, prayer and following Christ. Public-domain translation.",
-    aboutAuthor: "Thomas à Kempis (c. 1380–1471) was a canon regular of the Congregation of Windesheim.",
+    aboutAuthor:
+      "Thomas à Kempis (c. 1380–1471) was a canon regular of the Congregation of Windesheim.",
     priceMinor: 0,
     owner: "SUPER" as const,
   },

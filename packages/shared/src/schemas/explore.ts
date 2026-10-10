@@ -8,7 +8,12 @@ export const CommentStatusSchema = z.enum(COMMENT_STATUSES);
 
 /** Who a post is by, as shown to readers (D-031). */
 export const PostAuthorSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("CHURCH"), id: z.string().uuid(), name: z.string(), level: z.string() }),
+  z.object({
+    kind: z.literal("CHURCH"),
+    id: z.string().uuid(),
+    name: z.string(),
+    level: z.string(),
+  }),
   z.object({ kind: z.literal("PERSON"), name: z.string() }),
   z.object({ kind: z.literal("PLATFORM"), name: z.string() }),
 ]);
@@ -46,7 +51,11 @@ export const ExploreQuerySchema = z.object({
   q: z.string().trim().max(100).default(""),
   page: z.coerce.number().int().min(1).default(1),
 });
-export const PostListSchema = z.object({ items: z.array(PostSummarySchema), page: z.number().int(), hasMore: z.boolean() });
+export const PostListSchema = z.object({
+  items: z.array(PostSummarySchema),
+  page: z.number().int(),
+  hasMore: z.boolean(),
+});
 
 export const PostSchema = PostSummarySchema.extend({ body: z.string() });
 export type Post = z.infer<typeof PostSchema>;
@@ -104,7 +113,13 @@ export const UpdateChurchProfileSchema = z.object({
   address: z.string().trim().max(300).nullable().default(null),
   massTimes: z.string().trim().max(1000).nullable().default(null),
   phone: z.string().trim().max(40).nullable().default(null),
-  website: z.string().trim().url("Use a full address, e.g. https://…").max(300).nullable().default(null),
+  website: z
+    .string()
+    .trim()
+    .url("Use a full address, e.g. https://…")
+    .max(300)
+    .nullable()
+    .default(null),
 });
 export type UpdateChurchProfile = z.infer<typeof UpdateChurchProfileSchema>;
 
@@ -136,7 +151,14 @@ export const UpsertPostSchema = z.object({
   startsAt: optionalDate,
   endsAt: optionalDate,
   place: z.string().trim().max(200).nullable().default(null),
-  onlineUrl: z.string().trim().url().max(300).nullable().default(null).or(z.literal("").transform(() => null)),
+  onlineUrl: z
+    .string()
+    .trim()
+    .url()
+    .max(300)
+    .nullable()
+    .default(null)
+    .or(z.literal("").transform(() => null)),
 });
 export type UpsertPost = z.input<typeof UpsertPostSchema>;
 
@@ -154,7 +176,11 @@ export const MyPostListSchema = z.object({ items: z.array(MyPostSchema) });
 
 export const PostUploadSchema = z.object({
   contentType: z.string().max(100),
-  bytes: z.number().int().min(1).max(5 * 1024 * 1024, "The image is too large (max 5 MB)."),
+  bytes: z
+    .number()
+    .int()
+    .min(1)
+    .max(5 * 1024 * 1024, "The image is too large (max 5 MB)."),
 });
 export const AttachPostCoverSchema = z.object({ key: z.string().min(5).max(300).nullable() });
 
@@ -168,8 +194,14 @@ export const ModerationQueueSchema = z.object({ items: z.array(ModerationQueueIt
 
 export const PostDecisionSchema = z.discriminatedUnion("decision", [
   z.object({ decision: z.literal("approve"), note: z.string().trim().max(500).optional() }),
-  z.object({ decision: z.literal("reject"), note: z.string().trim().min(3, "Tell the author why").max(500) }),
-  z.object({ decision: z.literal("remove"), note: z.string().trim().min(3, "Give a reason").max(500) }),
+  z.object({
+    decision: z.literal("reject"),
+    note: z.string().trim().min(3, "Tell the author why").max(500),
+  }),
+  z.object({
+    decision: z.literal("remove"),
+    note: z.string().trim().min(3, "Give a reason").max(500),
+  }),
 ]);
 export type PostDecision = z.infer<typeof PostDecisionSchema>;
 

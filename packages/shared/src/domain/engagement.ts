@@ -23,7 +23,10 @@ export function parseEngageKey(key: string): { kind: EngageKind; id: string } | 
 }
 
 /** Web path of an item, for sharing and the Saved page. */
-export function engageHref(kind: EngageKind, ref: { id: string; slug?: string; podcastSlug?: string }): string {
+export function engageHref(
+  kind: EngageKind,
+  ref: { id: string; slug?: string; podcastSlug?: string },
+): string {
   switch (kind) {
     case "BOOK":
       return `/books/${ref.slug ?? ""}`;
@@ -85,7 +88,10 @@ export function mentionIds(body: string): string[] {
 export type CommentSegment = { t: "text"; v: string } | { t: "mention"; id: string; name: string };
 
 /** Split a stored comment into text and mentions; unknown ids show as "@someone". */
-export function commentSegments(body: string, names: ReadonlyMap<string, string>): CommentSegment[] {
+export function commentSegments(
+  body: string,
+  names: ReadonlyMap<string, string>,
+): CommentSegment[] {
   const out: CommentSegment[] = [];
   let at = 0;
   for (const m of body.matchAll(TOKEN)) {
@@ -104,7 +110,10 @@ export function commentSegments(body: string, names: ReadonlyMap<string, string>
  * {id, name}. Each picked "@Name" becomes "@{id}" — longest names first, so "@Ama Mensah"
  * isn't swallowed by "@Ama". Names typed without picking stay plain text.
  */
-export function encodeMentions(text: string, picked: readonly { id: string; name: string }[]): string {
+export function encodeMentions(
+  text: string,
+  picked: readonly { id: string; name: string }[],
+): string {
   let out = text;
   const sorted = [...picked].sort((a, b) => b.name.length - a.name.length);
   for (const p of sorted) {
@@ -115,7 +124,10 @@ export function encodeMentions(text: string, picked: readonly { id: string; name
 }
 
 /** The text being typed after "@" at the caret, for suggestions; null if not in a mention. */
-export function mentionQueryAt(text: string, caret: number): { start: number; query: string } | null {
+export function mentionQueryAt(
+  text: string,
+  caret: number,
+): { start: number; query: string } | null {
   const before = text.slice(0, caret);
   const m = /(?:^|\s)@([\p{L}\p{N}' -]{0,30})$/u.exec(before);
   if (!m) return null;

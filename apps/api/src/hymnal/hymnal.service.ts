@@ -35,7 +35,8 @@ import { qcol } from "../db/qualified";
 import { MediaService } from "../media/media.service";
 
 const PAGE = 30;
-const notFound = (code: string, what: string) => new DomainError(404, code, `We couldn't find that ${what}.`);
+const notFound = (code: string, what: string) =>
+  new DomainError(404, code, `We couldn't find that ${what}.`);
 const escapeLike = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 type MediaRow = typeof hymnMedia.$inferSelect;
@@ -91,7 +92,10 @@ export class HymnalService {
     const offset = (opts.page - 1) * PAGE;
 
     const conditions = [eq(hymns.isPublished, true)];
-    if (opts.tag) conditions.push(sql`exists (select 1 from ${hymnTags} tg where tg.hymn_id = ${qcol(hymns, hymns.id)} and tg.tag = ${opts.tag.toLowerCase()})`);
+    if (opts.tag)
+      conditions.push(
+        sql`exists (select 1 from ${hymnTags} tg where tg.hymn_id = ${qcol(hymns, hymns.id)} and tg.tag = ${opts.tag.toLowerCase()})`,
+      );
 
     let ids: string[];
     if (parsed.number) {
@@ -99,7 +103,13 @@ export class HymnalService {
         .select({ id: hymnNumbers.hymnId })
         .from(hymnNumbers)
         .innerJoin(hymns, eq(hymns.id, hymnNumbers.hymnId))
-        .where(and(eq(hymnNumbers.number, parsed.number), bookId ? eq(hymnNumbers.bookId, bookId) : undefined, ...conditions))
+        .where(
+          and(
+            eq(hymnNumbers.number, parsed.number),
+            bookId ? eq(hymnNumbers.bookId, bookId) : undefined,
+            ...conditions,
+          ),
+        )
         .limit(PAGE + 1)
         .offset(offset);
       ids = rows.map((r) => r.id);
@@ -113,11 +123,17 @@ export class HymnalService {
         .where(
           and(
             ...conditions,
-            bookId ? sql`exists (select 1 from ${hymnNumbers} n where n.hymn_id = ${qcol(hymns, hymns.id)} and n.book_id = ${bookId})` : undefined,
+            bookId
+              ? sql`exists (select 1 from ${hymnNumbers} n where n.hymn_id = ${qcol(hymns, hymns.id)} and n.book_id = ${bookId})`
+              : undefined,
             or(sql`${doc} @@ ${query}`, ilike(hymns.firstLine, like), ilike(hymns.title, like)),
           ),
         )
-        .orderBy(desc(sql`(${hymns.firstLine} ilike ${like})`), desc(sql`ts_rank(${doc}, ${query})`), asc(hymns.firstLine))
+        .orderBy(
+          desc(sql`(${hymns.firstLine} ilike ${like})`),
+          desc(sql`ts_rank(${doc}, ${query})`),
+          asc(hymns.firstLine),
+        )
         .limit(PAGE + 1)
         .offset(offset);
       ids = rows.map((r) => r.id);
@@ -177,8 +193,14 @@ export class HymnalService {
           slug: r.slug,
           title: hymnDisplayTitle(r.title, r.firstLine),
           firstLine: r.firstLine,
-          numbers: this.orderNumbers(nums.filter((n) => n.hymnId === r.id), country),
-          tags: tags.filter((t) => t.hymnId === r.id).map((t) => t.tag).sort(),
+          numbers: this.orderNumbers(
+            nums.filter((n) => n.hymnId === r.id),
+            country,
+          ),
+          tags: tags
+            .filter((t) => t.hymnId === r.id)
+            .map((t) => t.tag)
+            .sort(),
           hasAudio: kinds.includes("AUDIO") || kinds.includes("YOUTUBE"),
           hasNotation: kinds.includes("STAFF_PDF") || kinds.includes("SOLFA_PDF"),
         };
@@ -200,8 +222,15 @@ export class HymnalService {
       .where(inArray(hymnNumbers.hymnId, ids));
   }
 
-  private orderNumbers(rows: Awaited<ReturnType<HymnalService["numbersFor"]>>, country: string | null) {
-    return orderBookNumbers(rows, country).map((n) => ({ book: n.book, bookName: n.bookName, number: n.number }));
+  private orderNumbers(
+    rows: Awaited<ReturnType<HymnalService["numbersFor"]>>,
+    country: string | null,
+  ) {
+    return orderBookNumbers(rows, country).map((n) => ({
+      book: n.book,
+      bookName: n.bookName,
+      number: n.number,
+    }));
   }
 
   // ------------------------------------------------------------------ detail
@@ -210,7 +239,9 @@ export class HymnalService {
     const [h] = await this.db
       .select()
       .from(hymns)
-      .where(and(eq(hymns.slug, slug), includeUnpublished ? undefined : eq(hymns.isPublished, true)))
+      .where(
+        and(eq(hymns.slug, slug), includeUnpublished ? undefined : eq(hymns.isPublished, true)),
+      )
       .limit(1);
     if (!h) throw notFound("HYMN_NOT_FOUND", "hymn");
     return h;
@@ -239,7 +270,10 @@ export class HymnalService {
       author: h.author,
       verses: h.verses,
       source: h.source,
-      tunes: tunes.map((t) => ({ ...t.tune, media: t.media.map((m) => this.viewMedia(m, viewer)) })),
+      tunes: tunes.map((t) => ({
+        ...t.tune,
+        media: t.media.map((m) => this.viewMedia(m, viewer)),
+      })),
     };
   }
 
@@ -253,11 +287,27 @@ export class HymnalService {
       ? await this.db
           .select()
           .from(hymnMedia)
-          .where(inArray(hymnMedia.tuneId, tunes.map((t) => t.id)))
-          .orderBy(asc(hymnMedia.kind), desc(hymnMedia.isDefault), asc(hymnMedia.position), asc(hymnMedia.label))
+          .where(
+            inArray(
+              hymnMedia.tuneId,
+              tunes.map((t) => t.id),
+            ),
+          )
+          .orderBy(
+            asc(hymnMedia.kind),
+            desc(hymnMedia.isDefault),
+            asc(hymnMedia.position),
+            asc(hymnMedia.label),
+          )
       : [];
     return tunes.map((t) => ({
-      tune: { id: t.id, name: t.name, composer: t.composer, meter: t.meter, isDefault: t.isDefault },
+      tune: {
+        id: t.id,
+        name: t.name,
+        composer: t.composer,
+        meter: t.meter,
+        isDefault: t.isDefault,
+      },
       media: media.filter((m) => m.tuneId === t.id),
     }));
   }
@@ -271,11 +321,15 @@ export class HymnalService {
       .innerJoin(hymns, eq(hymns.id, hymnTunes.hymnId))
       .where(eq(hymnMedia.id, id))
       .limit(1);
-    if (!row || (!row.published && !viewer.staff) || !row.m.objectKey) throw notFound("MEDIA_NOT_FOUND", "file");
+    if (!row || (!row.published && !viewer.staff) || !row.m.objectKey)
+      throw notFound("MEDIA_NOT_FOUND", "file");
     if (!canOpenMedia(row.m.access, viewer, this.paywall))
       throw new DomainError(403, "MEDIA_LOCKED", "This item is for Ecclesios subscribers.");
     const ext = row.m.objectKey.split(".").pop();
-    const url = await this.media.presignGet(row.m.objectKey, download ? `${row.slug}-${slugify(row.m.label)}.${ext}` : undefined);
+    const url = await this.media.presignGet(
+      row.m.objectKey,
+      download ? `${row.slug}-${slugify(row.m.label)}.${ext}` : undefined,
+    );
     return { url, expiresInSeconds: this.media.ttl };
   }
 
@@ -301,7 +355,10 @@ export class HymnalService {
     return rows.map((r) => ({
       slug: r.slug,
       title: hymnDisplayTitle(r.title, r.firstLine),
-      numbers: this.orderNumbers(nums.filter((n) => n.hymnId === r.id), null),
+      numbers: this.orderNumbers(
+        nums.filter((n) => n.hymnId === r.id),
+        null,
+      ),
       tunes: r.tunes,
       media: r.media,
       isPublished: r.isPublished,
@@ -335,10 +392,17 @@ export class HymnalService {
   }
 
   /** Create (slug absent) or update a hymn, replacing its numbers and tags. */
-  async upsert(userId: string, slug: string | null, body: z.output<typeof UpsertHymnSchema>, ip: string) {
+  async upsert(
+    userId: string,
+    slug: string | null,
+    body: z.output<typeof UpsertHymnSchema>,
+    ip: string,
+  ) {
     const { idOf } = await this.bookAliases();
-    for (const n of body.numbers) if (!idOf.has(n.book)) throw notFound("BOOK_NOT_FOUND", `hymn book ${n.book}`);
-    const finalSlug = slug ?? (await this.freeSlug(slugify(hymnDisplayTitle(body.title, body.firstLine))));
+    for (const n of body.numbers)
+      if (!idOf.has(n.book)) throw notFound("BOOK_NOT_FOUND", `hymn book ${n.book}`);
+    const finalSlug =
+      slug ?? (await this.freeSlug(slugify(hymnDisplayTitle(body.title, body.firstLine))));
     try {
       await this.db.transaction(async (tx) => {
         const values = {
@@ -351,11 +415,18 @@ export class HymnalService {
         };
         let id: string;
         if (slug) {
-          const [row] = await tx.update(hymns).set(values).where(eq(hymns.slug, slug)).returning({ id: hymns.id });
+          const [row] = await tx
+            .update(hymns)
+            .set(values)
+            .where(eq(hymns.slug, slug))
+            .returning({ id: hymns.id });
           if (!row) throw notFound("HYMN_NOT_FOUND", "hymn");
           id = row.id;
         } else {
-          const [row] = await tx.insert(hymns).values({ ...values, slug: finalSlug }).returning({ id: hymns.id });
+          const [row] = await tx
+            .insert(hymns)
+            .values({ ...values, slug: finalSlug })
+            .returning({ id: hymns.id });
           id = row!.id;
           await tx.insert(hymnTunes).values({ hymnId: id, name: "Default tune", isDefault: true });
         }
@@ -377,10 +448,21 @@ export class HymnalService {
       });
     } catch (err) {
       if ((err as { code?: string }).code === "23505")
-        throw new DomainError(409, "NUMBER_TAKEN", "That number is already used by another hymn in this book.");
+        throw new DomainError(
+          409,
+          "NUMBER_TAKEN",
+          "That number is already used by another hymn in this book.",
+        );
       throw err;
     }
-    await this.audit.write({ actorType: "USER", actorId: userId, action: slug ? "hymn.updated" : "hymn.created", entityType: "hymn", entityId: finalSlug, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: slug ? "hymn.updated" : "hymn.created",
+      entityType: "hymn",
+      entityId: finalSlug,
+      ip,
+    });
     return this.adminDetail(finalSlug);
   }
 
@@ -388,7 +470,11 @@ export class HymnalService {
     const root = base || "hymn";
     for (let i = 1; ; i++) {
       const candidate = i === 1 ? root : `${root}-${i}`;
-      const [hit] = await this.db.select({ id: hymns.id }).from(hymns).where(eq(hymns.slug, candidate)).limit(1);
+      const [hit] = await this.db
+        .select({ id: hymns.id })
+        .from(hymns)
+        .where(eq(hymns.slug, candidate))
+        .limit(1);
       if (!hit) return candidate;
     }
   }
@@ -396,7 +482,11 @@ export class HymnalService {
   // tunes ------------------------------------------------------------
   private async tuneOf(slug: string, tuneId: string) {
     const h = await this.hymnBySlug(slug, true);
-    const [t] = await this.db.select().from(hymnTunes).where(and(eq(hymnTunes.id, tuneId), eq(hymnTunes.hymnId, h.id))).limit(1);
+    const [t] = await this.db
+      .select()
+      .from(hymnTunes)
+      .where(and(eq(hymnTunes.id, tuneId), eq(hymnTunes.hymnId, h.id)))
+      .limit(1);
     if (!t) throw notFound("TUNE_NOT_FOUND", "tune");
     return { hymn: h, tune: t };
   }
@@ -404,10 +494,16 @@ export class HymnalService {
   async addTune(slug: string, body: z.output<typeof UpsertTuneSchema>) {
     const h = await this.hymnBySlug(slug, true);
     await this.db.transaction(async (tx) => {
-      const [{ n }] = (await tx.select({ n: count() }).from(hymnTunes).where(eq(hymnTunes.hymnId, h.id))) as [{ n: number }];
+      const [{ n }] = (await tx
+        .select({ n: count() })
+        .from(hymnTunes)
+        .where(eq(hymnTunes.hymnId, h.id))) as [{ n: number }];
       const makeDefault = body.isDefault || n === 0;
-      if (makeDefault) await tx.update(hymnTunes).set({ isDefault: false }).where(eq(hymnTunes.hymnId, h.id));
-      await tx.insert(hymnTunes).values({ ...body, isDefault: makeDefault, hymnId: h.id, position: n });
+      if (makeDefault)
+        await tx.update(hymnTunes).set({ isDefault: false }).where(eq(hymnTunes.hymnId, h.id));
+      await tx
+        .insert(hymnTunes)
+        .values({ ...body, isDefault: makeDefault, hymnId: h.id, position: n });
     });
     return this.adminDetail(slug);
   }
@@ -415,7 +511,8 @@ export class HymnalService {
   async updateTune(slug: string, tuneId: string, body: z.output<typeof UpsertTuneSchema>) {
     const { hymn } = await this.tuneOf(slug, tuneId);
     await this.db.transaction(async (tx) => {
-      if (body.isDefault) await tx.update(hymnTunes).set({ isDefault: false }).where(eq(hymnTunes.hymnId, hymn.id));
+      if (body.isDefault)
+        await tx.update(hymnTunes).set({ isDefault: false }).where(eq(hymnTunes.hymnId, hymn.id));
       await tx.update(hymnTunes).set(body).where(eq(hymnTunes.id, tuneId));
     });
     return this.adminDetail(slug);
@@ -427,8 +524,14 @@ export class HymnalService {
     await this.db.transaction(async (tx) => {
       await tx.delete(hymnTunes).where(eq(hymnTunes.id, tuneId));
       if (tune.isDefault) {
-        const [next] = await tx.select().from(hymnTunes).where(eq(hymnTunes.hymnId, hymn.id)).orderBy(asc(hymnTunes.position)).limit(1);
-        if (next) await tx.update(hymnTunes).set({ isDefault: true }).where(eq(hymnTunes.id, next.id));
+        const [next] = await tx
+          .select()
+          .from(hymnTunes)
+          .where(eq(hymnTunes.hymnId, hymn.id))
+          .orderBy(asc(hymnTunes.position))
+          .limit(1);
+        if (next)
+          await tx.update(hymnTunes).set({ isDefault: true }).where(eq(hymnTunes.id, next.id));
       }
     });
     await Promise.all(media.filter((m) => m.objectKey).map((m) => this.media.remove(m.objectKey!)));
@@ -436,17 +539,33 @@ export class HymnalService {
   }
 
   // media ------------------------------------------------------------
-  async presignUpload(slug: string, tuneId: string, kind: Upload["kind"], contentType: string, bytes: number) {
+  async presignUpload(
+    slug: string,
+    tuneId: string,
+    kind: Upload["kind"],
+    contentType: string,
+    bytes: number,
+  ) {
     const { hymn } = await this.tuneOf(slug, tuneId);
     if (!MEDIA_CONTENT_TYPES[kind].includes(contentType))
       throw new DomainError(400, "UPLOAD_REJECTED", `That file type isn't accepted for ${kind}.`);
     if (bytes > MAX_UPLOAD_BYTES[kind])
-      throw new DomainError(400, "UPLOAD_REJECTED", `The file is too large (max ${Math.round(MAX_UPLOAD_BYTES[kind] / 1048576)} MB).`);
+      throw new DomainError(
+        400,
+        "UPLOAD_REJECTED",
+        `The file is too large (max ${Math.round(MAX_UPLOAD_BYTES[kind] / 1048576)} MB).`,
+      );
     const key = this.media.newKey(`hymns/${hymn.id}/${tuneId}`, contentType);
     return this.media.presignPut(key, contentType, bytes);
   }
 
-  async addMedia(userId: string, slug: string, tuneId: string, body: z.output<typeof AddMediaSchema>, ip: string) {
+  async addMedia(
+    userId: string,
+    slug: string,
+    tuneId: string,
+    body: z.output<typeof AddMediaSchema>,
+    ip: string,
+  ) {
     const { hymn } = await this.tuneOf(slug, tuneId);
     let objectKey: string | null = null;
     let contentType: string | null = null;
@@ -454,16 +573,26 @@ export class HymnalService {
     let yt: string | null = null;
     if (body.kind === "YOUTUBE") {
       yt = youTubeId(body.url);
-      if (!yt) throw new DomainError(400, "INVALID_YOUTUBE_LINK", "Paste a YouTube or YouTube Music link.");
+      if (!yt)
+        throw new DomainError(
+          400,
+          "INVALID_YOUTUBE_LINK",
+          "Paste a YouTube or YouTube Music link.",
+        );
     } else {
       // The key must be one we issued for this tune, and the object must exist with an allowed type.
       if (!body.key.startsWith(`hymns/${hymn.id}/${tuneId}/`))
         throw new DomainError(400, "UPLOAD_REJECTED", "That upload doesn't belong to this tune.");
       const head = await this.media.head(body.key);
-      if (!head) throw new DomainError(400, "UPLOAD_REJECTED", "The file hasn't finished uploading.");
+      if (!head)
+        throw new DomainError(400, "UPLOAD_REJECTED", "The file hasn't finished uploading.");
       if (!head.contentType || !MEDIA_CONTENT_TYPES[body.kind].includes(head.contentType)) {
         await this.media.remove(body.key);
-        throw new DomainError(400, "UPLOAD_REJECTED", `That file type isn't accepted for ${body.kind}.`);
+        throw new DomainError(
+          400,
+          "UPLOAD_REJECTED",
+          `That file type isn't accepted for ${body.kind}.`,
+        );
       }
       objectKey = body.key;
       contentType = head.contentType;
@@ -472,8 +601,15 @@ export class HymnalService {
     const isDefault = body.kind === "AUDIO" && body.isDefault;
     const access = body.access ?? defaultMediaAccess(body.kind, isDefault);
     await this.db.transaction(async (tx) => {
-      if (isDefault) await tx.update(hymnMedia).set({ isDefault: false }).where(and(eq(hymnMedia.tuneId, tuneId), eq(hymnMedia.kind, "AUDIO")));
-      const [{ n }] = (await tx.select({ n: count() }).from(hymnMedia).where(eq(hymnMedia.tuneId, tuneId))) as [{ n: number }];
+      if (isDefault)
+        await tx
+          .update(hymnMedia)
+          .set({ isDefault: false })
+          .where(and(eq(hymnMedia.tuneId, tuneId), eq(hymnMedia.kind, "AUDIO")));
+      const [{ n }] = (await tx
+        .select({ n: count() })
+        .from(hymnMedia)
+        .where(eq(hymnMedia.tuneId, tuneId))) as [{ n: number }];
       await tx.insert(hymnMedia).values({
         tuneId,
         kind: body.kind,
@@ -488,7 +624,15 @@ export class HymnalService {
         position: n,
       });
     });
-    await this.audit.write({ actorType: "USER", actorId: userId, action: "hymn.media_added", entityType: "hymn", entityId: slug, metadata: { kind: body.kind, access }, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: "hymn.media_added",
+      entityType: "hymn",
+      entityId: slug,
+      metadata: { kind: body.kind, access },
+      ip,
+    });
     return this.adminDetail(slug);
   }
 
@@ -508,7 +652,10 @@ export class HymnalService {
     const m = await this.mediaOf(slug, mediaId);
     await this.db.transaction(async (tx) => {
       if (body.isDefault && m.kind === "AUDIO")
-        await tx.update(hymnMedia).set({ isDefault: false }).where(and(eq(hymnMedia.tuneId, m.tuneId), eq(hymnMedia.kind, "AUDIO")));
+        await tx
+          .update(hymnMedia)
+          .set({ isDefault: false })
+          .where(and(eq(hymnMedia.tuneId, m.tuneId), eq(hymnMedia.kind, "AUDIO")));
       await tx
         .update(hymnMedia)
         .set({ ...body, isDefault: m.kind === "AUDIO" ? (body.isDefault ?? m.isDefault) : false })
@@ -521,7 +668,15 @@ export class HymnalService {
     const m = await this.mediaOf(slug, mediaId);
     await this.db.delete(hymnMedia).where(eq(hymnMedia.id, mediaId));
     if (m.objectKey) await this.media.remove(m.objectKey);
-    await this.audit.write({ actorType: "USER", actorId: userId, action: "hymn.media_removed", entityType: "hymn", entityId: slug, metadata: { kind: m.kind }, ip });
+    await this.audit.write({
+      actorType: "USER",
+      actorId: userId,
+      action: "hymn.media_removed",
+      entityType: "hymn",
+      entityId: slug,
+      metadata: { kind: m.kind },
+      ip,
+    });
     return this.adminDetail(slug);
   }
 }

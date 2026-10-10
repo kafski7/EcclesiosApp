@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { randomUUID } from "node:crypto";
 import { LoggerModule } from "nestjs-pino";
+import { AccountModule } from "./account/account.module";
 import { AuditModule } from "./audit/audit.module";
 import { AuthModule } from "./auth/auth.module";
 import { JwtAuthGuard } from "./auth/jwt-auth.guard";
@@ -29,6 +30,11 @@ import { PlatformRoleGuard } from "./platform/platform-role";
 import { SocialModule } from "./social/social.module";
 import { SubscriptionGuard } from "./subscriptions/subscription.guard";
 import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
+import { JobsModule } from "./jobs/jobs.module";
+import { MessagingModule } from "./messaging/messaging.module";
+import { NotifyModule } from "./notify/notify.module";
+import { MessagesModule } from "./messages/messages.module";
+import { DigestsModule } from "./digests/digests.module";
 
 @Module({
   imports: [
@@ -73,7 +79,11 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
     }),
     DbModule,
     AuditModule,
+    JobsModule,
+    MessagingModule,
+    NotifyModule,
     AuthModule,
+    AccountModule,
     RbacModule,
     MembershipsModule,
     RegistrationModule,
@@ -91,6 +101,8 @@ import { SubscriptionsModule } from "./subscriptions/subscriptions.module";
     BooksModule,
     PodcastsModule,
     ExploreModule,
+    MessagesModule,
+    DigestsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

@@ -1,30 +1,43 @@
 # Ecclesios
 
 A social platform for the Catholic Church with an integrated Church Management application.
-Specs: [docs/blueprint.md](docs/blueprint.md) · [docs/functionality.md](docs/functionality.md) ·
+Specs: [docs/blueprint.md](docs/blueprint.md) · [docs/functionality.md](docs/functionality.md) · social UI [docs/social.md](docs/social.md) ·
 build plan [docs/todo.md](docs/todo.md) · decisions [docs/decisions.md](docs/decisions.md).
 
 ## Status
 
-| Phase                                               | State                                                      |
-| --------------------------------------------------- | ---------------------------------------------------------- |
-| 0 — Foundations                                     | ✅ built                                                   |
-| 1 — Database layer                                  | ✅ built                                                   |
-| 2 — API core (auth, RBAC scope guard, health)       | ✅ built                                                   |
-| 3 — Social platform skeleton                        | ✅ built (shell, routing, PWA, sign-in, self-registration) |
-| 3.5 — People & memberships refactor (D-014 – D-018) | ✅ built (migration `0001`)                                |
-| 4 — CMS shell + subscriptions (D-019 – D-021) | ✅ built |
-| 5.1 — Readings (D-022) | ✅ built |
-| 5.2 — Bible (D-023, D-024) | ✅ built |
-| 5.3 — Saints (D-025) | ✅ built |
-| 5.4 — Hymnal + media (D-026) | ✅ built |
-| 5.5 — Podcasts (D-027 – D-029) | ✅ built |
-| 5.6 — Teachings (D-030) | ✅ built |
-| 5.7 — Explore (D-031) | ✅ built |
-| 5.8 — News + Home (D-032 – D-034) | ✅ built |
-| 5.9 — Likes, saves, shares, comment rules (D-035) | ✅ built |
-| 5.10 — Books (D-036) | ✅ built — run `pnpm db:generate` once (migration `0012`) |
-| 6+ | not started |
+| Phase                                                                                    | State                                                      |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 0 — Foundations                                                                          | ✅ built                                                   |
+| 1 — Database layer                                                                       | ✅ built                                                   |
+| 2 — API core (auth, RBAC scope guard, health)                                            | ✅ built                                                   |
+| 3 — Social platform skeleton                                                             | ✅ built (shell, routing, PWA, sign-in, self-registration) |
+| 3.5 — People & memberships refactor (D-014 – D-018)                                      | ✅ built (migration `0001`)                                |
+| 4 — CMS shell + subscriptions (D-019 – D-021)                                            | ✅ built                                                   |
+| 5.1 — Readings (D-022)                                                                   | ✅ built                                                   |
+| 5.2 — Bible (D-023, D-024)                                                               | ✅ built                                                   |
+| 5.3 — Saints (D-025)                                                                     | ✅ built                                                   |
+| 5.4 — Hymnal + media (D-026)                                                             | ✅ built                                                   |
+| 5.5 — Podcasts (D-027 – D-029)                                                           | ✅ built                                                   |
+| 5.6 — Teachings (D-030)                                                                  | ✅ built                                                   |
+| 5.7 — Explore (D-031)                                                                    | ✅ built                                                   |
+| 5.8 — News + Home (D-032 – D-034)                                                        | ✅ built                                                   |
+| 5.9 — Likes, saves, shares, comment rules (D-035)                                        | ✅ built                                                   |
+| 5.10 — Books (D-036)                                                                     | ✅ built — run `pnpm db:generate` once (migration `0012`)  |
+| 6.1 — Register, requests, birthdays (D-037)                                              | ✅ built — no migration                                    |
+| 6.2 — Societies & committees (D-038)                                                     | ✅ built — no migration                                    |
+| 6.3 — Accounts, notifications, Users & Roles, Settings (D-039)                           | ✅ built — no migration                                    |
+| 6.4 — Groups, roll-ups, collections, accounting link (D-040, D-041)                      | ✅ built — no migration                                    |
+| S1 — Social shell: account menu, nav-only sidebar, global search (D-042, docs/social.md) | ✅ built — web only, no migration                          |
+| S2 — Social cards, loading/empty/error states, reactions, sign-in return (D-043)         | ✅ built — web only, no migration                          |
+| S3 — Home (Continue, Today strip, tabs) & Explore (past events, churches) (D-044)        | ✅ built — web only, no migration                          |
+| S4 — Reading & media: text size, Bible verse share, episode pages (D-045)                | ✅ built — web only, no migration                          |
+| Layout fixes: light sidebar, Today card in rail, rail scrolling (D-046)                  | ✅ built — web only, no migration                          |
+| Brand images: favicons, sidebar mark, sign-in monstrance (D-047) | ✅ built — web only |
+| Console brand images (D-048) | ✅ built — no migration |
+| S5 — You: join, `/me`, move home church (API + console), Saved/Library/Notifications polish (D-049) | ✅ built — API change, no migration |
+| 7 — Workers, SMS/email, Messages & broadcasts, digests, notification preferences (D-050 – D-052) | ✅ built — run `pnpm i` and `pnpm db:generate` once (migration `0013`) |
+| 8+                                                                                       | not started                                                |
 
 ## Prerequisites
 
@@ -43,6 +56,7 @@ docker compose up -d        # postgres 16, redis 7, minio (+ private bucket)
 pnpm db:setup               # migrate + seed (dev only — wipes data)
 pnpm format                 # once, before your first commit
 pnpm dev                    # API http://localhost:4000/api · web http://localhost:5173
+                            # workers run inside the API in dev (WORKERS=1); Redis must be up
 ```
 
 Verify:
@@ -74,6 +88,7 @@ World English Bible (Catholic edition) and the Douay-Rheims (e.g. from eBible.or
 pnpm bible:import -- --translation WEBC --dir ./downloads/webc
 pnpm bible:import -- --translation DRA  --dir ./downloads/dra
 ```
+
 Re-run after `pnpm db:seed` (seeding wipes the database). Web: `/bible`, or from a reading's citation.
 Keep the downloads in `./downloads/` — it is git-ignored and left out of `pnpm bundle`.
 
@@ -93,7 +108,7 @@ Explore: web `/explore`. Write as `theresa.pastor@…` (in St Theresa's name) or
 
 Books: web `/books`. Sell as `creator@…` in the console → My books → New book → upload an EPUB → Submit;
 approve as `superadmin@…` → Platform → Books. Buy as a member: with `PAYMENTS_GATEWAY=test` (default) the
-checkout is a test page with *Pay (test)*. For Hubtel set `PAYMENTS_GATEWAY=hubtel` and the `HUBTEL_*` keys.
+checkout is a test page with _Pay (test)_. For Hubtel set `PAYMENTS_GATEWAY=hubtel` and the `HUBTEL_*` keys.
 
 API e2e tests (need a seeded DB): `pnpm --filter @ecclesios/api test:e2e`. Contract: functionality §2.3.
 

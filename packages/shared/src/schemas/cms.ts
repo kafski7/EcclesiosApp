@@ -60,12 +60,28 @@ export type StartTrialRequest = z.infer<typeof StartTrialRequestSchema>;
 /** GET /api/cms/groups/:groupId/dashboard (functionality §4.1). */
 export const CmsDashboardSchema = z.object({
   groupId: z.string().uuid(),
+  /** FULL for staff and monitoring offices; LEADER for Society-Leaders (only what they lead, D-039). */
+  view: z.enum(["FULL", "LEADER"]),
   members: z.number().int(),
   pendingRequests: z.number().int(),
   societies: z.number().int(),
   committees: z.number().int(),
   birthdaysToday: z.number().int(),
   unreadNotifications: z.number().int(),
+  /**
+   * Everything under this group that the viewer may count (D-041): its outstations for a parish,
+   * parishes and outstations for a deanery and up. Suffragans set to "hidden" are left out.
+   */
+  rollup: z
+    .object({
+      parishes: z.number().int(),
+      outstations: z.number().int(),
+      members: z.number().int(),
+      societies: z.number().int(),
+      pendingRequests: z.number().int(),
+      hiddenDioceses: z.number().int(),
+    })
+    .nullable(),
 });
 export type CmsDashboard = z.infer<typeof CmsDashboardSchema>;
 

@@ -1,5 +1,5 @@
 import { createDb, groups, memberships, roles, subscriptions } from "@ecclesios/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -88,10 +88,7 @@ afterAll(async () => {
 describe("GET /api/cms/contexts (functionality §4.13)", () => {
   it("parish Administrator: own parish, subscribed", async () => {
     const t17 = await token(THERESA);
-    const r = await http()
-      .get("/api/cms/contexts")
-      .set(auth(t17))
-      .expect(200);
+    const r = await http().get("/api/cms/contexts").set(auth(t17)).expect(200);
     const c = r.body.contexts.find((x: { group: { id: string } }) => x.group.id === PAR_A1);
     expect(c).toMatchObject({
       role: "ADMINISTRATOR",
@@ -102,10 +99,7 @@ describe("GET /api/cms/contexts (functionality §4.13)", () => {
 
   it("outstation rides on its parish's subscription", async () => {
     const t16 = await token(MICHAEL);
-    const r = await http()
-      .get("/api/cms/contexts")
-      .set(auth(t16))
-      .expect(200);
+    const r = await http().get("/api/cms/contexts").set(auth(t16)).expect(200);
     expect(r.body.contexts).toMatchObject([
       {
         group: { id: OUT_A1A, level: "OUTSTATION", parent: "St Theresa Parish" },
@@ -116,10 +110,7 @@ describe("GET /api/cms/contexts (functionality §4.13)", () => {
 
   it("monitoring levels are not gated (subscription: null)", async () => {
     const t15 = await token(DEAN);
-    const r = await http()
-      .get("/api/cms/contexts")
-      .set(auth(t15))
-      .expect(200);
+    const r = await http().get("/api/cms/contexts").set(auth(t15)).expect(200);
     expect(r.body.contexts).toMatchObject([{ group: { id: DEAN_A }, subscription: null }]);
   });
 
@@ -128,69 +119,49 @@ describe("GET /api/cms/contexts (functionality §4.13)", () => {
     const mine = await http().get("/api/cms/contexts").set(auth(t14)).expect(200);
     expect(mine.body.contexts).toEqual([]);
     const t13 = await token(SUPER, undefined, "admin-login");
-    await http()
-      .get("/api/cms/contexts")
-      .set(auth(t13))
-      .expect(403);
+    await http().get("/api/cms/contexts").set(auth(t13)).expect(403);
   });
 });
 
 describe("subscription gate (D-020) — GET /api/cms/groups/:id/dashboard", () => {
   it("open for an ACTIVE parish, with counters", async () => {
     const t12 = await token(THERESA);
-    const r = await http()
-      .get(`/api/cms/groups/${PAR_A1}/dashboard`)
-      .set(auth(t12))
-      .expect(200);
+    const r = await http().get(`/api/cms/groups/${PAR_A1}/dashboard`).set(auth(t12)).expect(200);
     expect(r.body.members).toBeGreaterThanOrEqual(7);
-    expect(r.body.pendingRequests).toBeGreaterThanOrEqual(1); // Esi
+    const [pending] = await handle.db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(memberships)
+      .where(and(eq(memberships.groupId, PAR_A1), eq(memberships.status, "PENDING")));
+    expect(r.body.pendingRequests).toBe(pending!.n);
     expect(r.body).toMatchObject({ societies: 2, committees: 1 });
   });
 
   it("open during a TRIAL", async () => {
     const t11 = await token(CHRIST);
-    await http()
-      .get(`/api/cms/groups/${PAR_A2}/dashboard`)
-      .set(auth(t11))
-      .expect(200);
+    await http().get(`/api/cms/groups/${PAR_A2}/dashboard`).set(auth(t11)).expect(200);
   });
 
   it("402 for an expired parish and for its outstation", async () => {
     const t10 = await token(ANTHONY);
-    const r = await http()
-      .get(`/api/cms/groups/${PAR_B1}/dashboard`)
-      .set(auth(t10))
-      .expect(402);
+    const r = await http().get(`/api/cms/groups/${PAR_B1}/dashboard`).set(auth(t10)).expect(402);
     expect(r.body.error).toMatchObject({
       code: "SUBSCRIPTION_REQUIRED",
       details: { state: "EXPIRED" },
     });
     const t9 = await token(AGNES);
-    await http()
-      .get(`/api/cms/groups/${OUT_B1A}/dashboard`)
-      .set(auth(t9))
-      .expect(402);
+    await http().get(`/api/cms/groups/${OUT_B1A}/dashboard`).set(auth(t9)).expect(402);
   });
 
   it("scope still comes first: a neighbour gets 403, not 402", async () => {
     const t8 = await token(THERESA);
-    await http()
-      .get(`/api/cms/groups/${PAR_B1}/dashboard`)
-      .set(auth(t8))
-      .expect(403);
+    await http().get(`/api/cms/groups/${PAR_B1}/dashboard`).set(auth(t8)).expect(403);
   });
 
   it("monitoring levels pass the gate", async () => {
     const t7 = await token(DEAN);
-    await http()
-      .get(`/api/cms/groups/${DEAN_A}/dashboard`)
-      .set(auth(t7))
-      .expect(200);
+    await http().get(`/api/cms/groups/${DEAN_A}/dashboard`).set(auth(t7)).expect(200);
     const t6 = await token(DEAN);
-    await http()
-      .get(`/api/cms/groups/${PAR_A1}/dashboard`)
-      .set(auth(t6))
-      .expect(200);
+    await http().get(`/api/cms/groups/${PAR_A1}/dashboard`).set(auth(t6)).expect(200);
   });
 });
 
@@ -239,10 +210,7 @@ describe("free trial (D-021)", () => {
 describe("platform console (Super-Admin)", () => {
   it("is refused to church members", async () => {
     const t3 = await token(THERESA);
-    await http()
-      .get("/api/platform/overview")
-      .set(auth(t3))
-      .expect(403);
+    await http().get("/api/platform/overview").set(auth(t3)).expect(403);
   });
 
   it("overview and subscription list", async () => {
@@ -273,15 +241,9 @@ describe("platform console (Super-Admin)", () => {
       .expect(201);
     expect(r.body).toMatchObject({ state: "ACTIVE", plan: { code: "BASIC" }, smsBalance: 100 });
     const t2 = await token(ANTHONY);
-    await http()
-      .get(`/api/cms/groups/${PAR_B1}/dashboard`)
-      .set(auth(t2))
-      .expect(200);
+    await http().get(`/api/cms/groups/${PAR_B1}/dashboard`).set(auth(t2)).expect(200);
     const t1 = await token(AGNES);
-    await http()
-      .get(`/api/cms/groups/${OUT_B1A}/dashboard`)
-      .set(auth(t1))
-      .expect(200);
+    await http().get(`/api/cms/groups/${OUT_B1A}/dashboard`).set(auth(t1)).expect(200);
   });
 
   it("renewing an active plan carries the remaining days over", async () => {

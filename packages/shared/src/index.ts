@@ -20,3 +20,8 @@ export * from "./schemas/news.js";
 export * from "./schemas/home.js";
 export * from "./schemas/engagement.js";
 export * from "./schemas/books.js";
+export * from "./schemas/register.js";
+export * from "./schemas/societies.js";
+export * from "./schemas/account.js";
+export * from "./schemas/groups.js";
+export * from "./schemas/messages.js";

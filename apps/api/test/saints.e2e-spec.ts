@@ -33,8 +33,12 @@ describe("saint of the day", () => {
     expect(r.body.saint).toMatchObject({ slug: "francis-of-assisi", rank: "MEMORIAL" });
   });
   it("a feast outranks others; empty days return null", async () => {
-    expect((await http().get("/api/public/saints/today?date=2026-10-18").expect(200)).body.saint.slug).toBe("luke");
-    expect((await http().get("/api/public/saints/today?date=2026-10-03").expect(200)).body).toMatchObject({ saint: null, others: [] });
+    expect(
+      (await http().get("/api/public/saints/today?date=2026-10-18").expect(200)).body.saint.slug,
+    ).toBe("luke");
+    expect(
+      (await http().get("/api/public/saints/today?date=2026-10-03").expect(200)).body,
+    ).toMatchObject({ saint: null, others: [] });
   });
   it("rejects bad dates", async () => {
     await http().get("/api/public/saints/today?date=2026-13-01").expect(400);
@@ -49,14 +53,18 @@ describe("directory", () => {
     expect(r.body.items.every((s: { feastMonth: number }) => s.feastMonth === 10)).toBe(true);
   });
   it("searches names and patronage", async () => {
-    expect((await http().get("/api/public/saints?q=lwanga").expect(200)).body.items[0].slug).toBe("charles-lwanga-and-companions");
+    expect((await http().get("/api/public/saints?q=lwanga").expect(200)).body.items[0].slug).toBe(
+      "charles-lwanga-and-companions",
+    );
     const m = await http().get("/api/public/saints?q=missions").expect(200);
     expect(m.body.items.map((s: { slug: string }) => s.slug)).toContain("francis-xavier");
   });
   it("a saint's page; unknown → 404", async () => {
     const r = await http().get("/api/public/saints/augustine").expect(200);
     expect(r.body.biography.length).toBeGreaterThan(0);
-    expect((await http().get("/api/public/saints/nobody-at-all").expect(404)).body.error.code).toBe("SAINT_NOT_FOUND");
+    expect((await http().get("/api/public/saints/nobody-at-all").expect(404)).body.error.code).toBe(
+      "SAINT_NOT_FOUND",
+    );
   });
 });
 
@@ -73,9 +81,17 @@ describe("PUT /api/platform/saints/:slug", () => {
     const t = await token(SUPER, undefined, "admin-login");
     const auth = { Authorization: `Bearer ${t}` };
     await http().put(`/api/platform/saints/${TEST_SLUG}`).set(auth).send(body).expect(400);
-    await http().put(`/api/platform/saints/${TEST_SLUG}`).set(auth).send({ ...body, feastDay: 28 }).expect(200);
+    await http()
+      .put(`/api/platform/saints/${TEST_SLUG}`)
+      .set(auth)
+      .send({ ...body, feastDay: 28 })
+      .expect(200);
     await http().get(`/api/public/saints/${TEST_SLUG}`).expect(200);
-    await http().put(`/api/platform/saints/${TEST_SLUG}`).set(auth).send({ ...body, feastDay: 28, isPublished: false }).expect(200);
+    await http()
+      .put(`/api/platform/saints/${TEST_SLUG}`)
+      .set(auth)
+      .send({ ...body, feastDay: 28, isPublished: false })
+      .expect(200);
     await http().get(`/api/public/saints/${TEST_SLUG}`).expect(404);
   });
 });

@@ -71,3 +71,10 @@ export async function signOut() {
   queryClient.clear();
   if (refreshToken) await api.postVoid("/auth/logout", { refreshToken }).catch(() => undefined);
 }
+
+/** Change your own password (D-039). The API ends other sessions and returns a fresh pair for this one. */
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const pair = await api.post("/me/password", { currentPassword, newPassword }, TokenPairSchema);
+  adopt(pair);
+  return pair;
+}

@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import {
   TeachingSearchQuerySchema,
   TeachingSlugSchema,
@@ -34,7 +45,9 @@ export class TeachingsController {
 
   /** ?q=eucharist · ?topic=sacraments */
   @Get()
-  list(@Query(new ZodPipe(TeachingSearchQuerySchema)) q: z.output<typeof TeachingSearchQuerySchema>) {
+  list(
+    @Query(new ZodPipe(TeachingSearchQuerySchema)) q: z.output<typeof TeachingSearchQuerySchema>,
+  ) {
     return this.teachings.list(q.q, q.topic, q.page);
   }
 
@@ -62,7 +75,10 @@ export class TeachingsAdminController {
   }
 
   @Put("topics/:slug")
-  updateTopic(@Param("slug", topicPipe) slug: string, @Body(new ZodPipe(UpsertTopicSchema)) b: z.output<typeof UpsertTopicSchema>) {
+  updateTopic(
+    @Param("slug", topicPipe) slug: string,
+    @Body(new ZodPipe(UpsertTopicSchema)) b: z.output<typeof UpsertTopicSchema>,
+  ) {
     return this.teachings.upsertTopic(slug, b);
   }
 
@@ -114,7 +130,11 @@ export class TeachingsAdminController {
 
   @Delete(":slug")
   @HttpCode(204)
-  async remove(@Param("slug", slugPipe) slug: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async remove(
+    @Param("slug", slugPipe) slug: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     await this.teachings.remove(p!.id, slug, ip(req));
   }
 }

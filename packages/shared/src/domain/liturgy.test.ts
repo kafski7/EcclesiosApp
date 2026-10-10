@@ -52,8 +52,16 @@ describe("liturgicalDay", () => {
     expect(season("2026-01-12")).toBe("ORDINARY");
   });
   it("Sunday and weekday cycles switch on the First Sunday of Advent", () => {
-    expect(liturgicalDay("2026-10-04")).toMatchObject({ sundayCycle: "A", weekdayCycle: "II", isSunday: true });
-    expect(liturgicalDay("2026-11-29")).toMatchObject({ sundayCycle: "B", weekdayCycle: "I", liturgicalYear: 2027 });
+    expect(liturgicalDay("2026-10-04")).toMatchObject({
+      sundayCycle: "A",
+      weekdayCycle: "II",
+      isSunday: true,
+    });
+    expect(liturgicalDay("2026-11-29")).toMatchObject({
+      sundayCycle: "B",
+      weekdayCycle: "I",
+      liturgicalYear: 2027,
+    });
     expect(liturgicalDay("2025-11-29")).toMatchObject({ sundayCycle: "C", weekdayCycle: "I" });
   });
   it("default colours", () => {

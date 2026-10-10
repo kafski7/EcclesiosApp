@@ -1,0 +1,17 @@
+ecclesios-favicon-alt.png
+ecclesios-favicon-black.ico
+ecclesios-favicon-black.png
+ecclesios-favicon-burgundy.ico
+ecclesios-favicon-burgundy.png
+ecclesios-favicon-gold.ico
+ecclesios-favicon-gold.png
+ecclesios-favicon-white.ico
+ecclesios-favicon-white.png
+ecclesios-logo.svg
+ecclesios-logo-black.png
+ecclesios-logo-burgundy.png
+ecclesios-logo-gold.png
+ecclesios-logo-white.png
+ecclesios-logo-wide-black.png
+ecclesios-logo-wide-white.png
+icon.svg

@@ -16,12 +16,17 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { api } from "./query";
 import { useSession } from "@/stores/session";
 
-export type ExploreTab = "ALL" | "EVENTS" | "ARTICLES" | "FOLLOWING";
+export type ExploreTab = "ALL" | "EVENTS" | "PAST" | "ARTICLES" | "FOLLOWING";
 
 /** Query string for a feed tab (D-031). */
 export function feedParams(tab: ExploreTab, opts: { q?: string; church?: string; page: number }) {
   const p = new URLSearchParams({ page: String(opts.page) });
   if (tab === "EVENTS") p.set("kind", "EVENT");
+  // Past events, newest first (the API has supported this since D-031; surfaced in D-044).
+  if (tab === "PAST") {
+    p.set("kind", "EVENT");
+    p.set("past", "1");
+  }
   if (tab === "ARTICLES") p.set("kind", "ARTICLE");
   if (tab === "FOLLOWING") p.set("following", "1");
   if (opts.q?.trim()) p.set("q", opts.q.trim());
@@ -34,14 +39,22 @@ export function useFeed(tab: ExploreTab, q: string, church?: string) {
   return useInfiniteQuery({
     queryKey: ["explore", "feed", tab, q.trim(), church ?? null, principal?.id ?? null],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => api.get(`/public/explore/posts?${feedParams(tab, { q, church, page: pageParam })}`, PostListSchema),
+    queryFn: ({ pageParam }) =>
+      api.get(
+        `/public/explore/posts?${feedParams(tab, { q, church, page: pageParam })}`,
+        PostListSchema,
+      ),
     getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
     staleTime: 60_000,
   });
 }
 
 export const usePost = (id: string | undefined) =>
-  useQuery({ queryKey: ["explore", "post", id], queryFn: () => api.get(`/public/explore/posts/${id}`, PostSchema), enabled: !!id });
+  useQuery({
+    queryKey: ["explore", "post", id],
+    queryFn: () => api.get(`/public/explore/posts/${id}`, PostSchema),
+    enabled: !!id,
+  });
 
 export function useComments(id: string | undefined) {
   const principal = useSession((s) => s.principal);
@@ -56,11 +69,21 @@ export function useCommentActions(postId: string) {
   const qc = useQueryClient();
   const refresh = () => qc.invalidateQueries({ queryKey: ["explore", "comments", postId] });
   return {
-    add: useMutation({ mutationFn: (body: string) => api.post(`/explore/posts/${postId}/comments`, { body }, CommentListSchema), onSuccess: refresh }),
-    remove: useMutation({ mutationFn: (id: string) => api.delVoid(`/explore/comments/${id}`), onSuccess: refresh }),
-    report: useMutation({ mutationFn: (id: string) => api.postVoid(`/explore/comments/${id}/report`, {}) }),
+    add: useMutation({
+      mutationFn: (body: string) =>
+        api.post(`/explore/posts/${postId}/comments`, { body }, CommentListSchema),
+      onSuccess: refresh,
+    }),
+    remove: useMutation({
+      mutationFn: (id: string) => api.delVoid(`/explore/comments/${id}`),
+      onSuccess: refresh,
+    }),
+    report: useMutation({
+      mutationFn: (id: string) => api.postVoid(`/explore/comments/${id}/report`, {}),
+    }),
     setStatus: useMutation({
-      mutationFn: ({ id, status }: { id: string; status: CommentStatus }) => api.putVoid(`/explore/comments/${id}/status`, { status }),
+      mutationFn: ({ id, status }: { id: string; status: CommentStatus }) =>
+        api.putVoid(`/explore/comments/${id}/status`, { status }),
       onSuccess: refresh,
     }),
   };
@@ -78,7 +101,8 @@ export const useChurch = (id: string | undefined) => {
 export function useSaveChurch(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (b: UpdateChurchProfile) => api.put(`/explore/churches/${id}`, b, ChurchProfileSchema),
+    mutationFn: (b: UpdateChurchProfile) =>
+      api.put(`/explore/churches/${id}`, b, ChurchProfileSchema),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["explore", "church", id] }),
   });
 }
@@ -87,7 +111,8 @@ export function useSaveChurch(id: string) {
 export function useFollowChurch(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (follow: boolean) => (follow ? api.putVoid(`/groups/${id}/follow`) : api.delVoid(`/groups/${id}/follow`)),
+    mutationFn: (follow: boolean) =>
+      follow ? api.putVoid(`/groups/${id}/follow`) : api.delVoid(`/groups/${id}/follow`),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["me"] });
       void qc.invalidateQueries({ queryKey: ["explore", "church", id] });
@@ -107,12 +132,21 @@ export function useAuthoring() {
   });
 }
 
-export const canWrite = (o: { asSelf: boolean; churches: unknown[] } | undefined) => !!o && (o.asSelf || o.churches.length > 0);
+export const canWrite = (o: { asSelf: boolean; churches: unknown[] } | undefined) =>
+  !!o && (o.asSelf || o.churches.length > 0);
 
-export const useMyPosts = () => useQuery({ queryKey: ["explore", "mine"], queryFn: () => api.get("/explore/my-posts", MyPostListSchema) });
+export const useMyPosts = () =>
+  useQuery({
+    queryKey: ["explore", "mine"],
+    queryFn: () => api.get("/explore/my-posts", MyPostListSchema),
+  });
 
 export const useMyPost = (id: string | undefined) =>
-  useQuery({ queryKey: ["explore", "mine", id], queryFn: () => api.get(`/explore/my-posts/${id}`, MyPostSchema), enabled: !!id });
+  useQuery({
+    queryKey: ["explore", "mine", id],
+    queryFn: () => api.get(`/explore/my-posts/${id}`, MyPostSchema),
+    enabled: !!id,
+  });
 
 export function useWriteActions() {
   const qc = useQueryClient();
@@ -120,15 +154,27 @@ export function useWriteActions() {
   return {
     save: useMutation({
       mutationFn: ({ id, body }: { id?: string; body: UpsertPost }) =>
-        id ? api.put(`/explore/my-posts/${id}`, body, MyPostSchema) : api.post("/explore/my-posts", body, MyPostSchema),
+        id
+          ? api.put(`/explore/my-posts/${id}`, body, MyPostSchema)
+          : api.post("/explore/my-posts", body, MyPostSchema),
       onSuccess: done,
     }),
-    submit: useMutation({ mutationFn: (id: string) => api.post(`/explore/my-posts/${id}/submit`, {}, MyPostSchema), onSuccess: done }),
-    remove: useMutation({ mutationFn: (id: string) => api.delVoid(`/explore/my-posts/${id}`), onSuccess: done }),
+    submit: useMutation({
+      mutationFn: (id: string) => api.post(`/explore/my-posts/${id}/submit`, {}, MyPostSchema),
+      onSuccess: done,
+    }),
+    remove: useMutation({
+      mutationFn: (id: string) => api.delVoid(`/explore/my-posts/${id}`),
+      onSuccess: done,
+    }),
     cover: useMutation({
       mutationFn: async ({ id, file }: { id: string; file: File | null }) => {
         if (!file) return api.put(`/explore/my-posts/${id}/cover`, { key: null }, MyPostSchema);
-        const signed = await api.post(`/explore/my-posts/${id}/cover-upload`, { contentType: file.type, bytes: file.size }, PresignedUploadSchema);
+        const signed = await api.post(
+          `/explore/my-posts/${id}/cover-upload`,
+          { contentType: file.type, bytes: file.size },
+          PresignedUploadSchema,
+        );
         const r = await fetch(signed.url, { method: "PUT", headers: signed.headers, body: file });
         if (!r.ok) throw new Error(`Upload failed (${r.status})`);
         return api.put(`/explore/my-posts/${id}/cover`, { key: signed.key }, MyPostSchema);
@@ -149,7 +195,12 @@ export function dateBox(iso: string) {
 
 export function eventWhen(startsAt: string, endsAt: string | null) {
   const s = new Date(startsAt);
-  const day = s.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const day = s.toLocaleDateString(undefined, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
   const t = (d: Date) => d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
   if (!endsAt) return `${day} · ${t(s)}`;
   const e = new Date(endsAt);

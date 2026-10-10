@@ -1,4 +1,14 @@
-import { CAlert, CBadge, CButton, CTable, CTableBody, CTableDataCell, CTableHead, CTableHeaderCell, CTableRow } from "@coreui/react";
+import {
+  CAlert,
+  CBadge,
+  CButton,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
+} from "@coreui/react";
 import { Link, useNavigate } from "react-router-dom";
 import { useStudioPodcasts } from "@/lib/podcasts";
 
@@ -11,7 +21,9 @@ export function PlatformPodcastsPage() {
       <div className="dash-head">
         <div>
           <h1>Podcasts</h1>
-          <p className="dash-sub">Series, episodes and audio. Episodes go live when you publish them.</p>
+          <p className="dash-sub">
+            Series, episodes and audio. Episodes go live when you publish them.
+          </p>
         </div>
         {list.data?.canCreate ? (
           <CButton color="primary" onClick={() => navigate("/platform/podcasts/new")}>
@@ -35,18 +47,24 @@ export function PlatformPodcastsPage() {
           <CTableBody>
             {list.isPending ? (
               <CTableRow>
-                <CTableDataCell colSpan={6} className="muted">Loading…</CTableDataCell>
+                <CTableDataCell colSpan={6} className="muted">
+                  Loading…
+                </CTableDataCell>
               </CTableRow>
             ) : null}
             {list.data && !list.data.items.length ? (
               <CTableRow>
-                <CTableDataCell colSpan={6} className="muted">No series yet.</CTableDataCell>
+                <CTableDataCell colSpan={6} className="muted">
+                  No series yet.
+                </CTableDataCell>
               </CTableRow>
             ) : null}
             {list.data?.items.map((p) => (
               <CTableRow key={p.slug}>
                 <CTableDataCell>
-                  <Link to={`/platform/podcasts/${p.slug}`}><b>{p.title}</b></Link>
+                  <Link to={`/platform/podcasts/${p.slug}`}>
+                    <b>{p.title}</b>
+                  </Link>
                   <div className="small muted">{p.summary}</div>
                 </CTableDataCell>
                 <CTableDataCell>{p.publisher.name}</CTableDataCell>
@@ -54,7 +72,11 @@ export function PlatformPodcastsPage() {
                 <CTableDataCell>{p.drafts}</CTableDataCell>
                 <CTableDataCell>{p.followers}</CTableDataCell>
                 <CTableDataCell>
-                  {p.isPublished ? <CBadge color="success">Visible</CBadge> : <CBadge color="secondary">Hidden</CBadge>}
+                  {p.isPublished ? (
+                    <CBadge color="success">Visible</CBadge>
+                  ) : (
+                    <CBadge color="secondary">Hidden</CBadge>
+                  )}
                 </CTableDataCell>
               </CTableRow>
             ))}

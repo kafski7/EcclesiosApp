@@ -1,10 +1,22 @@
 import type { HymnMedia, HymnTune } from "@ecclesios/shared";
 import { youTubeEmbedUrl } from "@ecclesios/shared/domain";
-import { ArrowLeft, Download, FileText, Headphones, Lock, Music, Play, Youtube } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  FileText,
+  Headphones,
+  Lock,
+  Music,
+  Play,
+  Youtube,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiClientError } from "@/lib/api";
 import { EngageBar } from "@/components/engage/engage-bar";
+import { TextSize, useReadScale } from "@/components/reader/text-size";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
+import { Tabs, tabId } from "@/components/ui/tabs";
 import { formatDuration, MEDIA_LABEL, mediaUrl, useHymn } from "@/lib/hymnal";
 
 /** One hymn (functionality §3.6): numbers in each book, lyrics, and every tune with its media (D-026). */
@@ -12,22 +24,48 @@ export function HymnPage() {
   const { slug } = useParams();
   const q = useHymn(slug);
   const [tuneId, setTuneId] = useState<string | null>(null);
+  const readScale = useReadScale();
 
-  if (q.isPending) return <p className="content-narrow mx-auto muted small">Loading…</p>;
+  if (q.isPending)
+    return (
+      <div className="content-narrow mx-auto">
+        <Skeleton variant="page" label="Loading the hymn" />
+      </div>
+    );
   if (q.isError)
     return (
-      <div className="content-narrow mx-auto card rail-card">
-        {q.error instanceof ApiClientError && q.error.code === "HYMN_NOT_FOUND" ? "We couldn't find that hymn." : "This hymn could not be loaded."}
+      <div className="content-narrow mx-auto">
+        {q.error instanceof ApiClientError && q.error.status === 404 ? (
+          <EmptyState
+            icon={Music}
+            title="We couldn't find that hymn"
+            action={
+              <Link to="/hymnal" className="btn btn-outline btn-sm">
+                Open the hymnal
+              </Link>
+            }
+          />
+        ) : (
+          <ErrorState
+            title="This hymn could not be loaded"
+            error={q.error}
+            onRetry={() => q.refetch()}
+            retrying={q.isRefetching}
+          />
+        )}
       </div>
     );
   const h = q.data;
   const tune = h.tunes.find((t) => t.id === tuneId) ?? h.tunes[0];
 
   return (
-    <div className="content-narrow mx-auto flex flex-col gap-4">
-      <Link to="/hymnal" className="link">
-        <ArrowLeft className="ic" aria-hidden /> Hymnal
-      </Link>
+    <div className="content-narrow mx-auto flex flex-col gap-4" style={readScale}>
+      <div className="reader-top">
+        <Link to="/hymnal" className="link">
+          <ArrowLeft className="ic" aria-hidden /> Hymnal
+        </Link>
+        <TextSize />
+      </div>
 
       <header className="card hymn-head">
         {h.numbers.length ? (
@@ -62,15 +100,23 @@ export function HymnPage() {
       {h.tunes.length ? (
         <section className="card tune-card" aria-label="Music">
           {h.tunes.length > 1 ? (
-            <div className="rt-bar" role="tablist" aria-label="Tunes" style={{ marginTop: 0, marginBottom: 14 }}>
-              {h.tunes.map((t) => (
-                <button key={t.id} type="button" role="tab" className="rt" aria-selected={t.id === tune?.id} onClick={() => setTuneId(t.id)}>
-                  {t.name}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              label="Tunes"
+              tabs={h.tunes.map((t) => ({ id: t.id, label: t.name }))}
+              value={tune?.id ?? ""}
+              onChange={setTuneId}
+              panelId="tune-panel"
+              barClass="rt-bar rt-bar-tight"
+              tabClass="rt"
+            />
           ) : null}
-          {tune ? <TuneMedia tune={tune} /> : null}
+          <div
+            id="tune-panel"
+            role={h.tunes.length > 1 ? "tabpanel" : undefined}
+            aria-labelledby={h.tunes.length > 1 && tune ? tabId("tune-panel", tune.id) : undefined}
+          >
+            {tune ? <TuneMedia tune={tune} /> : null}
+          </div>
         </section>
       ) : null}
     </div>
@@ -85,7 +131,9 @@ function TuneMedia({ tune }: { tune: HymnTune }) {
         {tune.name}
       </h2>
       {tune.composer || tune.meter ? (
-        <p className="small muted mb-2">{[tune.composer, tune.meter].filter(Boolean).join(" · ")}</p>
+        <p className="small muted mb-2">
+          {[tune.composer, tune.meter].filter(Boolean).join(" · ")}
+        </p>
       ) : null}
       {tune.media.length ? (
         <ul>
@@ -100,7 +148,13 @@ function TuneMedia({ tune }: { tune: HymnTune }) {
   );
 }
 
-const ICON = { AUDIO: Headphones, MIDI: Music, STAFF_PDF: FileText, SOLFA_PDF: FileText, YOUTUBE: Youtube } as const;
+const ICON = {
+  AUDIO: Headphones,
+  MIDI: Music,
+  STAFF_PDF: FileText,
+  SOLFA_PDF: FileText,
+  YOUTUBE: Youtube,
+} as const;
 
 function MediaRow({ m }: { m: HymnMedia }) {
   const Icon = ICON[m.kind];
@@ -117,7 +171,11 @@ function MediaRow({ m }: { m: HymnMedia }) {
       if (m.kind === "AUDIO" && !download) setSrc(url);
       else window.open(url, "_blank", "noopener");
     } catch (e) {
-      setErr(e instanceof ApiClientError && e.code === "MEDIA_LOCKED" ? "For subscribers." : "Couldn't open the file.");
+      setErr(
+        e instanceof ApiClientError && e.code === "MEDIA_LOCKED"
+          ? "For subscribers."
+          : "Couldn't open the file.",
+      );
     } finally {
       setBusy(false);
     }
@@ -131,7 +189,11 @@ function MediaRow({ m }: { m: HymnMedia }) {
         {m.durationSec ? ` · ${formatDuration(m.durationSec)}` : ""}
         {m.isDefault ? " · default" : ""}
       </span>
-      {err ? <span className="small block" style={{ color: "var(--danger)" }}>{err}</span> : null}
+      {err ? (
+        <span className="small block" style={{ color: "var(--danger)" }}>
+          {err}
+        </span>
+      ) : null}
     </span>
   );
 
@@ -150,21 +212,41 @@ function MediaRow({ m }: { m: HymnMedia }) {
       {title}
       {m.kind === "AUDIO" ? (
         src ? null : (
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => void open(false)} disabled={busy}>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => void open(false)}
+            disabled={busy}
+          >
             <Play className="ic" aria-hidden /> Play
           </button>
         )
       ) : m.kind === "YOUTUBE" ? (
-        <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowVideo((v) => !v)}>
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => setShowVideo((v) => !v)}
+        >
           {showVideo ? "Hide" : "Watch"}
         </button>
       ) : (
-        <button type="button" className="btn btn-outline btn-sm" onClick={() => void open(m.kind === "MIDI")} disabled={busy}>
-          {m.kind === "MIDI" ? <Download className="ic" aria-hidden /> : <FileText className="ic" aria-hidden />}
+        <button
+          type="button"
+          className="btn btn-outline btn-sm"
+          onClick={() => void open(m.kind === "MIDI")}
+          disabled={busy}
+        >
+          {m.kind === "MIDI" ? (
+            <Download className="ic" aria-hidden />
+          ) : (
+            <FileText className="ic" aria-hidden />
+          )}
           {m.kind === "MIDI" ? "Download" : "Open"}
         </button>
       )}
-      {src ? <audio src={src} controls autoPlay preload="none" style={{ flexBasis: "100%" }} /> : null}
+      {src ? (
+        <audio src={src} controls autoPlay preload="none" style={{ flexBasis: "100%" }} />
+      ) : null}
       {showVideo && m.youtubeId ? (
         // YouTube's terms: the player stays visible (no audio-only playback of YouTube) — D-026.
         <div className="yt-frame" style={{ flexBasis: "100%" }}>

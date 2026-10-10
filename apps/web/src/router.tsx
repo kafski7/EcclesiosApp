@@ -7,15 +7,19 @@ import { BookReaderPage } from "@/pages/book-reader";
 import { BooksPage } from "@/pages/books";
 import { LibraryPage } from "@/pages/library";
 import { MorePage } from "@/pages/more";
+import { MePage } from "@/pages/me";
 import { SavedPage } from "@/pages/saved";
+import { SearchPage } from "@/pages/search";
 import { NewsItemPage, NewsPage } from "@/pages/news";
 import { NotFoundPage } from "@/pages/not-found";
 import { LoginPage } from "@/pages/auth/login";
+import { AccountPage } from "@/pages/account";
+import { NotificationsPage } from "@/pages/notifications";
 import { RegisterPage } from "@/pages/auth/register";
 import { BiblePage } from "@/pages/bible";
 import { HymnPage } from "@/pages/hymn";
 import { HymnalPage } from "@/pages/hymnal";
-import { PodcastPage, PodcastsPage } from "@/pages/podcasts";
+import { EpisodePage, PodcastPage, PodcastsPage } from "@/pages/podcasts";
 import { ExplorePage } from "@/pages/explore";
 import { ExploreChurchPage } from "@/pages/explore-church";
 import { ExplorePostPage } from "@/pages/explore-post";
@@ -48,6 +52,7 @@ export const router = createBrowserRouter([
       { path: "explore/write/:id", element: <ExploreWritePage /> },
       { path: "podcasts", element: <PodcastsPage /> },
       { path: "podcasts/:slug", element: <PodcastPage /> },
+      { path: "podcasts/:slug/episodes/:id", element: <EpisodePage /> },
       { path: "hymnal", element: <HymnalPage /> },
       { path: "hymnal/:slug", element: <HymnPage /> },
       { path: "teachings", element: <TeachingsPage /> },
@@ -63,9 +68,13 @@ export const router = createBrowserRouter([
       { path: "books/:slug/read", element: <BookReaderPage /> },
       { path: "library", element: <LibraryPage /> },
       { path: "saved", element: <SavedPage /> },
+      { path: "search", element: <SearchPage /> },
       { path: "more", element: <MorePage /> },
       { path: "subscribe", element: <S.SubscribePage /> },
-      { path: "notifications", element: <S.NotificationsPage /> },
+      { path: "notifications", element: <NotificationsPage /> },
+      { path: "account", element: <AccountPage /> },
+      // "You" (D-049); membership notifications have always linked here.
+      { path: "me", element: <MePage /> },
       { path: "about", element: <S.AboutPage /> },
       { path: "privacy", element: <S.PrivacyPage /> },
       { path: "terms", element: <S.TermsPage /> },

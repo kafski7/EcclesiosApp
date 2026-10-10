@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { NEWS_CATEGORIES, NEWS_STATUSES } from "../domain/news.js";
 
-export const NewsSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100);
+export const NewsSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .max(100);
 export const NewsStatusSchema = z.enum(NEWS_STATUSES);
 export const NewsCategorySchema = z.enum(NEWS_CATEGORIES);
 
@@ -21,7 +24,11 @@ export const NewsQuerySchema = z.object({
   category: NewsCategorySchema.optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
-export const NewsListSchema = z.object({ items: z.array(NewsSummarySchema), page: z.number().int(), hasMore: z.boolean() });
+export const NewsListSchema = z.object({
+  items: z.array(NewsSummarySchema),
+  page: z.number().int(),
+  hasMore: z.boolean(),
+});
 
 /** One item: body in the lesson format (D-030), optional call-to-action link. */
 export const NewsItemSchema = NewsSummarySchema.extend({
@@ -46,8 +53,14 @@ export const UpsertNewsSchema = z
     /** Leaves Home and the rail after this; the page stays readable. */
     expiresAt: z.string().datetime().nullable().default(null),
   })
-  .refine((v) => !v.publishAt || !v.expiresAt || v.expiresAt > v.publishAt, { message: "Must be after the publish time", path: ["expiresAt"] })
-  .refine((v) => !v.linkLabel || v.linkUrl, { message: "Add the link's address", path: ["linkUrl"] });
+  .refine((v) => !v.publishAt || !v.expiresAt || v.expiresAt > v.publishAt, {
+    message: "Must be after the publish time",
+    path: ["expiresAt"],
+  })
+  .refine((v) => !v.linkLabel || v.linkUrl, {
+    message: "Add the link's address",
+    path: ["linkUrl"],
+  });
 export type UpsertNews = z.input<typeof UpsertNewsSchema>;
 
 /** Publish now, schedule (publishAt in the future), or back to draft. */
@@ -66,7 +79,15 @@ export const AdminNewsSchema = NewsItemSchema.extend({
   updatedAt: z.string().datetime(),
 });
 export type AdminNews = z.infer<typeof AdminNewsSchema>;
-export const AdminNewsListSchema = z.object({ items: z.array(AdminNewsSchema.omit({ body: true, problems: true })) });
+export const AdminNewsListSchema = z.object({
+  items: z.array(AdminNewsSchema.omit({ body: true, problems: true })),
+});
 
 /** Pick a hymn of the day for a date (D-033). */
-export const PinHymnSchema = z.object({ hymnSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100).nullable() });
+export const PinHymnSchema = z.object({
+  hymnSlug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .max(100)
+    .nullable(),
+});

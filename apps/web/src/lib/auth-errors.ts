@@ -13,6 +13,11 @@ const MESSAGES: Record<string, string> = {
   INVALID_TEMP_TOKEN: "Your password setup time ran out. Please sign in again.",
   RATE_LIMITED: "Too many requests. Please wait a moment and try again.",
   ACCOUNT_EXISTS: "An account with this email or phone already exists. Try signing in instead.",
+  CLAIM_ACCOUNT:
+    "Your church has already added you to Ecclesios. Use “Claim your account” on the sign-in page to choose your password.",
+  NOTHING_TO_CLAIM:
+    "We couldn't find a church record waiting to be claimed with these details. If you already have a password, sign in instead.",
+  WRONG_PASSWORD: "Your current password is not correct.",
   CHURCH_NOT_FOUND: "Choose your parish or outstation from the list.",
   ALREADY_MEMBER: "You're already a member of this church.",
   REQUEST_PENDING: "Your request to join is waiting for approval.",

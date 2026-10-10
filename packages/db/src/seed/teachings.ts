@@ -4,13 +4,48 @@
  * only — its text is not reproduced. Have a priest review these before launch.
  */
 export const TEACHING_TOPICS = [
-  { slug: "creed", name: "The Creed", description: "What Catholics believe about God, Christ and the Church.", position: 1 },
-  { slug: "sacraments", name: "Sacraments", description: "The seven signs through which Christ gives his grace.", position: 2 },
-  { slug: "liturgy", name: "Liturgy", description: "The Mass, the liturgical year and the Church's public prayer.", position: 3 },
-  { slug: "prayer", name: "Prayer", description: "How to pray, and the prayers of the Church.", position: 4 },
-  { slug: "morality", name: "Moral life", description: "Living as a disciple: conscience, virtue and the commandments.", position: 5 },
-  { slug: "social-teaching", name: "Social teaching", description: "Human dignity, justice, the poor and the common good.", position: 6 },
-  { slug: "church-history", name: "Church history", description: "The story of the Church from the apostles to today.", position: 7 },
+  {
+    slug: "creed",
+    name: "The Creed",
+    description: "What Catholics believe about God, Christ and the Church.",
+    position: 1,
+  },
+  {
+    slug: "sacraments",
+    name: "Sacraments",
+    description: "The seven signs through which Christ gives his grace.",
+    position: 2,
+  },
+  {
+    slug: "liturgy",
+    name: "Liturgy",
+    description: "The Mass, the liturgical year and the Church's public prayer.",
+    position: 3,
+  },
+  {
+    slug: "prayer",
+    name: "Prayer",
+    description: "How to pray, and the prayers of the Church.",
+    position: 4,
+  },
+  {
+    slug: "morality",
+    name: "Moral life",
+    description: "Living as a disciple: conscience, virtue and the commandments.",
+    position: 5,
+  },
+  {
+    slug: "social-teaching",
+    name: "Social teaching",
+    description: "Human dignity, justice, the poor and the common good.",
+    position: 6,
+  },
+  {
+    slug: "church-history",
+    name: "Church history",
+    description: "The story of the Church from the apostles to today.",
+    position: 7,
+  },
 ] as const;
 
 export interface SeedTeaching {
@@ -48,7 +83,8 @@ Start with [[teaching:baptism|Baptism]], the doorway to the others, and [[teachi
   {
     slug: "baptism",
     title: "Baptism: new life in Christ",
-    summary: "The first sacrament: washed from sin, reborn as children of God and members of the Church.",
+    summary:
+      "The first sacrament: washed from sin, reborn as children of God and members of the Church.",
     topics: ["sacraments"],
     related: ["what-is-a-sacrament"],
     body: `Baptism is the foundation of the whole Christian life and the gateway to the other sacraments [[CCC 1213]]. Through it we are freed from sin, reborn as children of God and made members of the Church.
@@ -123,7 +159,8 @@ Give God a few minutes at the start and end of each day. Faithfulness matters mo
   {
     slug: "dignity-of-the-human-person",
     title: "The dignity of the human person",
-    summary: "Every person is made in God's image — the foundation of the Church's social teaching.",
+    summary:
+      "Every person is made in God's image — the foundation of the Church's social teaching.",
     topics: ["social-teaching", "morality"],
     related: [],
     body: `The dignity of the human person is rooted in creation in the image and likeness of God [[CCC 1700]].

@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Post, Put, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import {
   AttachPostCoverSchema,
   CommentStatusChangeSchema,
@@ -23,10 +35,13 @@ import { ChurchPagesService } from "./churches.service";
 import { CommentsService } from "./comments.service";
 import { ExploreService } from "./explore.service";
 
-const uuid = new ParseUUIDPipe({ exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id.") });
+const uuid = new ParseUUIDPipe({
+  exceptionFactory: () => new DomainError(400, "VALIDATION_FAILED", "Invalid id."),
+});
 const ip = (req: Request) => req.ip ?? "unknown";
 const member = (p: Principal | undefined) => {
-  if (p?.kind !== "member") throw new DomainError(403, "NOT_ALLOWED", "Comments are for member accounts.");
+  if (p?.kind !== "member")
+    throw new DomainError(403, "NOT_ALLOWED", "Comments are for member accounts.");
   return p.id;
 };
 
@@ -42,7 +57,10 @@ export class ExplorePublicController {
 
   /** ?kind=EVENT&past=1 · ?church=<id> · ?following=1 · ?q= */
   @Get("posts")
-  list(@Query(new ZodPipe(ExploreQuerySchema)) q: z.output<typeof ExploreQuerySchema>, @CurrentPrincipal() p: Principal | undefined) {
+  list(
+    @Query(new ZodPipe(ExploreQuerySchema)) q: z.output<typeof ExploreQuerySchema>,
+    @CurrentPrincipal() p: Principal | undefined,
+  ) {
     return this.explore.list(q, p);
   }
 
@@ -101,7 +119,11 @@ export class ExploreController {
 
   @Post("comments/:id/report")
   @HttpCode(204)
-  async report(@Param("id", uuid) id: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async report(
+    @Param("id", uuid) id: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     await this.comments.report(member(p), id, ip(req));
   }
 
@@ -184,13 +206,21 @@ export class ExploreController {
 
   @Post("my-posts/:id/submit")
   @HttpCode(200)
-  submit(@Param("id", uuid) id: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  submit(
+    @Param("id", uuid) id: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     return this.explore.submit(p!, id, ip(req));
   }
 
   @Delete("my-posts/:id")
   @HttpCode(204)
-  async remove(@Param("id", uuid) id: string, @CurrentPrincipal() p: Principal | undefined, @Req() req: Request) {
+  async remove(
+    @Param("id", uuid) id: string,
+    @CurrentPrincipal() p: Principal | undefined,
+    @Req() req: Request,
+  ) {
     await this.explore.remove(p!, id, ip(req));
   }
 

@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { index, pgTable, primaryKey, smallint, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  index,
+  pgTable,
+  primaryKey,
+  smallint,
+  text,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { id, timestamps } from "./_common";
 import { teachingStatusEnum } from "./enums";
 
@@ -52,7 +61,10 @@ export const teachingTopicLinks = pgTable(
       .references(() => teachingTopics.id, { onDelete: "restrict" }),
     position: smallint("position").notNull().default(0),
   },
-  (t) => [primaryKey({ columns: [t.teachingId, t.topicId] }), index("teaching_topic_links_topic_idx").on(t.topicId)],
+  (t) => [
+    primaryKey({ columns: [t.teachingId, t.topicId] }),
+    index("teaching_topic_links_topic_idx").on(t.topicId),
+  ],
 );
 
 /** Explicit "Related" links, chosen by the writer (one direction; shown on `from`). */

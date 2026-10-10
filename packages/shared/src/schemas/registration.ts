@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { optionalPhone } from "./common.js";
 import { PasswordSchema } from "./auth.js";
 
 /** A church a person can join: a parish or an outstation (D-014). Public data only. */
@@ -46,12 +47,7 @@ export const RegisterRequestSchema = z
       .max(254)
       .optional()
       .or(z.literal("").transform(() => undefined)),
-    telephone: z
-      .string()
-      .trim()
-      .regex(/^\+[1-9]\d{7,14}$/, "Use the format +233241234567")
-      .optional()
-      .or(z.literal("").transform(() => undefined)),
+    telephone: optionalPhone().transform((v) => v ?? undefined),
     gender: z.enum(["MALE", "FEMALE"]).optional(),
     dateOfBirth: z
       .string()

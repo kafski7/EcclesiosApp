@@ -63,8 +63,12 @@ export function youTubeId(input: string): string | null {
   // No URL global here (shared runs in browsers, Node and React Native alike) — plain patterns.
   const m =
     /^https?:\/\/(?:www\.|m\.)?youtu\.be\/([\w-]{11})(?:[?#/]|$)/i.exec(s) ??
-    /^https?:\/\/(?:www\.|m\.|music\.)?youtube(?:-nocookie)?\.com\/watch\?(?:[^#]*&)?v=([\w-]{11})(?:[&#]|$)/i.exec(s) ??
-    /^https?:\/\/(?:www\.|m\.|music\.)?youtube(?:-nocookie)?\.com\/(?:embed|shorts|live|v)\/([\w-]{11})(?:[?#/]|$)/i.exec(s);
+    /^https?:\/\/(?:www\.|m\.|music\.)?youtube(?:-nocookie)?\.com\/watch\?(?:[^#]*&)?v=([\w-]{11})(?:[&#]|$)/i.exec(
+      s,
+    ) ??
+    /^https?:\/\/(?:www\.|m\.|music\.)?youtube(?:-nocookie)?\.com\/(?:embed|shorts|live|v)\/([\w-]{11})(?:[?#/]|$)/i.exec(
+      s,
+    );
   return m ? m[1]! : null;
 }
 
@@ -101,7 +105,11 @@ export function parseHymnQuery(input: string, bookCodes: Record<string, string>)
 }
 
 /** "0512" → "512", "246A" → "246a". */
-export const normalizeHymnNumber = (n: string) => n.trim().toLowerCase().replace(/^0+(?=\d)/, "");
+export const normalizeHymnNumber = (n: string) =>
+  n
+    .trim()
+    .toLowerCase()
+    .replace(/^0+(?=\d)/, "");
 
 /** Sort key so 2 < 10 < 10a < 11. */
 export function hymnNumberKey(n: string): number {
@@ -119,7 +127,8 @@ export function orderBookNumbers<T extends { bookCountry: string | null; bookOrd
 ): T[] {
   return [...rows].sort(
     (a, b) =>
-      Number(b.bookCountry === country) - Number(a.bookCountry === country) || a.bookOrder - b.bookOrder,
+      Number(b.bookCountry === country) - Number(a.bookCountry === country) ||
+      a.bookOrder - b.bookOrder,
   );
 }
 

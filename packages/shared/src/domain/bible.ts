@@ -16,7 +16,13 @@ export interface CanonBook {
   aliases: string[];
 }
 
-const b = (code: string, name: string, testament: Testament, aliases: string[] = [], deutero = false): CanonBook => ({
+const b = (
+  code: string,
+  name: string,
+  testament: Testament,
+  aliases: string[] = [],
+  deutero = false,
+): CanonBook => ({
   code,
   name,
   testament,
@@ -168,7 +174,8 @@ export function parseReference(input: string): ParsedReference | null {
         // cross-chapter range: keep the first chapter (to its end) and the last (from its start)
         chapter = Number(mm[1]);
         ranges.push({ chapter, from: v(mm[2]!), to: null });
-        for (let c = chapter + 1; c < Number(mm[3]); c++) ranges.push({ chapter: c, from: null, to: null });
+        for (let c = chapter + 1; c < Number(mm[3]); c++)
+          ranges.push({ chapter: c, from: null, to: null });
         chapter = Number(mm[3]);
         ranges.push({ chapter, from: 1, to: v(mm[4]!) });
       } else if ((mm = /^(\d+):(\d+[a-z]?)(?:-(\d+[a-z]?))?$/i.exec(piece))) {

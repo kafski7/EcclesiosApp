@@ -33,7 +33,7 @@ export class CmsController {
 
   /** GET /api/cms/groups/:groupId/dashboard — reference route for scope + subscription gate. */
   @Get("groups/:groupId/dashboard")
-  @Scope({ need: "readAggregates" })
+  @Scope({ need: ["readAggregates", "memberContent"] }) // leaders get their own view (D-039)
   @RequiresSubscription()
   dashboard(
     @Param("groupId", uuid) groupId: string,

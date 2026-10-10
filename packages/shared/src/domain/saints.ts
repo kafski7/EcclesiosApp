@@ -6,7 +6,13 @@
 import { parseIsoDate } from "./liturgy.js";
 
 /** Highest first. */
-export const CELEBRATION_RANKS = ["SOLEMNITY", "FEAST", "MEMORIAL", "OPTIONAL_MEMORIAL", "COMMEMORATION"] as const;
+export const CELEBRATION_RANKS = [
+  "SOLEMNITY",
+  "FEAST",
+  "MEMORIAL",
+  "OPTIONAL_MEMORIAL",
+  "COMMEMORATION",
+] as const;
 export type CelebrationRank = (typeof CELEBRATION_RANKS)[number];
 
 export const RANK_LABEL: Record<CelebrationRank, string> = {
@@ -21,9 +27,27 @@ const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as const;
 
 /** 29 February is a valid feast day (it only occurs in leap years). */
 export const isValidFeast = (month: number, day: number) =>
-  Number.isInteger(month) && Number.isInteger(day) && month >= 1 && month <= 12 && day >= 1 && day <= DAYS_IN_MONTH[month - 1]!;
+  Number.isInteger(month) &&
+  Number.isInteger(day) &&
+  month >= 1 &&
+  month <= 12 &&
+  day >= 1 &&
+  day <= DAYS_IN_MONTH[month - 1]!;
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 export const monthName = (month: number) => MONTHS[month - 1] ?? "";
 export const feastLabel = (month: number, day: number) => `${day} ${monthName(month)}`;
 

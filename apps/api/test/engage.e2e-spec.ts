@@ -1,4 +1,12 @@
-import { createDb, hymns, notifications, postComments, posts, reactions, teachings } from "@ecclesios/db";
+import {
+  createDb,
+  hymns,
+  notifications,
+  postComments,
+  posts,
+  reactions,
+  teachings,
+} from "@ecclesios/db";
 import { and, eq, like } from "drizzle-orm";
 import request from "supertest";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -25,9 +33,21 @@ beforeAll(async () => {
   const t = await createTestApp();
   app = t.app;
   token = signInCache(app, t.otp);
-  const [p] = await handle.db.select({ id: posts.id }).from(posts).where(eq(posts.status, "APPROVED")).limit(1);
-  const [te] = await handle.db.select({ id: teachings.id }).from(teachings).where(eq(teachings.slug, "baptism")).limit(1);
-  const [h] = await handle.db.select({ id: hymns.id }).from(hymns).where(eq(hymns.slug, "silent-night")).limit(1);
+  const [p] = await handle.db
+    .select({ id: posts.id })
+    .from(posts)
+    .where(eq(posts.status, "APPROVED"))
+    .limit(1);
+  const [te] = await handle.db
+    .select({ id: teachings.id })
+    .from(teachings)
+    .where(eq(teachings.slug, "baptism"))
+    .limit(1);
+  const [h] = await handle.db
+    .select({ id: hymns.id })
+    .from(hymns)
+    .where(eq(hymns.slug, "silent-night"))
+    .limit(1);
   postId = p!.id;
   teachingId = te!.id;
   hymnId = h!.id;
@@ -39,7 +59,14 @@ beforeAll(async () => {
 afterAll(async () => {
   await handle.db.delete(reactions).where(eq(reactions.memberId, esiId));
   await handle.db.delete(postComments).where(like(postComments.body, "E2E%"));
-  await handle.db.delete(notifications).where(and(eq(notifications.recipientMemberId, theresaId), like(notifications.title, "%mentioned you%")));
+  await handle.db
+    .delete(notifications)
+    .where(
+      and(
+        eq(notifications.recipientMemberId, theresaId),
+        like(notifications.title, "%mentioned you%"),
+      ),
+    );
   await app?.close();
   await handle.close();
 });
@@ -64,7 +91,10 @@ describe("likes and saves", () => {
     const s = await token(SUPER, undefined, "admin-login");
     await http().put(`/api/engage/POST/${postId}/like`).set(auth(s)).expect(403);
     const t = await token(ESI);
-    await http().put("/api/engage/HYMN/00000000-0000-4000-8000-000000000999/like").set(auth(t)).expect(404);
+    await http()
+      .put("/api/engage/HYMN/00000000-0000-4000-8000-000000000999/like")
+      .set(auth(t))
+      .expect(404);
     await http().get("/api/public/engage?items=NEWS:abc").expect(400);
   });
 
@@ -75,7 +105,10 @@ describe("likes and saves", () => {
     const saved = await http().get("/api/engage/saved").set(auth(t)).expect(200);
     expect(saved.body.items.map((x: { kind: string }) => x.kind)).toEqual(["POST", "HYMN"]);
     expect(saved.body.items[1].href).toBe("/hymnal/silent-night");
-    const st = await http().get(`/api/public/engage?items=HYMN:${hymnId},POST:${postId}`).set(auth(t)).expect(200);
+    const st = await http()
+      .get(`/api/public/engage?items=HYMN:${hymnId},POST:${postId}`)
+      .set(auth(t))
+      .expect(200);
     expect(st.body.items.every((x: { saved: boolean }) => x.saved)).toBe(true);
   });
 });
@@ -84,17 +117,28 @@ describe("comments: no links, mentions", () => {
   it("refuses links", async () => {
     const t = await token(ESI);
     for (const body of ["E2E see https://x.com", "E2E www.example.org", "E2E visit example.com"]) {
-      const r = await http().post(`/api/explore/posts/${postId}/comments`).set(auth(t)).send({ body }).expect(400);
+      const r = await http()
+        .post(`/api/explore/posts/${postId}/comments`)
+        .set(auth(t))
+        .send({ body })
+        .expect(400);
       expect(r.body.error.code).toBe("VALIDATION_FAILED");
     }
   });
 
   it("mentions people from the conversation or your church, and notifies them", async () => {
     const theresa = await token(THERESA);
-    await http().post(`/api/explore/posts/${postId}/comments`).set(auth(theresa)).send({ body: "E2E thanks all" }).expect(201);
+    await http()
+      .post(`/api/explore/posts/${postId}/comments`)
+      .set(auth(theresa))
+      .send({ body: "E2E thanks all" })
+      .expect(201);
 
     const t = await token(ESI);
-    const sug = await http().get(`/api/explore/posts/${postId}/mention-suggestions?q=ther`).set(auth(t)).expect(200);
+    const sug = await http()
+      .get(`/api/explore/posts/${postId}/mention-suggestions?q=ther`)
+      .set(auth(t))
+      .expect(200);
     expect(sug.body.items.some((x: { id: string }) => x.id === theresaId)).toBe(true);
 
     const r = await http()
@@ -107,7 +151,12 @@ describe("comments: no links, mentions", () => {
     const note = await handle.db
       .select()
       .from(notifications)
-      .where(and(eq(notifications.recipientMemberId, theresaId), like(notifications.title, "%mentioned you%")));
+      .where(
+        and(
+          eq(notifications.recipientMemberId, theresaId),
+          like(notifications.title, "%mentioned you%"),
+        ),
+      );
     expect(note.length).toBe(1);
   });
 

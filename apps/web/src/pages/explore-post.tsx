@@ -1,12 +1,26 @@
 import type { Comment } from "@ecclesios/shared";
-import { COMMENT_MAX, commentSegments, parseLesson, youTubeEmbedUrl } from "@ecclesios/shared/domain";
-import { ArrowLeft, Church, ExternalLink, MapPin } from "lucide-react";
+import {
+  COMMENT_MAX,
+  commentSegments,
+  parseLesson,
+  youTubeEmbedUrl,
+} from "@ecclesios/shared/domain";
+import { ArrowLeft, Church, Compass, ExternalLink, MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { SignInLink } from "@/components/auth/sign-in-link";
 import { Lesson } from "@/components/teachings/lesson";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { ApiClientError } from "@/lib/api";
 import { authErrorMessage } from "@/lib/auth-errors";
-import { dateBox, eventWhen, KIND_LABEL, useCommentActions, useComments, usePost } from "@/lib/explore";
+import {
+  dateBox,
+  eventWhen,
+  KIND_LABEL,
+  useCommentActions,
+  useComments,
+  usePost,
+} from "@/lib/explore";
 import { EngageBar } from "@/components/engage/engage-bar";
 import { CommentComposer } from "@/components/explore/comment-composer";
 import { useSession } from "@/stores/session";
@@ -16,12 +30,34 @@ export function ExplorePostPage() {
   const { id } = useParams();
   const post = usePost(id);
   const blocks = useMemo(() => parseLesson(post.data?.body ?? ""), [post.data?.body]);
-  if (post.isPending) return <p className="muted small">Loading…</p>;
+  if (post.isPending)
+    return (
+      <div className="content-narrow mx-auto">
+        <Skeleton variant="page" label="Loading the post" />
+      </div>
+    );
   if (post.isError)
     return (
-      <p className="card rail-card">
-        {post.error instanceof ApiClientError && post.error.code === "POST_NOT_FOUND" ? "We couldn't find that post." : "This post could not be loaded."}
-      </p>
+      <div className="content-narrow mx-auto">
+        {post.error instanceof ApiClientError && post.error.status === 404 ? (
+          <EmptyState
+            icon={Compass}
+            title="We couldn't find that post"
+            action={
+              <Link to="/explore" className="btn btn-outline btn-sm">
+                Back to Explore
+              </Link>
+            }
+          />
+        ) : (
+          <ErrorState
+            title="This post could not be loaded"
+            error={post.error}
+            onRetry={() => post.refetch()}
+            retrying={post.isRefetching}
+          />
+        )}
+      </div>
     );
   const p = post.data;
 
@@ -31,7 +67,9 @@ export function ExplorePostPage() {
         <ArrowLeft className="ic" aria-hidden /> Explore
       </Link>
       <article className="card post-page-head">
-        <span className={`x-tag${p.kind === "EVENT" ? " x-tag--gold" : ""}`}>{KIND_LABEL[p.kind]}</span>
+        <span className={`x-tag${p.kind === "EVENT" ? " x-tag--gold" : ""}`}>
+          {KIND_LABEL[p.kind]}
+        </span>
         <h1>{p.title}</h1>
         <p className="small muted flex items-center gap-2">
           {p.author.kind === "CHURCH" ? (
@@ -41,7 +79,9 @@ export function ExplorePostPage() {
           ) : (
             p.author.name
           )}
-          {p.publishedAt ? ` · ${new Date(p.publishedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}
+          {p.publishedAt
+            ? ` · ${new Date(p.publishedAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}`
+            : ""}
         </p>
         {p.event ? (
           <div className="event-box">
@@ -52,10 +92,16 @@ export function ExplorePostPage() {
             <div className="meta">
               <b>{eventWhen(p.event.startsAt, p.event.endsAt)}</b>
               <span className="flex items-center gap-1">
-                <MapPin className="ic" style={{ width: 14, height: 14 }} aria-hidden /> {p.event.place}
+                <MapPin className="ic" style={{ width: 14, height: 14 }} aria-hidden />{" "}
+                {p.event.place}
               </span>
               {p.event.onlineUrl ? (
-                <a href={p.event.onlineUrl} target="_blank" rel="noopener noreferrer" className="link">
+                <a
+                  href={p.event.onlineUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link"
+                >
                   Join online <ExternalLink className="ic" aria-hidden />
                 </a>
               ) : null}
@@ -63,16 +109,33 @@ export function ExplorePostPage() {
           </div>
         ) : null}
         {p.coverUrl ? <img src={p.coverUrl} alt="" className="post-cover" /> : null}
-        {p.summary ? <p className="mt-4" style={{ fontSize: 16, color: "var(--text-2)" }}>{p.summary}</p> : null}
+        {p.summary ? (
+          <p className="mt-4" style={{ fontSize: 16, color: "var(--text-2)" }}>
+            {p.summary}
+          </p>
+        ) : null}
         {p.youtubeId ? (
           <div className="yt-frame mt-4">
-            <iframe src={youTubeEmbedUrl(p.youtubeId)} title={p.title} loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+            <iframe
+              src={youTubeEmbedUrl(p.youtubeId)}
+              title={p.title}
+              loading="lazy"
+              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
         ) : null}
         <div className="mt-4">
           <Lesson blocks={blocks} />
         </div>
-        <EngageBar kind="POST" id={p.id} title={p.title} href={`/explore/posts/${p.id}`} comments={{ count: p.commentCount }} size="md" />
+        <EngageBar
+          kind="POST"
+          id={p.id}
+          title={p.title}
+          href={`/explore/posts/${p.id}`}
+          comments={{ count: p.commentCount }}
+          size="md"
+        />
       </article>
       <Comments postId={p.id} />
     </div>
@@ -88,7 +151,9 @@ function Comments({ postId }: { postId: string }) {
 
   return (
     <section className="card rail-card mt-4" aria-label="Comments" id="comments">
-      <h2 className="rail-title mb-3">Comments{items.length ? ` (${items.filter((c) => c.status === "VISIBLE").length})` : ""}</h2>
+      <h2 className="rail-title mb-3">
+        Comments{items.length ? ` (${items.filter((c) => c.status === "VISIBLE").length})` : ""}
+      </h2>
       {principal?.kind === "member" ? (
         <CommentComposer
           postId={postId}
@@ -99,11 +164,22 @@ function Comments({ postId }: { postId: string }) {
         />
       ) : !principal ? (
         <p className="small muted mb-3">
-          <Link to="/login" className="link">Sign in</Link> to join the conversation.
+          <SignInLink /> to join the conversation.
         </p>
       ) : null}
-      {list.isPending ? <p className="small muted">Loading…</p> : null}
-      {list.isSuccess && !items.length ? <p className="small muted">No comments yet.</p> : null}
+      {list.isPending ? <Skeleton variant="rows" count={2} label="Loading comments" /> : null}
+      {list.isError ? (
+        <ErrorState
+          title="Comments could not be loaded"
+          error={list.error}
+          onRetry={() => list.refetch()}
+          retrying={list.isRefetching}
+          compact
+        />
+      ) : null}
+      {list.isSuccess && !items.length ? (
+        <p className="small muted">No comments yet. Be the first.</p>
+      ) : null}
       <ul className="comments">
         {items.map((c) => (
           <CommentRow
@@ -112,8 +188,15 @@ function Comments({ postId }: { postId: string }) {
             reported={reported.includes(c.id)}
             canReport={principal?.kind === "member" && !c.author.isMe}
             onDelete={() => confirm("Delete your comment?") && act.remove.mutate(c.id)}
-            onReport={() => act.report.mutate(c.id, { onSuccess: () => setReported((r) => [...r, c.id]) })}
-            onToggle={() => act.setStatus.mutate({ id: c.id, status: c.status === "VISIBLE" ? "HIDDEN" : "VISIBLE" })}
+            onReport={() =>
+              act.report.mutate(c.id, { onSuccess: () => setReported((r) => [...r, c.id]) })
+            }
+            onToggle={() =>
+              act.setStatus.mutate({
+                id: c.id,
+                status: c.status === "VISIBLE" ? "HIDDEN" : "VISIBLE",
+              })
+            }
           />
         ))}
       </ul>
@@ -133,11 +216,17 @@ function CommentRow(props: {
   return (
     <li id={`c-${c.id}`} style={c.status === "HIDDEN" ? { opacity: 0.6 } : undefined}>
       <span className="avatar av-32 av-slate" aria-hidden>
-        {c.author.name.split(" ").map((x) => x[0]).slice(0, 2).join("")}
+        {c.author.name
+          .split(" ")
+          .map((x) => x[0])
+          .slice(0, 2)
+          .join("")}
       </span>
       <div className="min-w-0 flex-1">
         <b className="small">{c.author.name}</b>{" "}
-        <span className="small muted">{new Date(c.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
+        <span className="small muted">
+          {new Date(c.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+        </span>
         {c.status === "HIDDEN" ? <div className="hidden-note">Hidden</div> : null}
         <p className="small" style={{ whiteSpace: "pre-line", color: "var(--text-2)" }}>
           {commentSegments(c.body, new Map(c.mentions.map((m) => [m.id, m.name]))).map((x, i) =>
@@ -151,10 +240,24 @@ function CommentRow(props: {
           )}
         </p>
         <div className="comment-actions">
-          {c.canDelete ? <button type="button" onClick={props.onDelete}>Delete</button> : null}
-          {c.canModerate ? <button type="button" onClick={props.onToggle}>{c.status === "VISIBLE" ? "Hide" : "Show again"}</button> : null}
+          {c.canDelete ? (
+            <button type="button" onClick={props.onDelete}>
+              Delete
+            </button>
+          ) : null}
+          {c.canModerate ? (
+            <button type="button" onClick={props.onToggle}>
+              {c.status === "VISIBLE" ? "Hide" : "Show again"}
+            </button>
+          ) : null}
           {props.canReport ? (
-            props.reported ? <span className="muted">Reported — thank you</span> : <button type="button" onClick={props.onReport}>Report</button>
+            props.reported ? (
+              <span className="muted">Reported — thank you</span>
+            ) : (
+              <button type="button" onClick={props.onReport}>
+                Report
+              </button>
+            )
           ) : null}
         </div>
       </div>
@@ -166,7 +269,8 @@ function CommentRow(props: {
 function commentError(e: unknown) {
   if (e instanceof ApiClientError) {
     if (e.code === "VALIDATION_FAILED") {
-      const msg = (e.details as { fieldErrors?: { body?: string[] } } | undefined)?.fieldErrors?.body?.[0];
+      const msg = (e.details as { fieldErrors?: { body?: string[] } } | undefined)?.fieldErrors
+        ?.body?.[0];
       return msg ?? "Please check your comment.";
     }
     if (e.code === "MENTION_NOT_ALLOWED" || e.code === "RATE_LIMITED") return e.message;

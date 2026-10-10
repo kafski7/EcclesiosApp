@@ -1,0 +1,1045 @@
+/* ==========================================================================
+   SOCIAL SHELL — docs/social.md §5–6, §8, §9.11 (D-042)
+   Top-bar account menu, phone search button, unified search page.
+   apps/web only: the console keeps its own copy of kit.css.
+   ========================================================================== */
+@layer components {
+  /* --- account menu (S-004) ------------------------------------------- */
+  .acct {
+    position: relative;
+  }
+  .acct-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 8px 2px 2px;
+    border-radius: 999px;
+    color: var(--text-2);
+    transition: background 0.18s ease;
+  }
+  .acct-trigger:hover,
+  .acct-trigger[aria-expanded="true"] {
+    background: #fff;
+    box-shadow: var(--shadow-1);
+  }
+  .acct-trigger:focus-visible,
+  .acct-item:focus-visible,
+  .search-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .acct-trigger .avatar {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 3.5px var(--accent);
+  }
+  .acct-name {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .acct-chev {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.18s ease;
+  }
+  .acct-trigger[aria-expanded="true"] .acct-chev {
+    transform: rotate(180deg);
+  }
+  .acct-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 60;
+    width: 260px;
+    padding: 6px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow-2);
+  }
+  .acct-head {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px 8px;
+  }
+  .acct-head b {
+    font-size: 14px;
+    color: var(--text);
+  }
+  .acct-head small {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .acct-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: left;
+  }
+  .acct-item .ic {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-600);
+  }
+  .acct-item:hover,
+  .acct-item:focus {
+    background: var(--primary-soft);
+  }
+  .acct-sep {
+    height: 1px;
+    margin: 6px 4px;
+    background: var(--line-soft);
+  }
+
+  /* --- phone search button (social.md §8.2) ---------------------------- */
+  .search-btn {
+    display: none;
+  }
+
+  /* --- unified search page (social.md §9.11) --------------------------- */
+  .search-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .search-group .rail-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-group .rail-title .ic {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-600);
+  }
+  .search-empty {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .search-empty .ic {
+    flex-shrink: 0;
+    color: var(--text-3);
+  }
+  .search-hits .post-text {
+    margin: 2px 0 0;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .search-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .search-skeleton li {
+    height: 38px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #f1eee6 25%, #f8f6f1 50%, #f1eee6 75%);
+    background-size: 200% 100%;
+    animation: social-shimmer 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes social-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .acct-name,
+  .acct-chev,
+  .guest-register {
+    display: none;
+  }
+}
+/* kit.css hides the top-bar search box at ≤520px; show the icon instead. */
+@media (max-width: 520px) {
+  .search-btn {
+    display: inline-flex;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-skeleton li {
+    animation: none;
+  }
+  .acct-chev {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   S2 — CARD FAMILY & STATES (docs/social.md §10–11, D-043)
+   ========================================================================== */
+@layer components {
+  /* --- card family ------------------------------------------------------ */
+  .c-card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .c-card > .engage {
+    margin: 6px -6px -6px;
+  }
+  .c-link {
+    display: block;
+    border-radius: 10px;
+  }
+  .c-link:focus-visible,
+  .c-title-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .c-link .post-title,
+  .c-title-link .post-title {
+    margin-top: 6px;
+  }
+  .c-link:hover .post-title,
+  .c-title-link:hover .post-title {
+    color: var(--primary);
+  }
+  .c-title-link .post-title {
+    margin: 0;
+  }
+  .c-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .c-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--text-3);
+  }
+  .c-meta .ic {
+    width: 14px;
+    height: 14px;
+  }
+  /* Official news is visibly not an Explore post (S-007). */
+  .c-news {
+    border-left: 3px solid var(--accent);
+  }
+
+  /* --- engagement note: empty but present, so screen readers hear changes */
+  .eng-note:empty {
+    padding: 0;
+    background: none;
+  }
+  .eng-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .engage[aria-busy="true"] .eng-btn {
+    cursor: progress;
+  }
+
+  /* --- empty / error states --------------------------------------------- */
+  .state {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 20px 22px;
+  }
+  .state-compact {
+    padding: 12px 14px;
+    box-shadow: none;
+    background: transparent;
+    border: 0;
+  }
+  .state-ic {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    color: var(--accent-600);
+  }
+  .state-error .state-ic {
+    color: var(--danger);
+  }
+  .state-title {
+    margin: 0;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .state-text {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .state-action {
+    margin-top: 12px;
+  }
+  .state-action .btn,
+  .load-more .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .state-action .ic,
+  .load-more .ic {
+    width: 15px;
+    height: 15px;
+  }
+  .load-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+  }
+  .search-retry .link {
+    font-weight: 600;
+  }
+
+  /* --- skeletons ---------------------------------------------------------- */
+  .sk {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .sk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+  }
+  .sk-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 20px;
+    background: var(--card);
+    border: 1px solid var(--line-soft);
+    border-radius: 16px;
+  }
+  .sk-rows .sk-item {
+    padding: 12px 14px;
+  }
+  .sk-line,
+  .sk-block {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #f1eee6 25%, #f8f6f1 50%, #f1eee6 75%);
+    background-size: 200% 100%;
+    animation: social-shimmer 1.4s ease-in-out infinite;
+  }
+  .sk-title {
+    height: 16px;
+    width: 70%;
+  }
+  .sk-kicker {
+    height: 10px;
+    width: 35%;
+  }
+  .sk-short {
+    width: 45%;
+  }
+  .sk-cover {
+    height: auto;
+    aspect-ratio: 2 / 3;
+    border-radius: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-line,
+  .sk-block {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   S3 — HOME & EXPLORE (docs/social.md §7–9, D-044)
+   ========================================================================== */
+@layer components {
+  /* The feed's children moved into the tab panel: keep the kit's 18px rhythm. */
+  .feed-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* --- Continue row ------------------------------------------------------ */
+  .continue {
+    padding: 16px 18px;
+  }
+  .continue-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .continue-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    text-align: left;
+    transition: background 0.15s ease;
+  }
+  .continue-item:hover {
+    background: var(--primary-soft);
+  }
+  .continue-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .continue-thumb {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+  .continue-thumb-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-soft);
+    color: var(--accent-600);
+  }
+  .continue-thumb-icon .ic {
+    width: 20px;
+    height: 20px;
+  }
+  .continue-meta {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .continue-meta b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .continue-meta small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  /* --- Today strip: only where the rail is hidden ------------------------ */
+  .today-strip {
+    display: none;
+  }
+  .today-strip ul {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(200px, 46%);
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+  }
+  .today-strip li {
+    scroll-snap-align: start;
+  }
+  .today-tile {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+  .today-tile b {
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--text);
+  }
+  .today-tile:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* --- Explore: churches --------------------------------------------------- */
+  .churches-bar {
+    margin: 14px 0 4px;
+  }
+  .churches-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .church-pill,
+  .church-find {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .church-pill .ic,
+  .church-find .ic {
+    width: 14px;
+    height: 14px;
+  }
+  .church-pill .ic {
+    color: var(--accent-600);
+  }
+  .find-church {
+    margin-top: 10px;
+  }
+  .find-church .search {
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 1150px) {
+  .today-strip {
+    display: block;
+  }
+}
+@media (max-width: 640px) {
+  .today-strip ul {
+    grid-auto-columns: 78%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .continue-item {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   S4 — READING & MEDIA (docs/social.md §9.2–9.9, §11.2, D-045)
+   One text size (--read-scale) for every reading view.
+   ========================================================================== */
+@layer components {
+  .reading p,
+  .saint-bio p {
+    font-size: calc(15px * var(--read-scale, 1));
+  }
+  .lesson,
+  .stanza {
+    font-size: calc(15.5px * var(--read-scale, 1));
+  }
+  .lesson h2 {
+    font-size: calc(21px * var(--read-scale, 1));
+  }
+  .lesson h3 {
+    font-size: calc(17.5px * var(--read-scale, 1));
+  }
+  /* .verse already uses --bible-scale, which the reader sets to the same value. */
+
+  /* --- text size + share ----------------------------------------------- */
+  .text-size {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .text-size .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .text-size .icon-btn:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .text-size-value {
+    min-width: 46px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-3);
+  }
+  .text-size-value:hover {
+    background: var(--primary-soft);
+  }
+  .text-size button:focus-visible,
+  .verse-num:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .reader-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .flex-col > .reader-top {
+    margin-bottom: 0;
+  }
+  .reader-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .reader-actions {
+    margin-top: 16px;
+  }
+  .share-wrap {
+    position: relative;
+    display: inline-flex;
+  }
+  .share-wrap .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .share-wrap .ic {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* --- Bible verse selection ------------------------------------------- */
+  .bible-hint {
+    margin: -4px 0 14px;
+  }
+  .verse {
+    cursor: pointer;
+  }
+  .verse-num {
+    padding: 0 2px;
+    border-radius: 4px;
+    font: inherit;
+    color: inherit;
+  }
+  .verse.picked {
+    background: var(--primary-soft);
+    box-shadow: 0 0 0 6px var(--primary-soft);
+    text-decoration: underline dotted var(--primary);
+    text-underline-offset: 4px;
+  }
+  .verse.picked .verse-num {
+    background: var(--primary);
+    color: #fff;
+  }
+  .selection-bar {
+    position: sticky;
+    bottom: 16px;
+    z-index: 40;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow-2);
+  }
+  .has-player .selection-bar {
+    bottom: 88px;
+  }
+  .selection-ref {
+    flex: 1;
+    min-width: 120px;
+    font-size: 14px;
+  }
+  .selection-bar .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .selection-bar .btn .ic {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* --- tabs used outside their original page --------------------------- */
+  .rt-bar-tight {
+    margin-top: 0;
+    margin-bottom: 14px;
+  }
+
+  /* --- Teachings: latest ------------------------------------------------ */
+  .c-latest {
+    border-top: 3px solid var(--primary);
+  }
+  .c-latest .post-title {
+    font-size: 21px;
+  }
+
+  /* --- Podcast episode pages ------------------------------------------- */
+  .episode-link {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .episode-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+  .episode-title {
+    margin: 0 0 2px;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .episode-show {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .episode-show:hover b {
+    color: var(--primary);
+  }
+}
+
+/* ==========================================================================
+   D-046 — light sidebar, Today card in the rail, rail scrolls with the page
+   apps/web only: the console keeps the kit's dark sidebar (its own kit.css).
+   ========================================================================== */
+@layer components {
+  /* --- Sidebar: same surface as the page, not a dark console panel ------- */
+  .sidebar {
+    background: var(--surface);
+    color: var(--text-2);
+    border-right: 1px solid var(--line);
+  }
+  .brand-name {
+    color: var(--text);
+  }
+  .brand-sub {
+    color: var(--text-3);
+  }
+  .nav-item {
+    color: var(--text-2);
+  }
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--primary-soft);
+  }
+  /* Gold active item. #76590c on --accent-soft is 5.6:1 (kit --accent-600 is only 4.1:1). */
+  .nav-item.active {
+    background: var(--accent-soft);
+    color: #76590c;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .nav-item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .nav-sep {
+    background: var(--line);
+  }
+
+  /* --- Rail scrolls with the page; useStickyRail sets its sticky top ------ */
+  @media (min-width: 1151px) {
+    .home-rail {
+      max-height: none;
+      overflow: visible;
+      padding-bottom: 0;
+    }
+    /* The Today card lives in the rail on desktop. */
+    .today-in-feed {
+      display: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   D-047 — brand images: sidebar favicon, sign-in monstrance
+   ========================================================================== */
+@layer components {
+  .brand-mark {
+    width: auto;
+    height: 32px;
+    flex-shrink: 0;
+  }
+  .auth-small-mark {
+    width: auto;
+    height: 44px;
+  }
+
+  /* Sign-in monstrance: portrait, so cap the height rather than the width. */
+  .monstrance {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .monstrance svg {
+    position: relative;
+    width: auto;
+    height: min(68vh, 620px);
+    max-width: 100%;
+    filter: drop-shadow(0 6px 18px rgba(140, 109, 20, 0.18));
+  }
+  .auth-x-logo.monstrance {
+    width: auto;
+    max-width: 100%;
+  }
+  /* Soft radiance centred on the host (upper third), breathing slowly. */
+  .monstrance-glow {
+    position: absolute;
+    left: 50%;
+    top: 34%;
+    width: 120%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(233, 200, 121, 0.45) 0%, rgba(197, 155, 39, 0.12) 40%, transparent 68%);
+    animation: monstrance-radiance 6s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes monstrance-radiance {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(0.94);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monstrance-glow {
+    animation: none;
+    opacity: 0.8;
+  }
+}
+
+/* ==========================================================================
+   S5 — You: profile, churches, join, notifications by day (D-049)
+   ========================================================================== */
+@layer components {
+  .you {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .you-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 22px;
+  }
+  .you-head .page-title {
+    margin: 0;
+  }
+  .you-head .page-sub {
+    margin: 2px 0 0;
+  }
+  .you-head .page-sub .ic {
+    width: 15px;
+    height: 15px;
+    margin-top: -2px;
+    color: var(--accent-600);
+  }
+  .you-photo {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    font-size: 22px;
+  }
+  .you-head .btn,
+  .you-actions .btn,
+  .you-confirm .btn,
+  .join-wrap .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .you-head .btn .ic,
+  .join-wrap .btn .ic {
+    width: 15px;
+    height: 15px;
+  }
+
+  .you-shortcuts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .you-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .you-shortcut .ic {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-600);
+  }
+  .you-shortcut:hover {
+    color: var(--primary);
+  }
+  .you-shortcut:focus-visible,
+  .you-item-name:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .you-section {
+    scroll-margin-top: 90px;
+  }
+  .you-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .you-section-head .ic {
+    width: 14px;
+    height: 14px;
+  }
+  .you-subtitle {
+    margin: 18px 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-2);
+  }
+  .you-error {
+    color: var(--danger);
+    margin-bottom: 10px;
+  }
+  .you-transfer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    border-left: 3px solid var(--accent);
+  }
+  .you-transfer > .ic {
+    color: var(--accent-600);
+  }
+  .you-transfer p {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .you-list {
+    padding: 4px 16px;
+  }
+  .you-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .you-item:last-child {
+    border-bottom: 0;
+  }
+  .you-item-main {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .you-item-name {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .you-item-name:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+  .you-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .you-badges .ic {
+    width: 13px;
+    height: 13px;
+  }
+  .you-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .you-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--primary-soft);
+  }
+  .you-confirm > .small {
+    flex-basis: 100%;
+  }
+  .you-confirm .field-input {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  /* --- Join on a church page ---------------------------------------------- */
+  .join-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .join-error {
+    max-width: 240px;
+    color: var(--danger);
+  }
+
+  /* --- Notifications by day ----------------------------------------------- */
+  .notif-day + .notif-day {
+    margin-top: 14px;
+  }
+  .notif-day-title {
+    margin: 4px 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+}
+
+@media (max-width: 640px) {
+  .you-shortcuts {
+    grid-template-columns: 1fr;
+  }
+}

@@ -276,3 +276,141 @@ h3 {
 .modal-content {
   border-radius: var(--radius);
 }
+
+/* ---------------------------------------------------------------- register (D-037) */
+.reg-photo {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.reg-photo-blank {
+  display: inline-grid;
+  place-items: center;
+  background: var(--primary-soft, #f4e3e5);
+  color: var(--primary, #7a1f2b);
+  font-weight: 700;
+}
+.sacr {
+  display: inline-block;
+  min-width: 24px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eee;
+  color: #999;
+}
+.sacr.on {
+  background: rgba(30, 123, 79, 0.12);
+  color: #1e7b4f;
+}
+.facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.facts > div {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 8px;
+}
+.facts dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3, #777);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.facts dd {
+  margin: 0;
+  white-space: pre-line;
+}
+.bday-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.bday-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line, #eee);
+  color: inherit;
+  text-decoration: none;
+}
+.bday-card.today {
+  background: linear-gradient(135deg, #fbf3df, #fff);
+  border-color: #ecd9a6;
+}
+@media print {
+  .no-print,
+  .sidebar,
+  .topbar,
+  .cms-sidebar,
+  header.topbar {
+    display: none !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+  }
+}
+
+/* Phase 6.3 (D-039) */
+a.avatar {
+  text-decoration: none;
+  color: #fff;
+}
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.notif-list li {
+  display: flex;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line, #eee);
+}
+.notif-list li:last-child {
+  border-bottom: 0;
+}
+.notif-list li.unread b {
+  color: var(--primary, #7a1f2b);
+}
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: transparent;
+}
+.unread .notif-dot {
+  background: var(--danger, #b42318);
+}
+.theme-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  vertical-align: -2px;
+  margin-right: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* D-048: brand favicon in a fixed box, so it never pushes the wordmark around. */
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  object-fit: contain;
+  overflow: hidden;
+}
+.cms-auth-card .brand-cross {
+  color: var(--primary);
+}

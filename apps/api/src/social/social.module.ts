@@ -10,7 +10,13 @@ import { TeachingsService } from "./teachings.service";
 
 /** Social content (Phase 5): Readings, Bible, Saints; Hymnal, Podcasts, Teachings, Explore, feed next. */
 @Module({
-  controllers: [ReadingsController, BibleController, SaintsController, TeachingsController, TeachingsAdminController],
+  controllers: [
+    ReadingsController,
+    BibleController,
+    SaintsController,
+    TeachingsController,
+    TeachingsAdminController,
+  ],
   providers: [ReadingsService, BibleService, SaintsService, TeachingsService],
   // Home (D-033) reuses these.
   exports: [ReadingsService, SaintsService, TeachingsService],

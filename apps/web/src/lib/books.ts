@@ -33,7 +33,8 @@ export function useBooks(f: BookFilters) {
   return useInfiniteQuery({
     queryKey: ["books", "list", f.q.trim(), f.category, f.price, principal?.id ?? null],
     initialPageParam: 1,
-    queryFn: ({ pageParam }) => api.get(`/public/books?${bookParams(f, pageParam)}`, BookListSchema),
+    queryFn: ({ pageParam }) =>
+      api.get(`/public/books?${bookParams(f, pageParam)}`, BookListSchema),
     getNextPageParam: (last) => (last.hasMore ? last.page + 1 : undefined),
     staleTime: 60_000,
   });
@@ -50,13 +51,18 @@ export function useBook(slug: string | undefined) {
 
 export function useLibrary() {
   const principal = useSession((s) => s.principal);
-  return useQuery({ queryKey: ["books", "library", principal?.id], queryFn: () => api.get("/books/library", LibrarySchema), enabled: principal?.kind === "member" });
+  return useQuery({
+    queryKey: ["books", "library", principal?.id],
+    queryFn: () => api.get("/books/library", LibrarySchema),
+    enabled: principal?.kind === "member",
+  });
 }
 
 export const readUrl = (slug: string, preview: boolean) =>
   api.get(preview ? `/public/books/${slug}/preview` : `/books/${slug}/read`, ReadUrlSchema);
 
-export const saveProgress = (slug: string, locator: string | null, percent: number) => api.putVoid(`/books/${slug}/progress`, { locator, percent });
+export const saveProgress = (slug: string, locator: string | null, percent: number) =>
+  api.putVoid(`/books/${slug}/progress`, { locator, percent });
 
 export function useBookActions(slug: string) {
   const qc = useQueryClient();
@@ -67,9 +73,19 @@ export function useBookActions(slug: string) {
       mutationFn: () => api.post(`/books/${slug}/checkout`, {}, CheckoutResponseSchema),
       onSuccess: (r) => window.location.assign(r.checkoutUrl),
     }),
-    addFree: useMutation({ mutationFn: () => api.putVoid(`/books/${slug}/library`), onSuccess: done }),
-    removeFree: useMutation({ mutationFn: () => api.delVoid(`/books/${slug}/library`), onSuccess: done }),
-    refund: useMutation({ mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) => api.postVoid(`/books/orders/${orderId}/refund`, { reason }), onSuccess: done }),
+    addFree: useMutation({
+      mutationFn: () => api.putVoid(`/books/${slug}/library`),
+      onSuccess: done,
+    }),
+    removeFree: useMutation({
+      mutationFn: () => api.delVoid(`/books/${slug}/library`),
+      onSuccess: done,
+    }),
+    refund: useMutation({
+      mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
+        api.postVoid(`/books/orders/${orderId}/refund`, { reason }),
+      onSuccess: done,
+    }),
   };
 }
 
@@ -86,7 +102,8 @@ export function useOrder(id: string | undefined) {
 // development test checkout (D-036)
 const TestSettleSchema = z.object({ orderId: z.string().uuid(), status: z.string() });
 export const testOrder = (ref: string) => api.get(`/public/payments/test/${ref}`, OrderSchema);
-export const testSettle = (ref: string, outcome: "paid" | "failed") => api.post(`/public/payments/test/${ref}`, { outcome }, TestSettleSchema);
+export const testSettle = (ref: string, outcome: "paid" | "failed") =>
+  api.post(`/public/payments/test/${ref}`, { outcome }, TestSettleSchema);
 
 /** Throttle progress saves: at most one every `ms`, always the latest value. */
 export function throttleLatest<A extends unknown[]>(fn: (...a: A) => void, ms: number) {

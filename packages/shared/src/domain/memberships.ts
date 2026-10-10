@@ -52,6 +52,21 @@ export const STAFF_ROLES = ["ADMINISTRATOR", "MANAGER"] as const satisfies reado
 export const isStaffRole = (role: MemberRole) =>
   (STAFF_ROLES as readonly MemberRole[]).includes(role);
 
+// ------------------------------------------------------------------ home transfers (D-016, D-049)
+export const HOME_TRANSFER_STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"] as const;
+export type HomeTransferStatus = (typeof HOME_TRANSFER_STATUSES)[number];
+export const HOME_TRANSFER_ACTIONS = ["approve", "reject", "cancel"] as const;
+export type HomeTransferAction = (typeof HOME_TRANSFER_ACTIONS)[number];
+
+/** Only an open request moves; every decision is final. */
+export function nextHomeTransferStatus(
+  from: HomeTransferStatus,
+  action: HomeTransferAction,
+): HomeTransferStatus | null {
+  if (from !== "PENDING") return null;
+  return action === "approve" ? "APPROVED" : action === "reject" ? "REJECTED" : "CANCELLED";
+}
+
 // ------------------------------------------------------------------ access from memberships
 export interface MembershipNode {
   group: GroupNode;

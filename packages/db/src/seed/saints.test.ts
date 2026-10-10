@@ -16,7 +16,13 @@ describe("saints seed (D-025)", () => {
   });
   it("covers the African saints and the period around the seed date", () => {
     const names = SEED_SAINTS.map((s) => s.name);
-    for (const n of ["Charles Lwanga and Companions", "Josephine Bakhita", "Augustine", "Perpetua and Felicity"]) expect(names).toContain(n);
+    for (const n of [
+      "Charles Lwanga and Companions",
+      "Josephine Bakhita",
+      "Augustine",
+      "Perpetua and Felicity",
+    ])
+      expect(names).toContain(n);
     expect(SEED_SAINTS.filter((s) => s.feast[0] === 10).length).toBeGreaterThanOrEqual(10);
   });
 });

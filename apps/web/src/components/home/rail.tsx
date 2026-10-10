@@ -1,33 +1,48 @@
 import type { HomeSummary } from "@ecclesios/shared";
 import { Headphones, Megaphone, Music, Pin } from "lucide-react";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SaintPortrait } from "@/components/saints/saint-portrait";
+import { TodayCard } from "./today-card";
+import { useStickyRail } from "./use-sticky-rail";
 import { dateBox, eventWhen } from "@/lib/explore";
 import { CATEGORY_LABEL, ago } from "@/lib/news";
 import { feastLabel, RANK_LABEL } from "@/lib/saints";
 
 /**
- * Home right rail, Twitter-style (D-033): sticky short cards —
- * Ecclesios news, saint of the day, hymn of the day, trending on Explore, upcoming events.
- * Empty cards are left out.
+ * Home right rail, Twitter-style (D-033): today's day, then Ecclesios news, saint of the day,
+ * hymn of the day, trending on Explore, upcoming events. Empty cards are left out.
+ * Scrolls with the page and then sticks — no scroll bar of its own (D-046).
  */
 export function HomeRail({ data }: { data: HomeSummary | undefined }) {
+  const ref = useRef<HTMLElement>(null);
+  useStickyRail(ref);
   return (
-    <aside className="rail home-rail" aria-label="Today on Ecclesios">
+    <aside ref={ref} className="rail home-rail" aria-label="Today on Ecclesios">
+      {/* First, so today's day and Gospel aren't lost in the feed (D-046). */}
+      <TodayCard d={data} />
       {data?.news.length ? <NewsCard items={data.news} /> : null}
       {data?.saint ? <SaintCard s={data.saint} /> : null}
       {data?.hymn ? <HymnCard h={data.hymn} /> : null}
       {data?.trending.length ? <TrendingCard items={data.trending} /> : null}
       {data?.events.length ? <EventsCard items={data.events} /> : null}
       <p className="rail-foot small muted">
-        <Link to="/about">About</Link> · <Link to="/privacy">Privacy</Link> · <Link to="/terms">Terms</Link> · © Ecclesios
+        <Link to="/about">About</Link> · <Link to="/privacy">Privacy</Link> ·{" "}
+        <Link to="/terms">Terms</Link> · © Ecclesios
       </p>
     </aside>
   );
 }
 
-function Card({ title, more, children }: { title: string; more?: { to: string; label: string }; children: ReactNode }) {
+function Card({
+  title,
+  more,
+  children,
+}: {
+  title: string;
+  more?: { to: string; label: string };
+  children: ReactNode;
+}) {
   return (
     <section className="card rail-card">
       <div className="rail-head">
@@ -53,7 +68,10 @@ function NewsCard({ items }: { items: HomeSummary["news"] }) {
               <Megaphone className="ic" style={{ color: "var(--accent-600)" }} aria-hidden />
               <span className="trend-meta">
                 <small>
-                  {n.pinned ? <Pin className="inline" style={{ width: 11, height: 11 }} aria-label="Pinned" /> : null} {CATEGORY_LABEL[n.category]} · {ago(n.publishedAt)}
+                  {n.pinned ? (
+                    <Pin className="inline" style={{ width: 11, height: 11 }} aria-label="Pinned" />
+                  ) : null}{" "}
+                  {CATEGORY_LABEL[n.category]} · {ago(n.publishedAt)}
                 </small>
                 <b>{n.title}</b>
               </span>
@@ -77,7 +95,9 @@ function SaintCard({ s }: { s: NonNullable<HomeSummary["saint"]> }) {
           </small>
         </span>
       </Link>
-      <p className="small mt-2" style={{ color: "var(--text-2)" }}>{s.summary}</p>
+      <p className="small mt-2" style={{ color: "var(--text-2)" }}>
+        {s.summary}
+      </p>
     </Card>
   );
 }
@@ -87,11 +107,25 @@ function HymnCard({ h }: { h: NonNullable<HomeSummary["hymn"]> }) {
     <Card title="Hymn of the day" more={{ to: "/hymnal", label: "Hymnal" }}>
       <Link to={`/hymnal/${h.slug}`} className="block">
         <span className="flex items-center gap-2">
-          <Music className="ic" style={{ color: "var(--accent-600)", width: 18, height: 18 }} aria-hidden />
+          <Music
+            className="ic"
+            style={{ color: "var(--accent-600)", width: 18, height: 18 }}
+            aria-hidden
+          />
           <b style={{ fontSize: 14.5 }}>{h.title}</b>
-          {h.hasAudio ? <Headphones className="ic" style={{ width: 15, height: 15, color: "var(--text-3)" }} aria-label="Has a recording" /> : null}
+          {h.hasAudio ? (
+            <Headphones
+              className="ic"
+              style={{ width: 15, height: 15, color: "var(--text-3)" }}
+              aria-label="Has a recording"
+            />
+          ) : null}
         </span>
-        {h.numbers.length ? <small className="muted block">{h.numbers.map((n) => `${n.book} ${n.number}`).join(" · ")}</small> : null}
+        {h.numbers.length ? (
+          <small className="muted block">
+            {h.numbers.map((n) => `${n.book} ${n.number}`).join(" · ")}
+          </small>
+        ) : null}
         <span className="hymn-excerpt">
           {h.excerpt.map((l, i) => (
             <span key={i} className="block">
@@ -116,7 +150,9 @@ function TrendingCard({ items }: { items: HomeSummary["trending"] }) {
                 <b>{p.title}</b>
                 <small>
                   {p.author.name}
-                  {p.commentCount ? ` · ${p.commentCount} comment${p.commentCount === 1 ? "" : "s"}` : ""}
+                  {p.commentCount
+                    ? ` · ${p.commentCount} comment${p.commentCount === 1 ? "" : "s"}`
+                    : ""}
                 </small>
               </span>
             </Link>
@@ -142,7 +178,9 @@ function EventsCard({ items }: { items: HomeSummary["events"] }) {
               ) : null}
               <span className="trend-meta">
                 <b>{p.title}</b>
-                <small>{p.event ? eventWhen(p.event.startsAt, p.event.endsAt) : p.author.name}</small>
+                <small>
+                  {p.event ? eventWhen(p.event.startsAt, p.event.endsAt) : p.author.name}
+                </small>
               </span>
             </Link>
           </li>

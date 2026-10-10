@@ -11,11 +11,18 @@ export interface InitiateInput {
   cancelUrl: string;
 }
 
-export type GatewayStatus = { state: "PAID" | "PENDING" | "FAILED"; amountMinor: number | null; gatewayRef: string | null; raw: unknown };
+export type GatewayStatus = {
+  state: "PAID" | "PENDING" | "FAILED";
+  amountMinor: number | null;
+  gatewayRef: string | null;
+  raw: unknown;
+};
 
 export interface PaymentGateway {
   readonly name: "test" | "hubtel";
-  initiate(i: InitiateInput): Promise<{ checkoutUrl: string; gatewayRef: string | null; raw: unknown }>;
+  initiate(
+    i: InitiateInput,
+  ): Promise<{ checkoutUrl: string; gatewayRef: string | null; raw: unknown }>;
   status(clientReference: string): Promise<GatewayStatus>;
 }
 

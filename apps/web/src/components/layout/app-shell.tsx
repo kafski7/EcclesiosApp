@@ -48,7 +48,7 @@ export function AppShell() {
       </div>
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent title="More" description="Church management, your account and Ecclesios.">
+        <SheetContent title="More" description="Your saved items, Ecclesios news and information.">
           <MoreMenu inSheet />
         </SheetContent>
       </Sheet>

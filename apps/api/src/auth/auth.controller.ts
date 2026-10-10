@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, Post, Req } from "@nestjs/common";
 import {
+  ClaimRequestSchema,
   LoginRequestSchema,
   RefreshRequestSchema,
   SetPasswordRequestSchema,
@@ -13,6 +14,7 @@ import {
   type VerifyOtpResponse,
 } from "@ecclesios/shared";
 import type { Request } from "express";
+import type { z } from "zod";
 import { Public } from "../common/public.decorator";
 import { ZodPipe } from "../common/zod.pipe";
 import { AuthService } from "./auth.service";
@@ -52,6 +54,16 @@ export class AuthController {
     @Req() req: Request,
   ): Promise<VerifyOtpResponse> {
     return this.auth.verifyOtp(b.challengeToken, b.otp, meta(req));
+  }
+
+  /** Claim a register entry your church created (D-039): code → set-password. Members only. */
+  @Post("claim")
+  @HttpCode(200)
+  claim(
+    @Body(new ZodPipe(ClaimRequestSchema)) b: z.output<typeof ClaimRequestSchema>,
+    @Req() req: Request,
+  ): Promise<LoginChallengeResponse> {
+    return this.auth.startClaim(b.identifier, meta(req));
   }
 
   @Post("set-password")

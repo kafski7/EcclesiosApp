@@ -1,10 +1,16 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { groups, members, memberships, notifications, roles, societies } from "@ecclesios/db";
 import type { CmsContext, CmsContextsResponse, CmsDashboard } from "@ecclesios/shared";
-import { pathIds, subscriptionHolderId, type MemberRole } from "@ecclesios/shared/domain";
+import {
+  hasCapability,
+  pathIds,
+  subscriptionHolderId,
+  type MemberRole,
+} from "@ecclesios/shared/domain";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { DomainError } from "../auth/core/errors";
 import { DB, type Database } from "../db/db.module";
+import { ScopeService } from "../rbac/scope.service";
 import { SubscriptionsService } from "../subscriptions/subscriptions.service";
 
 /** Roles that can open the CMS at all (functionality §1). Parishioners use the social platform only. */
@@ -15,6 +21,7 @@ export class CmsService {
   constructor(
     @Inject(DB) private readonly db: Database,
     private readonly subs: SubscriptionsService,
+    private readonly scopes: ScopeService,
   ) {}
 
   /**
@@ -95,9 +102,79 @@ export class CmsService {
     return { person, contexts };
   }
 
+  /** Totals across everything under the group that the viewer may count (D-041). Null for outstations. */
+  private async rollup(memberId: string, groupId: string): Promise<CmsDashboard["rollup"]> {
+    const { nodes, hiddenDioceses } = await this.scopes.visibleWithin(memberId, groupId);
+    const root = nodes.find((n) => n.id === groupId);
+    if (!root || root.level === "OUTSTATION") return null;
+    const open = nodes.filter((n) => n.isActive);
+    const ids = open.map((n) => n.id);
+    if (!ids.length) return null;
+    const count = sql<number>`count(*)::int`;
+    const [[m], [p], [soc]] = await Promise.all([
+      this.db
+        .select({ n: sql<number>`count(distinct ${memberships.memberId})::int` })
+        .from(memberships)
+        .where(and(inArray(memberships.groupId, ids), eq(memberships.status, "ACTIVE"))),
+      this.db
+        .select({ n: count })
+        .from(memberships)
+        .where(and(inArray(memberships.groupId, ids), eq(memberships.status, "PENDING"))),
+      this.db
+        .select({ n: count })
+        .from(societies)
+        .where(and(inArray(societies.groupId, ids), eq(societies.isActive, true))),
+    ]);
+    return {
+      parishes: open.filter((n) => n.level === "PARISH" && n.id !== groupId).length,
+      outstations: open.filter((n) => n.level === "OUTSTATION").length,
+      members: m?.n ?? 0,
+      societies: soc?.n ?? 0,
+      pendingRequests: p?.n ?? 0,
+      hiddenDioceses,
+    };
+  }
+
   /** Dashboard counters (functionality §4.1) for one church. Roll-ups for monitoring levels come in Phase 6. */
   async dashboard(memberId: string, groupId: string): Promise<CmsDashboard> {
     const count = sql<number>`count(*)::int`;
+    // Society-Leaders see what they lead, not the church's figures (D-039).
+    if (!hasCapability(await this.scopes.resolve(memberId, groupId), "readAggregates")) {
+      const [led, [n]] = await Promise.all([
+        this.db
+          .select({ committee: societies.isCommittee, n: count })
+          .from(societies)
+          .where(
+            and(
+              eq(societies.groupId, groupId),
+              eq(societies.isActive, true),
+              eq(societies.leaderMemberId, memberId),
+            ),
+          )
+          .groupBy(societies.isCommittee),
+        this.db
+          .select({ n: count })
+          .from(notifications)
+          .where(
+            and(
+              eq(notifications.recipientMemberId, memberId),
+              eq(notifications.groupId, groupId),
+              isNull(notifications.readAt),
+            ),
+          ),
+      ]);
+      return {
+        groupId,
+        view: "LEADER",
+        members: 0,
+        pendingRequests: 0,
+        societies: led.find((s) => !s.committee)?.n ?? 0,
+        committees: led.find((s) => s.committee)?.n ?? 0,
+        birthdaysToday: 0,
+        unreadNotifications: n?.n ?? 0,
+        rollup: null,
+      };
+    }
     const [[m], [p], soc, [b], [n]] = await Promise.all([
       this.db
         .select({ n: count })
@@ -138,12 +215,14 @@ export class CmsService {
     ]);
     return {
       groupId,
+      view: "FULL",
       members: m?.n ?? 0,
       pendingRequests: p?.n ?? 0,
       societies: soc.find((s) => !s.committee)?.n ?? 0,
       committees: soc.find((s) => s.committee)?.n ?? 0,
       birthdaysToday: b?.n ?? 0,
       unreadNotifications: n?.n ?? 0,
+      rollup: await this.rollup(memberId, groupId),
     };
   }
 }

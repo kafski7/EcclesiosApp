@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  Req,
+} from "@nestjs/common";
 import {
   SaintSearchQuerySchema,
   SaintSlugSchema,
@@ -25,14 +36,18 @@ export class SaintsController {
   /** GET /api/public/saints/today?date=YYYY-MM-DD — send the reader's local date; defaults to UTC today. */
   @Public()
   @Get("public/saints/today")
-  today(@Query(new ZodPipe(SaintsTodayQuerySchema)) q: z.output<typeof SaintsTodayQuerySchema>): Promise<SaintsToday> {
+  today(
+    @Query(new ZodPipe(SaintsTodayQuerySchema)) q: z.output<typeof SaintsTodayQuerySchema>,
+  ): Promise<SaintsToday> {
     return this.saints.today(q.date ?? toIsoDate(new Date()));
   }
 
   /** GET /api/public/saints?q=&month= — the directory, in calendar order. */
   @Public()
   @Get("public/saints")
-  async list(@Query(new ZodPipe(SaintSearchQuerySchema)) q: z.output<typeof SaintSearchQuerySchema>): Promise<{ items: SaintSummary[] }> {
+  async list(
+    @Query(new ZodPipe(SaintSearchQuerySchema)) q: z.output<typeof SaintSearchQuerySchema>,
+  ): Promise<{ items: SaintSummary[] }> {
     return { items: await this.saints.list(q.q, q.month) };
   }
 
@@ -59,7 +74,10 @@ export class SaintsController {
   @HttpCode(201)
   presignPortrait(
     @Param("slug", new ZodPipe(SaintSlugSchema)) slug: string,
-    @Body(new ZodPipe(z.object({ contentType: z.string().max(100), bytes: z.number().int().min(1) }))) b: { contentType: string; bytes: number },
+    @Body(
+      new ZodPipe(z.object({ contentType: z.string().max(100), bytes: z.number().int().min(1) })),
+    )
+    b: { contentType: string; bytes: number },
   ) {
     return this.saints.presignPortrait(slug, b.contentType, b.bytes);
   }

@@ -1,10 +1,13 @@
-import { ArrowLeft, Clock, Search } from "lucide-react";
+import { ArrowLeft, Clock, GraduationCap, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { parseLesson } from "@ecclesios/shared/domain";
 import { Lesson } from "@/components/teachings/lesson";
 import { ApiClientError } from "@/lib/api";
+import { TeachingCard } from "@/components/cards";
 import { EngageBar } from "@/components/engage/engage-bar";
+import { TextSize, useReadScale } from "@/components/reader/text-size";
+import { EmptyState, ErrorState, LoadMore, Skeleton } from "@/components/ui/states";
 import { minutesLabel, useTeaching, useTeachings, useTeachingTopics } from "@/lib/teachings";
 
 /** Catechesis library: topics, search, list (functionality §3.7, D-030). Filters live in the URL. */
@@ -38,18 +41,33 @@ export function TeachingsPage() {
     <div className="content-narrow mx-auto" style={{ maxWidth: 980 }}>
       <header className="page-head">
         <h1 className="page-title">Teachings</h1>
-        <p className="page-sub">Learn the faith: the sacraments, prayer, the moral life, the Church's social teaching and more.</p>
+        <p className="page-sub">
+          Learn the faith: the sacraments, prayer, the moral life, the Church's social teaching and
+          more.
+        </p>
       </header>
 
       <label className="search mb-5">
         <Search className="ic" aria-hidden />
-        <input type="search" placeholder="Search teachings, e.g. Eucharist, confession, prayer" aria-label="Search teachings" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input
+          type="search"
+          placeholder="Search teachings, e.g. Eucharist, confession, prayer"
+          aria-label="Search teachings"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
       </label>
 
       {topics.data?.items.length ? (
         <nav className="topic-grid" aria-label="Topics">
           {topics.data.items.map((t) => (
-            <button key={t.slug} type="button" className="card topic-tile text-left" aria-current={topic === t.slug} onClick={() => pick(t.slug)}>
+            <button
+              key={t.slug}
+              type="button"
+              className="card topic-tile text-left"
+              aria-current={topic === t.slug}
+              onClick={() => pick(t.slug)}
+            >
               <b>{t.name}</b>
               <small>{t.description}</small>
               <small>
@@ -68,32 +86,35 @@ export function TeachingsPage() {
           </button>
         </p>
       ) : null}
-      {list.isError ? <p className="card rail-card">The teachings could not be loaded.</p> : null}
-      {list.isPending ? <p className="muted small">Loading…</p> : null}
-      {list.isSuccess && !items.length ? <p className="card rail-card muted">No teachings found.</p> : null}
+      {list.isError ? (
+        <ErrorState
+          title="The teachings could not be loaded"
+          error={list.error}
+          onRetry={() => list.refetch()}
+          retrying={list.isRefetching}
+        />
+      ) : null}
+      {list.isPending ? <Skeleton variant="cards" label="Loading teachings" /> : null}
+      {list.isSuccess && !items.length ? (
+        <EmptyState icon={GraduationCap} title="No teachings found">
+          {debounced.trim() || topic
+            ? "Try other words, or show all topics."
+            : "Teachings will appear here once they're published."}
+        </EmptyState>
+      ) : null}
 
       <ul className="flex flex-col gap-3">
-        {items.map((t) => (
-          <li key={t.slug} className="card post">
-            <Link to={`/teachings/${t.slug}`} className="block">
-              <span className="saint-kicker">{t.topics.map((x) => x.name).join(" · ")}</span>
-              <h2 className="post-title" style={{ marginTop: 6 }}>{t.title}</h2>
-              <p className="post-text">{t.summary}</p>
-              <span className="small muted inline-flex items-center gap-1 mt-2">
-                <Clock className="ic" style={{ width: 14, height: 14 }} aria-hidden /> {minutesLabel(t.readingMinutes)}
-              </span>
-            </Link>
-            <EngageBar kind="TEACHING" id={t.id} title={t.title} href={`/teachings/${t.slug}`} />
-          </li>
+        {items.map((t, i) => (
+          // Newest first: with no search or topic, the first one is shown as "Latest" (D-045).
+          <TeachingCard
+            key={t.slug}
+            t={t}
+            as="li"
+            latest={i === 0 && !debounced.trim() && !topic}
+          />
         ))}
       </ul>
-      {list.hasNextPage ? (
-        <div className="mt-5 text-center">
-          <button type="button" className="btn btn-outline btn-sm" onClick={() => void list.fetchNextPage()} disabled={list.isFetchingNextPage}>
-            {list.isFetchingNextPage ? "Loading…" : "More teachings"}
-          </button>
-        </div>
-      ) : null}
+      <LoadMore q={list} label="More teachings" />
     </div>
   );
 }
@@ -103,21 +124,47 @@ export function TeachingPage() {
   const { slug } = useParams();
   const q = useTeaching(slug);
   const blocks = useMemo(() => (q.data ? parseLesson(q.data.body) : []), [q.data]);
+  const readScale = useReadScale();
 
-  if (q.isPending) return <p className="content-narrow mx-auto muted small">Loading…</p>;
+  if (q.isPending)
+    return (
+      <div className="content-narrow mx-auto">
+        <Skeleton variant="page" label="Loading the teaching" />
+      </div>
+    );
   if (q.isError)
     return (
-      <p className="content-narrow mx-auto card rail-card">
-        {q.error instanceof ApiClientError && q.error.code === "TEACHING_NOT_FOUND" ? "We couldn't find that teaching." : "This teaching could not be loaded."}
-      </p>
+      <div className="content-narrow mx-auto">
+        {q.error instanceof ApiClientError && q.error.code === "TEACHING_NOT_FOUND" ? (
+          <EmptyState
+            icon={GraduationCap}
+            title="We couldn't find that teaching"
+            action={
+              <Link to="/teachings" className="btn btn-outline btn-sm">
+                All teachings
+              </Link>
+            }
+          />
+        ) : (
+          <ErrorState
+            title="This teaching could not be loaded"
+            error={q.error}
+            onRetry={() => q.refetch()}
+            retrying={q.isRefetching}
+          />
+        )}
+      </div>
     );
   const t = q.data;
 
   return (
-    <div className="content-narrow mx-auto">
-      <Link to="/teachings" className="link mb-4">
-        <ArrowLeft className="ic" aria-hidden /> Teachings
-      </Link>
+    <div className="content-narrow mx-auto" style={readScale}>
+      <div className="reader-top">
+        <Link to="/teachings" className="link">
+          <ArrowLeft className="ic" aria-hidden /> Teachings
+        </Link>
+        <TextSize />
+      </div>
       <article className="card post" style={{ padding: "28px 30px" }}>
         <div className="lit-chips mb-2">
           {t.topics.map((x) => (
@@ -126,13 +173,22 @@ export function TeachingPage() {
             </Link>
           ))}
           <span className="chip chip-gold">
-            <Clock className="ic" style={{ width: 13, height: 13 }} aria-hidden /> {minutesLabel(t.readingMinutes)}
+            <Clock className="ic" style={{ width: 13, height: 13 }} aria-hidden />{" "}
+            {minutesLabel(t.readingMinutes)}
           </span>
         </div>
-        <h1 className="page-title" style={{ marginBottom: 6 }}>{t.title}</h1>
+        <h1 className="page-title" style={{ marginBottom: 6 }}>
+          {t.title}
+        </h1>
         <p className="page-sub mb-4">{t.summary}</p>
         <Lesson blocks={blocks} />
-        <EngageBar kind="TEACHING" id={t.id} title={t.title} href={`/teachings/${t.slug}`} size="md" />
+        <EngageBar
+          kind="TEACHING"
+          id={t.id}
+          title={t.title}
+          href={`/teachings/${t.slug}`}
+          size="md"
+        />
         {t.reviewedBy || t.source ? (
           <p className="all-credits">{[t.reviewedBy, t.source].filter(Boolean).join(" · ")}</p>
         ) : null}

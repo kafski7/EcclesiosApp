@@ -31,7 +31,13 @@ import {
 } from "@/lib/hymnal";
 
 const errText = (e: unknown) =>
-  e instanceof ApiClientError ? (e.code.startsWith("HTTP_") ? authErrorMessage(e) : e.message) : e instanceof Error ? e.message : "Something went wrong.";
+  e instanceof ApiClientError
+    ? e.code.startsWith("HTTP_")
+      ? authErrorMessage(e)
+      : e.message
+    : e instanceof Error
+      ? e.message
+      : "Something went wrong.";
 
 /** Create / edit one hymn: words, book numbers, tags, tunes and media (D-026). */
 export function HymnEditPage() {
@@ -57,7 +63,9 @@ function HymnForm({ hymn }: { hymn: AdminHymn | null }) {
   const [title, setTitle] = useState(hymn && hymn.title !== hymn.firstLine ? hymn.title : "");
   const [firstLine, setFirstLine] = useState(hymn?.firstLine ?? "");
   const [author, setAuthor] = useState(hymn?.author ?? "");
-  const [numbers, setNumbers] = useState(hymn?.numbers.map((n) => `${n.book} ${n.number}`).join(", ") ?? "");
+  const [numbers, setNumbers] = useState(
+    hymn?.numbers.map((n) => `${n.book} ${n.number}`).join(", ") ?? "",
+  );
   const [tags, setTags] = useState(hymn?.tags.join(", ") ?? "");
   const [words, setWords] = useState(hymn ? versesToText(hymn.verses) : "");
   const [source, setSource] = useState(hymn?.source ?? "");
@@ -77,7 +85,10 @@ function HymnForm({ hymn }: { hymn: AdminHymn | null }) {
       author: author.trim() || null,
       verses,
       numbers: parsedNums.numbers,
-      tags: tags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean),
+      tags: tags
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean),
       source: source.trim() || null,
       isPublished: published,
     });
@@ -92,20 +103,45 @@ function HymnForm({ hymn }: { hymn: AdminHymn | null }) {
         <div className="row g-3">
           <div className="col-md-6">
             <CFormLabel htmlFor="fl">First line</CFormLabel>
-            <CFormInput id="fl" value={firstLine} onChange={(e) => setFirstLine(e.target.value)} required />
+            <CFormInput
+              id="fl"
+              value={firstLine}
+              onChange={(e) => setFirstLine(e.target.value)}
+              required
+            />
           </div>
           <div className="col-md-6">
             <CFormLabel htmlFor="tt">Title (optional)</CFormLabel>
-            <CFormInput id="tt" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Leave empty to use the first line" />
+            <CFormInput
+              id="tt"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Leave empty to use the first line"
+            />
           </div>
           <div className="col-md-6">
             <CFormLabel htmlFor="nums">Hymn book numbers</CFormLabel>
-            <CFormInput id="nums" value={numbers} onChange={(e) => setNumbers(e.target.value)} placeholder="NCH 56, CH 12" invalid={parsedNums.bad.length > 0} />
-            <CFormText>{parsedNums.bad.length ? `Not understood: ${parsedNums.bad.join(", ")}` : "Book code and number, separated by commas."}</CFormText>
+            <CFormInput
+              id="nums"
+              value={numbers}
+              onChange={(e) => setNumbers(e.target.value)}
+              placeholder="NCH 56, CH 12"
+              invalid={parsedNums.bad.length > 0}
+            />
+            <CFormText>
+              {parsedNums.bad.length
+                ? `Not understood: ${parsedNums.bad.join(", ")}`
+                : "Book code and number, separated by commas."}
+            </CFormText>
           </div>
           <div className="col-md-6">
             <CFormLabel htmlFor="tags">Seasons and occasions</CFormLabel>
-            <CFormInput id="tags" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="christmas, entrance" />
+            <CFormInput
+              id="tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="christmas, entrance"
+            />
           </div>
           <div className="col-md-6">
             <CFormLabel htmlFor="au">Words by</CFormLabel>
@@ -113,18 +149,41 @@ function HymnForm({ hymn }: { hymn: AdminHymn | null }) {
           </div>
           <div className="col-md-6">
             <CFormLabel htmlFor="src">Source / permission</CFormLabel>
-            <CFormInput id="src" value={source} onChange={(e) => setSource(e.target.value)} placeholder="Public domain · or · Used with permission of …" />
+            <CFormInput
+              id="src"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="Public domain · or · Used with permission of …"
+            />
           </div>
           <div className="col-12">
             <CFormLabel htmlFor="words">Words</CFormLabel>
-            <CFormTextarea id="words" rows={12} value={words} onChange={(e) => setWords(e.target.value)} />
-            <CFormText>Leave a blank line between verses. Start the refrain with "R:". {verses.length} stanza{verses.length === 1 ? "" : "s"}.</CFormText>
+            <CFormTextarea
+              id="words"
+              rows={12}
+              value={words}
+              onChange={(e) => setWords(e.target.value)}
+            />
+            <CFormText>
+              Leave a blank line between verses. Start the refrain with "R:". {verses.length} stanza
+              {verses.length === 1 ? "" : "s"}.
+            </CFormText>
           </div>
           <div className="col-12">
-            <CFormCheck id="pub" label="Published" checked={published} onChange={(e) => setPublished(e.target.checked)} />
+            <CFormCheck
+              id="pub"
+              label="Published"
+              checked={published}
+              onChange={(e) => setPublished(e.target.checked)}
+            />
           </div>
         </div>
-        <CButton type="submit" color="primary" className="mt-3" disabled={save.isPending || !verses.length || parsedNums.bad.length > 0}>
+        <CButton
+          type="submit"
+          color="primary"
+          className="mt-3"
+          disabled={save.isPending || !verses.length || parsedNums.bad.length > 0}
+        >
           {save.isPending ? "Saving…" : hymn ? "Save changes" : "Create hymn"}
         </CButton>
       </CForm>
@@ -150,12 +209,20 @@ function Tunes({ hymn }: { hymn: AdminHymn }) {
           if (name.trim()) add.mutate({ name: name.trim() }, { onSuccess: () => setName("") });
         }}
       >
-        <CFormInput placeholder="Add another tune, e.g. MUELLER" value={name} onChange={(e) => setName(e.target.value)} />
+        <CFormInput
+          placeholder="Add another tune, e.g. MUELLER"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         <CButton type="submit" color="primary" variant="outline" disabled={add.isPending}>
           Add tune
         </CButton>
       </CForm>
-      {add.error ? <CAlert color="danger" className="mt-2">{errText(add.error)}</CAlert> : null}
+      {add.error ? (
+        <CAlert color="danger" className="mt-2">
+          {errText(add.error)}
+        </CAlert>
+      ) : null}
     </div>
   );
 }
@@ -168,7 +235,15 @@ const KIND_LABEL: Record<MediaKind, string> = {
   YOUTUBE: "YouTube link",
 };
 
-function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"][number]; canDelete: boolean }) {
+function Tune({
+  slug,
+  tune,
+  canDelete,
+}: {
+  slug: string;
+  tune: AdminHymn["tunes"][number];
+  canDelete: boolean;
+}) {
   const update = useUpdateTune(slug);
   const remove = useRemoveTune(slug);
   const media = useUpdateMedia(slug);
@@ -197,12 +272,29 @@ function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"
           <CButton
             color="primary"
             size="sm"
-            onClick={() => update.mutate({ id: tune.id, body: { name, composer: composer || null, meter: meter || null, isDefault: tune.isDefault } })}
+            onClick={() =>
+              update.mutate({
+                id: tune.id,
+                body: {
+                  name,
+                  composer: composer || null,
+                  meter: meter || null,
+                  isDefault: tune.isDefault,
+                },
+              })
+            }
           >
             Save
           </CButton>
           {canDelete ? (
-            <CButton color="danger" variant="ghost" size="sm" onClick={() => confirm(`Delete the tune ${tune.name} and its files?`) && remove.mutate(tune.id)}>
+            <CButton
+              color="danger"
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                confirm(`Delete the tune ${tune.name} and its files?`) && remove.mutate(tune.id)
+              }
+            >
               Delete
             </CButton>
           ) : null}
@@ -212,12 +304,31 @@ function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"
         {tune.isDefault ? (
           <span className="state state-ACTIVE">Default tune</span>
         ) : (
-          <CButton size="sm" color="secondary" variant="ghost" onClick={() => update.mutate({ id: tune.id, body: { name: tune.name, composer: tune.composer, meter: tune.meter, isDefault: true } })}>
+          <CButton
+            size="sm"
+            color="secondary"
+            variant="ghost"
+            onClick={() =>
+              update.mutate({
+                id: tune.id,
+                body: {
+                  name: tune.name,
+                  composer: tune.composer,
+                  meter: tune.meter,
+                  isDefault: true,
+                },
+              })
+            }
+          >
             Make default
           </CButton>
         )}
       </div>
-      {err ? <CAlert color="danger" className="mt-2">{errText(err)}</CAlert> : null}
+      {err ? (
+        <CAlert color="danger" className="mt-2">
+          {errText(err)}
+        </CAlert>
+      ) : null}
 
       <table className="cms-table mt-3">
         <tbody>
@@ -230,7 +341,9 @@ function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"
                   {m.url ? (
                     <>
                       {" · "}
-                      <a href={m.url} target="_blank" rel="noreferrer">open</a>
+                      <a href={m.url} target="_blank" rel="noreferrer">
+                        open
+                      </a>
                     </>
                   ) : null}
                   {m.youtubeId ? ` · youtu.be/${m.youtubeId}` : ""}
@@ -241,7 +354,12 @@ function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"
                   size="sm"
                   aria-label="Access"
                   value={m.access}
-                  onChange={(e) => media.mutate({ id: m.id, body: { access: e.target.value as "FREE" | "SUBSCRIBER" } })}
+                  onChange={(e) =>
+                    media.mutate({
+                      id: m.id,
+                      body: { access: e.target.value as "FREE" | "SUBSCRIBER" },
+                    })
+                  }
                 >
                   <option value="FREE">Free</option>
                   <option value="SUBSCRIBER">Subscribers</option>
@@ -252,14 +370,24 @@ function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"
                   m.isDefault ? (
                     <span className="state state-ACTIVE">Default</span>
                   ) : (
-                    <CButton size="sm" color="secondary" variant="ghost" onClick={() => media.mutate({ id: m.id, body: { isDefault: true } })}>
+                    <CButton
+                      size="sm"
+                      color="secondary"
+                      variant="ghost"
+                      onClick={() => media.mutate({ id: m.id, body: { isDefault: true } })}
+                    >
                       Make default
                     </CButton>
                   )
                 ) : null}
               </td>
               <td style={{ width: 80 }}>
-                <CButton size="sm" color="danger" variant="ghost" onClick={() => confirm(`Remove ${m.label}?`) && delMedia.mutate(m.id)}>
+                <CButton
+                  size="sm"
+                  color="danger"
+                  variant="ghost"
+                  onClick={() => confirm(`Remove ${m.label}?`) && delMedia.mutate(m.id)}
+                >
                   Remove
                 </CButton>
               </td>
@@ -267,12 +395,24 @@ function Tune({ slug, tune, canDelete }: { slug: string; tune: AdminHymn["tunes"
           ))}
         </tbody>
       </table>
-      <AddMedia slug={slug} tuneId={tune.id} hasDefaultAudio={tune.media.some((m) => m.kind === "AUDIO" && m.isDefault)} />
+      <AddMedia
+        slug={slug}
+        tuneId={tune.id}
+        hasDefaultAudio={tune.media.some((m) => m.kind === "AUDIO" && m.isDefault)}
+      />
     </div>
   );
 }
 
-function AddMedia({ slug, tuneId, hasDefaultAudio }: { slug: string; tuneId: string; hasDefaultAudio: boolean }) {
+function AddMedia({
+  slug,
+  tuneId,
+  hasDefaultAudio,
+}: {
+  slug: string;
+  tuneId: string;
+  hasDefaultAudio: boolean;
+}) {
   const upload = useUploadMedia(slug);
   const link = useAddLink(slug);
   const [kind, setKind] = useState<MediaKind>("AUDIO");
@@ -292,7 +432,8 @@ function AddMedia({ slug, tuneId, hasDefaultAudio }: { slug: string; tuneId: str
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const l = label.trim() || KIND_LABEL[kind];
-    if (kind === "YOUTUBE") link.mutate({ tuneId, body: { kind, url, label: l } }, { onSuccess: reset });
+    if (kind === "YOUTUBE")
+      link.mutate({ tuneId, body: { kind, url, label: l } }, { onSuccess: reset });
     else if (file) upload.mutate({ tuneId, kind, file, label: l, isDefault }, { onSuccess: reset });
   };
 
@@ -310,35 +451,58 @@ function AddMedia({ slug, tuneId, hasDefaultAudio }: { slug: string; tuneId: str
       </div>
       <div className="col-md-3">
         <CFormLabel>Label</CFormLabel>
-        <CFormInput value={label} onChange={(e) => setLabel(e.target.value)} placeholder={kind === "AUDIO" ? "Piano, Choir, Voice…" : KIND_LABEL[kind]} />
+        <CFormInput
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder={kind === "AUDIO" ? "Piano, Choir, Voice…" : KIND_LABEL[kind]}
+        />
       </div>
       <div className="col-md-4">
         {kind === "YOUTUBE" ? (
           <>
             <CFormLabel>YouTube or YouTube Music link</CFormLabel>
-            <CFormInput value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://music.youtube.com/watch?v=…" />
+            <CFormInput
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://music.youtube.com/watch?v=…"
+            />
           </>
         ) : (
           <>
             <CFormLabel>File</CFormLabel>
             <CFormInput
               type="file"
-              accept={kind === "AUDIO" ? "audio/*" : kind === "MIDI" ? ".mid,.midi,audio/midi" : "application/pdf"}
+              accept={
+                kind === "AUDIO"
+                  ? "audio/*"
+                  : kind === "MIDI"
+                    ? ".mid,.midi,audio/midi"
+                    : "application/pdf"
+              }
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </>
         )}
       </div>
       <div className="col-md-2">
-        <CButton type="submit" color="primary" disabled={busy || (kind === "YOUTUBE" ? !url.trim() : !file)}>
+        <CButton
+          type="submit"
+          color="primary"
+          disabled={busy || (kind === "YOUTUBE" ? !url.trim() : !file)}
+        >
           {busy ? "Adding…" : "Add"}
         </CButton>
       </div>
       <div className="col-12">
         <CFormText>
-          {isDefault ? "This will be the default (free) recording. " : ""}Starts as {access === "FREE" ? "free" : "subscribers only"}; you can change it after.
+          {isDefault ? "This will be the default (free) recording. " : ""}Starts as{" "}
+          {access === "FREE" ? "free" : "subscribers only"}; you can change it after.
         </CFormText>
-        {err ? <CAlert color="danger" className="mt-2">{errText(err)}</CAlert> : null}
+        {err ? (
+          <CAlert color="danger" className="mt-2">
+            {errText(err)}
+          </CAlert>
+        ) : null}
       </div>
     </CForm>
   );

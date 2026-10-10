@@ -23,7 +23,7 @@
 | `REDIS_URL`                                | api (workers)         | annually                                |
 | `S3_ACCESS_KEY` / `S3_SECRET_KEY`          | api                   | annually                                |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | api                   | annually; rotation invalidates sessions |
-| SMS / email gateway keys                   | api workers (Phase 7) | per provider                            |
+| `HUBTEL_SMS_CLIENT_ID` / `HUBTEL_SMS_CLIENT_SECRET`, `SMTP_USER` / `SMTP_PASS` | api + workers (Phase 7) | per provider |
 | Accounting API credentials                 | api (Phase 6)         | per provider                            |
 | Bible provider key (API.Bible)             | api (Phase 5.2)       | per provider                            |
 

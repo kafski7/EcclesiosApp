@@ -3,6 +3,7 @@ import {
   AdminHymnSchema,
   PresignedUploadSchema,
   type AddMedia,
+  type AdminHymn,
   type UpsertHymn,
   type UpsertTune,
   type Verse,
@@ -29,7 +30,7 @@ export function useAdminHymn(slug: string | undefined) {
 }
 
 /** Every mutation returns the full hymn; store it straight into the cache. */
-function useHymnMutation<V>(fn: (v: V) => Promise<import("@ecclesios/shared").AdminHymn>) {
+function useHymnMutation<V>(fn: (v: V) => Promise<AdminHymn>) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: fn,
@@ -41,19 +42,36 @@ function useHymnMutation<V>(fn: (v: V) => Promise<import("@ecclesios/shared").Ad
 }
 
 export const useSaveHymn = (slug: string | undefined) =>
-  useHymnMutation((body: UpsertHymn) => (slug ? api.put(`${base}/${slug}`, body, AdminHymnSchema) : api.post(base, body, AdminHymnSchema)));
-
-export const useAddTune = (slug: string) => useHymnMutation((body: UpsertTune) => api.post(`${base}/${slug}/tunes`, body, AdminHymnSchema));
-export const useUpdateTune = (slug: string) =>
-  useHymnMutation(({ id, body }: { id: string; body: UpsertTune }) => api.put(`${base}/${slug}/tunes/${id}`, body, AdminHymnSchema));
-export const useRemoveTune = (slug: string) => useHymnMutation((id: string) => api.del(`${base}/${slug}/tunes/${id}`, AdminHymnSchema));
-export const useUpdateMedia = (slug: string) =>
-  useHymnMutation(({ id, body }: { id: string; body: { label?: string; access?: "FREE" | "SUBSCRIBER"; isDefault?: boolean } }) =>
-    api.patch(`${base}/${slug}/media/${id}`, body, AdminHymnSchema),
+  useHymnMutation((body: UpsertHymn) =>
+    slug
+      ? api.put(`${base}/${slug}`, body, AdminHymnSchema)
+      : api.post(base, body, AdminHymnSchema),
   );
-export const useRemoveMedia = (slug: string) => useHymnMutation((id: string) => api.del(`${base}/${slug}/media/${id}`, AdminHymnSchema));
+
+export const useAddTune = (slug: string) =>
+  useHymnMutation((body: UpsertTune) => api.post(`${base}/${slug}/tunes`, body, AdminHymnSchema));
+export const useUpdateTune = (slug: string) =>
+  useHymnMutation(({ id, body }: { id: string; body: UpsertTune }) =>
+    api.put(`${base}/${slug}/tunes/${id}`, body, AdminHymnSchema),
+  );
+export const useRemoveTune = (slug: string) =>
+  useHymnMutation((id: string) => api.del(`${base}/${slug}/tunes/${id}`, AdminHymnSchema));
+export const useUpdateMedia = (slug: string) =>
+  useHymnMutation(
+    ({
+      id,
+      body,
+    }: {
+      id: string;
+      body: { label?: string; access?: "FREE" | "SUBSCRIBER"; isDefault?: boolean };
+    }) => api.patch(`${base}/${slug}/media/${id}`, body, AdminHymnSchema),
+  );
+export const useRemoveMedia = (slug: string) =>
+  useHymnMutation((id: string) => api.del(`${base}/${slug}/media/${id}`, AdminHymnSchema));
 export const useAddLink = (slug: string) =>
-  useHymnMutation(({ tuneId, body }: { tuneId: string; body: AddMedia }) => api.post(`${base}/${slug}/tunes/${tuneId}/media`, body, AdminHymnSchema));
+  useHymnMutation(({ tuneId, body }: { tuneId: string; body: AddMedia }) =>
+    api.post(`${base}/${slug}/tunes/${tuneId}/media`, body, AdminHymnSchema),
+  );
 
 /**
  * Upload a file straight to object storage (presigned PUT), then register it on the tune.
@@ -61,7 +79,14 @@ export const useAddLink = (slug: string) =>
  */
 export const useUploadMedia = (slug: string) =>
   useHymnMutation(
-    async ({ tuneId, kind, file, label, isDefault, access }: {
+    async ({
+      tuneId,
+      kind,
+      file,
+      label,
+      isDefault,
+      access,
+    }: {
       tuneId: string;
       kind: Exclude<MediaKind, "YOUTUBE">;
       file: File;
@@ -87,11 +112,23 @@ export const useUploadMedia = (slug: string) =>
   );
 
 /** Browsers report MIDI and some audio files with an empty or odd type; fall back on the extension. */
-export function fileContentType(file: { type: string; name: string }, kind: Exclude<MediaKind, "YOUTUBE">): string {
+export function fileContentType(
+  file: { type: string; name: string },
+  kind: Exclude<MediaKind, "YOUTUBE">,
+): string {
   const allowed = MEDIA_CONTENT_TYPES[kind];
   if (allowed.includes(file.type)) return file.type;
   const ext = file.name.split(".").pop()?.toLowerCase();
-  const byExt: Record<string, string> = { mp3: "audio/mpeg", m4a: "audio/mp4", aac: "audio/aac", ogg: "audio/ogg", wav: "audio/wav", mid: "audio/midi", midi: "audio/midi", pdf: "application/pdf" };
+  const byExt: Record<string, string> = {
+    mp3: "audio/mpeg",
+    m4a: "audio/mp4",
+    aac: "audio/aac",
+    ogg: "audio/ogg",
+    wav: "audio/wav",
+    mid: "audio/midi",
+    midi: "audio/midi",
+    pdf: "application/pdf",
+  };
   return (ext && byExt[ext]) || file.type || "application/octet-stream";
 }
 
@@ -120,7 +157,12 @@ export function versesFromText(text: string): Verse[] {
   return text
     .replace(/\r\n?/g, "\n")
     .split(/\n\s*\n/)
-    .map((block) => block.split("\n").map((l) => l.trim()).filter(Boolean))
+    .map((block) =>
+      block
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean),
+    )
     .filter((lines) => lines.length)
     .map((lines) => {
       const m = /^R[.:]\s*(.*)$/i.exec(lines[0]!);
@@ -134,13 +176,21 @@ export function versesFromText(text: string): Verse[] {
 }
 
 export const versesToText = (verses: readonly Verse[]) =>
-  verses.map((v) => (v.label === "R" ? `R: ${v.lines.join("\n")}` : v.lines.join("\n"))).join("\n\n");
+  verses
+    .map((v) => (v.label === "R" ? `R: ${v.lines.join("\n")}` : v.lines.join("\n")))
+    .join("\n\n");
 
 /** "NCH 56, CH 12" → [{book, number}] — invalid parts are reported, not dropped silently. */
-export function parseNumbers(text: string): { numbers: { book: string; number: string }[]; bad: string[] } {
+export function parseNumbers(text: string): {
+  numbers: { book: string; number: string }[];
+  bad: string[];
+} {
   const numbers: { book: string; number: string }[] = [];
   const bad: string[] = [];
-  for (const part of text.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean)) {
+  for (const part of text
+    .split(/[,;\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     const m = /^([A-Za-z][A-Za-z0-9]{0,9}?)\s*#?\s*(\d{1,4}[a-zA-Z]?)$/.exec(part);
     if (m) numbers.push({ book: m[1]!.toUpperCase(), number: m[2]! });
     else bad.push(part);

@@ -15,6 +15,7 @@ describe("sample readings (D-022)", () => {
     expect(days.every((d) => d.readings.some((r) => r.kind === "GOSPEL"))).toBe(true);
   });
   it("is clearly labelled placeholder text, never lectionary prose", () => {
-    for (const d of days) for (const r of d.readings) expect(r.text[0]!.startsWith("[Development text]")).toBe(true);
+    for (const d of days)
+      for (const r of d.readings) expect(r.text[0]!.startsWith("[Development text]")).toBe(true);
   });
 });

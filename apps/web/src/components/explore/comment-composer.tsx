@@ -1,5 +1,10 @@
 import { MentionSuggestionListSchema, type MentionSuggestion } from "@ecclesios/shared";
-import { containsLink, encodeMentions, mentionQueryAt, MAX_MENTIONS } from "@ecclesios/shared/domain";
+import {
+  containsLink,
+  encodeMentions,
+  mentionQueryAt,
+  MAX_MENTIONS,
+} from "@ecclesios/shared/domain";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { api } from "@/lib/query";
@@ -35,7 +40,11 @@ export function CommentComposer({
   }, [mention?.query]);
   const sugg = useQuery({
     queryKey: ["explore", "mentions", postId, debounced],
-    queryFn: () => api.get(`/explore/posts/${postId}/mention-suggestions?q=${encodeURIComponent(debounced)}`, MentionSuggestionListSchema),
+    queryFn: () =>
+      api.get(
+        `/explore/posts/${postId}/mention-suggestions?q=${encodeURIComponent(debounced)}`,
+        MentionSuggestionListSchema,
+      ),
     enabled: mention !== null,
     staleTime: 30_000,
   });
@@ -70,10 +79,18 @@ export function CommentComposer({
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!items.length) return;
-    if (e.key === "ArrowDown") (e.preventDefault(), setActive((a) => (a + 1) % items.length));
-    else if (e.key === "ArrowUp") (e.preventDefault(), setActive((a) => (a - 1 + items.length) % items.length));
-    else if (e.key === "Enter" || e.key === "Tab") (e.preventDefault(), pick(items[active]!));
-    else if (e.key === "Escape") setMention(null);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((a) => (a + 1) % items.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((a) => (a - 1 + items.length) % items.length);
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      pick(items[active]!);
+    } else if (e.key === "Escape") {
+      setMention(null);
+    }
   };
 
   const submit = (e: FormEvent) => {
@@ -104,7 +121,14 @@ export function CommentComposer({
       {items.length ? (
         <div className="mention-pop" role="listbox" aria-label="People to mention">
           {items.map((s, i) => (
-            <button key={s.id} type="button" role="option" aria-selected={i === active} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(s)}>
+            <button
+              key={s.id}
+              type="button"
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => pick(s)}
+            >
               <b className="small">{s.name}</b>
               {s.hint ? <small>{s.hint}</small> : null}
             </button>
@@ -121,7 +145,11 @@ export function CommentComposer({
           {error}
         </p>
       ) : null}
-      <button type="submit" className="btn btn-primary btn-sm mt-2" disabled={pending || !text.trim() || hasLink}>
+      <button
+        type="submit"
+        className="btn btn-primary btn-sm mt-2"
+        disabled={pending || !text.trim() || hasLink}
+      >
         {pending ? "Posting…" : "Comment"}
       </button>
     </form>

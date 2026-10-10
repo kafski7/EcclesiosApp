@@ -2,8 +2,6 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import {
   groups,
   memberships,
-  notificationTypes,
-  notifications,
   roles,
   subscriptionTypes,
   subscriptions,
@@ -24,6 +22,7 @@ import {
 } from "@ecclesios/shared/domain";
 import { and, asc, eq, inArray } from "drizzle-orm";
 import { AuditService } from "../audit/audit.service";
+import { NotifyService } from "../notify/notify.service";
 import { DomainError } from "../auth/core/errors";
 import { DB, type Database } from "../db/db.module";
 
@@ -61,6 +60,7 @@ export class SubscriptionsService {
   constructor(
     @Inject(DB) private readonly db: Database,
     private readonly audit: AuditService,
+    private readonly notify: NotifyService,
   ) {}
 
   async plans(): Promise<Plan[]> {
@@ -298,39 +298,10 @@ export class SubscriptionsService {
     return rows.length > 0;
   }
 
-  private async notifyAdmins(groupId: string, title: string) {
-    try {
-      const [type] = await this.db
-        .select({ id: notificationTypes.id })
-        .from(notificationTypes)
-        .where(eq(notificationTypes.code, "SUBSCRIPTION"))
-        .limit(1);
-      if (!type) return;
-      const admins = await this.db
-        .select({ memberId: memberships.memberId })
-        .from(memberships)
-        .innerJoin(roles, eq(memberships.roleId, roles.id))
-        .where(
-          and(
-            eq(memberships.groupId, groupId),
-            eq(memberships.status, "ACTIVE"),
-            eq(roles.code, "ADMINISTRATOR"),
-          ),
-        );
-      if (!admins.length) return;
-      await this.db
-        .insert(notifications)
-        .values(
-          admins.map((a) => ({
-            typeId: type.id,
-            groupId,
-            recipientMemberId: a.memberId,
-            title,
-            link: "/admin/billing",
-          })),
-        );
-    } catch (err) {
-      this.logger.error({ err, groupId }, "could not notify administrators");
-    }
+  private notifyAdmins(groupId: string, title: string) {
+    return this.notify.staff("SUBSCRIPTION", [groupId], ["ADMINISTRATOR"], {
+      title,
+      link: "/admin/billing",
+    });
   }
 }

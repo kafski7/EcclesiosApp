@@ -1,5 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { commentReports, members, memberships, notifications, notificationTypes, postComments, posts } from "@ecclesios/db";
+import {
+  commentReports,
+  members,
+  memberships,
+  postComments,
+  posts,
+} from "@ecclesios/db";
 import type { Comment, Principal } from "@ecclesios/shared";
 import {
   canModerateComment,
@@ -14,6 +20,7 @@ import { RATE_LIMIT_STORE } from "../auth/auth.service";
 import { DomainError } from "../auth/core/errors";
 import { RateLimiter, type RateLimitStore } from "../auth/core/rate-limit";
 import { DB, type Database } from "../db/db.module";
+import { NotifyService } from "../notify/notify.service";
 import { ExploreAccess } from "./explore-access";
 import { ExploreService } from "./explore.service";
 
@@ -33,6 +40,7 @@ export class CommentsService {
     private readonly explore: ExploreService,
     private readonly access: ExploreAccess,
     private readonly audit: AuditService,
+    private readonly notify: NotifyService,
     @Inject(RATE_LIMIT_STORE) store: RateLimitStore,
   ) {
     this.limiter = new RateLimiter(store);
@@ -78,10 +86,22 @@ export class CommentsService {
     if (mentioned.length) {
       const allowed = await this.mentionable(post, memberId, "", mentioned);
       if (allowed.length !== mentioned.length)
-        throw new DomainError(400, "MENTION_NOT_ALLOWED", "You can mention people in this conversation or from your church.");
+        throw new DomainError(
+          400,
+          "MENTION_NOT_ALLOWED",
+          "You can mention people in this conversation or from your church.",
+        );
     }
-    const [c] = await this.db.insert(postComments).values({ postId, memberId, body }).returning({ id: postComments.id });
-    await this.notifyMentioned(post, memberId, mentioned.filter((id) => id !== memberId), c!.id);
+    const [c] = await this.db
+      .insert(postComments)
+      .values({ postId, memberId, body })
+      .returning({ id: postComments.id });
+    await this.notifyMentioned(
+      post,
+      memberId,
+      mentioned.filter((id) => id !== memberId),
+      c!.id,
+    );
     return this.list(postId, { kind: "member", id: memberId });
   }
 
@@ -102,12 +122,20 @@ export class CommentsService {
    * Who a member may mention on a post: people who commented on it, the post's author, and
    * active members of the writer's own churches. Never a search of every member.
    */
-  private async mentionable(post: typeof posts.$inferSelect, memberId: string, q: string, onlyIds?: string[]) {
+  private async mentionable(
+    post: typeof posts.$inferSelect,
+    memberId: string,
+    q: string,
+    onlyIds?: string[],
+  ) {
     const myChurches = this.db
       .select({ g: memberships.groupId })
       .from(memberships)
       .where(and(eq(memberships.memberId, memberId), eq(memberships.status, "ACTIVE")));
-    const commenters = this.db.selectDistinct({ id: postComments.memberId }).from(postComments).where(eq(postComments.postId, post.id));
+    const commenters = this.db
+      .selectDistinct({ id: postComments.memberId })
+      .from(postComments)
+      .where(eq(postComments.postId, post.id));
     const churchFolk = this.db
       .selectDistinct({ id: memberships.memberId })
       .from(memberships)
@@ -125,9 +153,19 @@ export class CommentsService {
         and(
           ne(members.id, memberId),
           eq(members.isActive, true),
-          or(inArray(members.id, commenters), inArray(members.id, churchFolk), post.authorMemberId ? eq(members.id, post.authorMemberId) : undefined),
+          or(
+            inArray(members.id, commenters),
+            inArray(members.id, churchFolk),
+            post.authorMemberId ? eq(members.id, post.authorMemberId) : undefined,
+          ),
           onlyIds ? inArray(members.id, onlyIds) : undefined,
-          term ? or(ilike(members.firstName, `${term}%`), ilike(members.lastName, `${term}%`), ilike(sql`${members.firstName} || ' ' || ${members.lastName}`, `${term}%`)) : undefined,
+          term
+            ? or(
+                ilike(members.firstName, `${term}%`),
+                ilike(members.lastName, `${term}%`),
+                ilike(sql`${members.firstName} || ' ' || ${members.lastName}`, `${term}%`),
+              )
+            : undefined,
         ),
       )
       .orderBy(asc(members.firstName), asc(members.lastName))
@@ -141,27 +179,30 @@ export class CommentsService {
     return {
       items: rows
         .sort((a, b) => Number(b.inThread) - Number(a.inThread))
-        .map((r) => ({ id: r.id, name: `${r.f} ${r.l}`, hint: r.inThread ? "In this conversation" : "From your church" })),
+        .map((r) => ({
+          id: r.id,
+          name: `${r.f} ${r.l}`,
+          hint: r.inThread ? "In this conversation" : "From your church",
+        })),
     };
   }
 
-  private async notifyMentioned(post: typeof posts.$inferSelect, writerId: string, ids: string[], commentId: string) {
+  private async notifyMentioned(
+    post: typeof posts.$inferSelect,
+    writerId: string,
+    ids: string[],
+    commentId: string,
+  ) {
     if (!ids.length) return;
-    try {
-      const [type] = await this.db.select({ id: notificationTypes.id }).from(notificationTypes).where(eq(notificationTypes.code, "COMMENT_MENTION")).limit(1);
-      if (!type) return;
-      const writer = (await this.names([writerId])).get(writerId) ?? "Someone";
-      await this.db.insert(notifications).values(
-        ids.map((id) => ({
-          typeId: type.id,
-          recipientMemberId: id,
-          title: `${writer} mentioned you on "${post.title}"`.slice(0, 200),
-          link: `/explore/posts/${post.id}#c-${commentId}`,
-        })),
-      );
-    } catch {
-      /* a failed notification must not undo the comment */
-    }
+    const writer = (await this.names([writerId])).get(writerId) ?? "Someone";
+    await this.notify.people(
+      "COMMENT_MENTION",
+      { memberIds: ids },
+      {
+        title: `${writer} mentioned you on "${post.title}"`,
+        link: `/explore/posts/${post.id}#c-${commentId}`,
+      },
+    );
   }
 
   private async comment(id: string) {
@@ -177,7 +218,8 @@ export class CommentsService {
 
   async remove(memberId: string, id: string) {
     const { c } = await this.comment(id);
-    if (c.memberId !== memberId) throw new DomainError(403, "NOT_ALLOWED", "You can only delete your own comments.");
+    if (c.memberId !== memberId)
+      throw new DomainError(403, "NOT_ALLOWED", "You can only delete your own comments.");
     await this.db.delete(postComments).where(eq(postComments.id, id));
   }
 
@@ -185,7 +227,11 @@ export class CommentsService {
   async report(memberId: string, id: string, ip: string) {
     const { c } = await this.comment(id);
     if (c.memberId === memberId) return;
-    const added = await this.db.insert(commentReports).values({ commentId: id, memberId }).onConflictDoNothing().returning();
+    const added = await this.db
+      .insert(commentReports)
+      .values({ commentId: id, memberId })
+      .onConflictDoNothing()
+      .returning();
     if (!added.length) return;
     const [next] = await this.db
       .update(postComments)
@@ -196,16 +242,28 @@ export class CommentsService {
       .where(eq(postComments.id, id))
       .returning();
     if (next?.status === "HIDDEN" && c.status === "VISIBLE")
-      await this.audit.write({ actorType: "SYSTEM", action: "explore.comment_auto_hidden", entityType: "comment", entityId: id, metadata: { reports: next.reportCount }, ip });
+      await this.audit.write({
+        actorType: "SYSTEM",
+        action: "explore.comment_auto_hidden",
+        entityType: "comment",
+        entityId: id,
+        metadata: { reports: next.reportCount },
+        ip,
+      });
   }
 
   async setStatus(p: Principal, id: string, status: CommentStatus, ip: string) {
     const { c, post } = await this.comment(id);
     const actor = await this.access.actor(p);
-    if (!canModerateComment(actor, post)) throw new DomainError(403, "NOT_ALLOWED", "Only the post's managers can hide comments.");
+    if (!canModerateComment(actor, post))
+      throw new DomainError(403, "NOT_ALLOWED", "Only the post's managers can hide comments.");
     // Restoring clears the reports, so the same reports can't hide it again.
-    await this.db.update(postComments).set({ status, ...(status === "VISIBLE" ? { reportCount: 0 } : {}) }).where(eq(postComments.id, id));
-    if (status === "VISIBLE") await this.db.delete(commentReports).where(eq(commentReports.commentId, id));
+    await this.db
+      .update(postComments)
+      .set({ status, ...(status === "VISIBLE" ? { reportCount: 0 } : {}) })
+      .where(eq(postComments.id, id));
+    if (status === "VISIBLE")
+      await this.db.delete(commentReports).where(eq(commentReports.commentId, id));
     await this.audit.write({
       actorType: actor.kind === "user" ? "USER" : "MEMBER",
       actorId: actor.id,
@@ -232,7 +290,9 @@ export class CommentsService {
       items: rows.map((r) => ({
         id: r.c.id,
         // The console shows names, not mention tokens.
-        body: commentSegments(r.c.body, names).map((x) => (x.t === "mention" ? `@${x.name}` : x.v)).join(""),
+        body: commentSegments(r.c.body, names)
+          .map((x) => (x.t === "mention" ? `@${x.name}` : x.v))
+          .join(""),
         status: r.c.status,
         author: `${r.f} ${r.l}`,
         reports: r.c.reportCount,
@@ -242,4 +302,3 @@ export class CommentsService {
     };
   }
 }
-

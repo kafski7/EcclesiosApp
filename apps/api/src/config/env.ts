@@ -52,6 +52,46 @@ export const EnvSchema = z
     /** Hubtel POS Sales / merchant account number. */
     HUBTEL_MERCHANT_ACCOUNT: z.string().optional(),
     /** Where buyers land after paying, and where Hubtel posts callbacks. */
+    /**
+     * Accounting link for collections (D-041). "dev" = built-in stand-in for the external accounting
+     * service (development and e2e only); "none" = not connected (approved collections wait).
+     */
+    ACCOUNTING_PROVIDER: z.enum(["dev", "none"]).default("dev"),
+    /**
+     * Background jobs (Phase 7, D-050). "bullmq" = Redis queues with retries (dev and production);
+     * "inline" = run each job straight away in the same process, once (tests only — never production).
+     */
+    REDIS_URL: z.string().url().default("redis://localhost:6379"),
+    QUEUE_DRIVER: z.enum(["bullmq", "inline"]).default("bullmq"),
+    /** Run the workers inside this process. 1 for `pnpm dev`; in production run `pnpm worker` separately and set 0. */
+    WORKERS: z
+      .enum(["0", "1", "true", "false"])
+      .default("1")
+      .transform((v) => v === "1" || v === "true"),
+    WORKER_CONCURRENCY: z.coerce.number().int().min(1).max(50).default(5),
+    /** The church calendar day for daily jobs (birthday digest). */
+    APP_TIMEZONE: z.string().default("Africa/Accra"),
+    /** When the birthday digest runs (cron, APP_TIMEZONE). Empty = off. */
+    BIRTHDAY_DIGEST_CRON: z.string().default("0 6 * * *"),
+    /**
+     * SMS gateway (D-050). "console" logs messages (codes included outside production);
+     * "hubtel" = Hubtel SMS. Production must use a real gateway.
+     */
+    SMS_PROVIDER: z.enum(["console", "hubtel"]).default("console"),
+    /** Approved sender ID (≤ 11 characters). */
+    SMS_SENDER_ID: z.string().min(1).max(11).default("Ecclesios"),
+    HUBTEL_SMS_CLIENT_ID: z.string().optional(),
+    HUBTEL_SMS_CLIENT_SECRET: z.string().optional(),
+    HUBTEL_SMS_URL: z.string().url().default("https://smsc.hubtel.com/v1/messages/send"),
+    /** Email gateway (D-050). "console" logs; "smtp" sends through any SMTP server. */
+    EMAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),
+    EMAIL_FROM: z.string().default("Ecclesios <no-reply@ecclesios.app>"),
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+    /** 1 = TLS from the start (port 465); 0 = STARTTLS. */
+    SMTP_SECURE: bool,
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
     PUBLIC_WEB_URL: z.string().url().default("http://localhost:5173"),
     PUBLIC_API_URL: z.string().url().default("http://localhost:4000"),
     CORS_ORIGINS: z
@@ -66,11 +106,55 @@ export const EnvSchema = z
   })
   .superRefine((env, ctx) => {
     if (env.PAYMENTS_GATEWAY === "hubtel")
-      for (const key of ["HUBTEL_CLIENT_ID", "HUBTEL_CLIENT_SECRET", "HUBTEL_MERCHANT_ACCOUNT"] as const)
-        if (!env[key]) ctx.addIssue({ code: "custom", path: [key], message: "required when PAYMENTS_GATEWAY=hubtel" });
+      for (const key of [
+        "HUBTEL_CLIENT_ID",
+        "HUBTEL_CLIENT_SECRET",
+        "HUBTEL_MERCHANT_ACCOUNT",
+      ] as const)
+        if (!env[key])
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "required when PAYMENTS_GATEWAY=hubtel",
+          });
+    if (env.SMS_PROVIDER === "hubtel")
+      for (const key of ["HUBTEL_SMS_CLIENT_ID", "HUBTEL_SMS_CLIENT_SECRET"] as const)
+        if (!env[key])
+          ctx.addIssue({ code: "custom", path: [key], message: "required when SMS_PROVIDER=hubtel" });
+    if (env.EMAIL_PROVIDER === "smtp" && !env.SMTP_HOST)
+      ctx.addIssue({ code: "custom", path: ["SMTP_HOST"], message: "required when EMAIL_PROVIDER=smtp" });
     if (env.NODE_ENV !== "production") return;
+    if (env.QUEUE_DRIVER === "inline")
+      ctx.addIssue({
+        code: "custom",
+        path: ["QUEUE_DRIVER"],
+        message: "inline jobs are for tests; production uses bullmq (Redis)",
+      });
+    if (env.SMS_PROVIDER === "console")
+      ctx.addIssue({
+        code: "custom",
+        path: ["SMS_PROVIDER"],
+        message: "production must send real SMS (hubtel) — OTPs depend on it",
+      });
+    if (env.EMAIL_PROVIDER === "console")
+      ctx.addIssue({
+        code: "custom",
+        path: ["EMAIL_PROVIDER"],
+        message: "production must send real email (smtp)",
+      });
+    if (env.ACCOUNTING_PROVIDER === "dev")
+      ctx.addIssue({
+        code: "custom",
+        path: ["ACCOUNTING_PROVIDER"],
+        message:
+          "the dev accounting stand-in can't run in production (use none until a provider is chosen)",
+      });
     if (env.PAYMENTS_GATEWAY !== "hubtel")
-      ctx.addIssue({ code: "custom", path: ["PAYMENTS_GATEWAY"], message: "production must take real payments (hubtel)" });
+      ctx.addIssue({
+        code: "custom",
+        path: ["PAYMENTS_GATEWAY"],
+        message: "production must take real payments (hubtel)",
+      });
     for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"] as const) {
       const v = env[key];
       if (v.length < 32 || v.startsWith("change-me"))

@@ -11,14 +11,6 @@ export const SubscribePage = () => (
   />
 );
 
-export const NotificationsPage = () => (
-  <Placeholder
-    title="Notifications"
-    intro="New content, events and messages from your church and societies."
-    coming="Notifications arrive in Phase 6."
-  />
-);
-
 export const AboutPage = () => (
   <Placeholder
     title="About Ecclesios"

@@ -20,7 +20,11 @@ export class ReadingsService {
   /** Always answers: the liturgical context is computed even when no readings are stored. */
   async byDate(date: string): Promise<ReadingDay> {
     const ctx = liturgicalDay(date);
-    const [day] = await this.db.select().from(readingDays).where(eq(readingDays.date, date)).limit(1);
+    const [day] = await this.db
+      .select()
+      .from(readingDays)
+      .where(eq(readingDays.date, date))
+      .limit(1);
     const rows = day
       ? await this.db
           .select()
@@ -36,7 +40,12 @@ export class ReadingsService {
       weekdayCycle: ctx.weekdayCycle,
       celebration: day?.celebration ?? null,
       available: rows.length > 0,
-      readings: rows.map((r) => ({ kind: r.kind, citation: r.citation, response: r.response, text: r.text })),
+      readings: rows.map((r) => ({
+        kind: r.kind,
+        citation: r.citation,
+        response: r.response,
+        text: r.text,
+      })),
       source: day?.source ?? null,
     };
   }
@@ -49,7 +58,12 @@ export class ReadingsService {
         .values({ date, celebration: body.celebration, color: body.color, source: body.source })
         .onConflictDoUpdate({
           target: readingDays.date,
-          set: { celebration: body.celebration, color: body.color, source: body.source, updatedAt: new Date() },
+          set: {
+            celebration: body.celebration,
+            color: body.color,
+            source: body.source,
+            updatedAt: new Date(),
+          },
         })
         .returning({ id: readingDays.id });
       await tx.delete(readings).where(eq(readings.readingDayId, day!.id));

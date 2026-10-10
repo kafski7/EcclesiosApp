@@ -34,7 +34,11 @@ export function MiniPlayer() {
         el.currentTime = startAt;
         if (autoplay) await el.play();
       } catch (e) {
-        setError(e instanceof ApiClientError && e.code === "MEDIA_LOCKED" ? "This episode is for subscribers." : "Couldn't play this episode.");
+        setError(
+          e instanceof ApiClientError && e.code === "MEDIA_LOCKED"
+            ? "This episode is for subscribers."
+            : "Couldn't play this episode.",
+        );
       } finally {
         setLoading(false);
       }
@@ -61,8 +65,14 @@ export function MiniPlayer() {
     const el = audio.current;
     navigator.mediaSession.setActionHandler("play", () => void el?.play());
     navigator.mediaSession.setActionHandler("pause", () => el?.pause());
-    navigator.mediaSession.setActionHandler("seekbackward", () => el && (el.currentTime = clampSeek(el.currentTime, -15, el.duration)));
-    navigator.mediaSession.setActionHandler("seekforward", () => el && (el.currentTime = clampSeek(el.currentTime, 30, el.duration)));
+    navigator.mediaSession.setActionHandler(
+      "seekbackward",
+      () => el && (el.currentTime = clampSeek(el.currentTime, -15, el.duration)),
+    );
+    navigator.mediaSession.setActionHandler(
+      "seekforward",
+      () => el && (el.currentTime = clampSeek(el.currentTime, 30, el.duration)),
+    );
   }, [track]);
 
   if (!track) return <audio ref={audio} hidden />;
@@ -110,7 +120,13 @@ export function MiniPlayer() {
           void load(e.currentTarget.currentTime, playing);
         }}
       />
-      {track.coverUrl ? <img src={track.coverUrl} alt="" className="mp-cover" /> : <span className="mp-cover saint-medal" aria-hidden>♪</span>}
+      {track.coverUrl ? (
+        <img src={track.coverUrl} alt="" className="mp-cover" />
+      ) : (
+        <span className="mp-cover saint-medal" aria-hidden>
+          ♪
+        </span>
+      )}
       <div className="mp-meta">
         <Link to={`/podcasts/${track.podcastSlug}`} className="mp-title">
           {track.title}
@@ -135,13 +151,29 @@ export function MiniPlayer() {
         {formatClock(current)} / {formatClock(total)}
       </span>
       <div className="mp-controls">
-        <button type="button" className="icon-btn" onClick={() => seek(-15)} aria-label="Back 15 seconds">
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={() => seek(-15)}
+          aria-label="Back 15 seconds"
+        >
           <RotateCcw className="ic" />
         </button>
-        <button type="button" className="mp-play" onClick={toggle} disabled={loading} aria-label={playing ? "Pause" : "Play"}>
+        <button
+          type="button"
+          className="mp-play"
+          onClick={toggle}
+          disabled={loading}
+          aria-label={playing ? "Pause" : "Play"}
+        >
           {playing ? <Pause className="ic" /> : <Play className="ic" />}
         </button>
-        <button type="button" className="icon-btn" onClick={() => seek(30)} aria-label="Forward 30 seconds">
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={() => seek(30)}
+          aria-label="Forward 30 seconds"
+        >
           <RotateCw className="ic" />
         </button>
         <button

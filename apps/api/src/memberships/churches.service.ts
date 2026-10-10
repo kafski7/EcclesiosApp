@@ -1,16 +1,19 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
-import { groups, memberships, notificationTypes, notifications, roles } from "@ecclesios/db";
+import { Inject, Injectable } from "@nestjs/common";
+import { groups } from "@ecclesios/db";
 import type { ChurchOption, ChurchRef } from "@ecclesios/shared";
 import { JOINABLE_LEVELS, pathIds } from "@ecclesios/shared/domain";
 import { and, asc, eq, ilike, inArray, or } from "drizzle-orm";
+import { NotifyService } from "../notify/notify.service";
 import { DB, type Database } from "../db/db.module";
 import { ancestorIds, describeChurch, type NamedNode } from "../registration/parish-label";
 
 /** Joinable churches (parishes + outstations) and who approves requests to them (D-014, D-016). */
 @Injectable()
 export class ChurchesService {
-  private readonly logger = new Logger(ChurchesService.name);
-  constructor(@Inject(DB) private readonly db: Database) {}
+  constructor(
+    @Inject(DB) private readonly db: Database,
+    private readonly notify: NotifyService,
+  ) {}
 
   /** Active parishes and outstations matching `q` (name or code), with context. Max 20. */
   async search(q: string): Promise<ChurchOption[]> {
@@ -65,42 +68,10 @@ export class ChurchesService {
    * outstation also the overseeing parish's (backup approver, D-016). Never throws.
    */
   async notifyApprovers(church: ChurchRef & { path: string }, title: string, link: string) {
-    try {
-      const [type] = await this.db
-        .select({ id: notificationTypes.id })
-        .from(notificationTypes)
-        .where(eq(notificationTypes.code, "MEMBER_REGISTRATION"))
-        .limit(1);
-      if (!type) return;
-      const ids = pathIds(church.path);
-      const approverGroups =
-        church.level === "OUTSTATION" ? [church.id, ids[ids.length - 2]!] : [church.id];
-      const admins = await this.db
-        .selectDistinct({ memberId: memberships.memberId })
-        .from(memberships)
-        .innerJoin(roles, eq(memberships.roleId, roles.id))
-        .where(
-          and(
-            inArray(memberships.groupId, approverGroups),
-            eq(roles.code, "ADMINISTRATOR"),
-            eq(memberships.status, "ACTIVE"),
-          ),
-        );
-      if (!admins.length) return;
-      await this.db
-        .insert(notifications)
-        .values(
-          admins.map((a) => ({
-            typeId: type.id,
-            groupId: church.id,
-            recipientMemberId: a.memberId,
-            title,
-            link,
-          })),
-        );
-    } catch (err) {
-      this.logger.error({ err, churchId: church.id }, "could not notify approvers");
-    }
+    const ids = pathIds(church.path);
+    const approverGroups =
+      church.level === "OUTSTATION" ? [church.id, ids[ids.length - 2]!] : [church.id];
+    await this.notify.staff("MEMBER_REGISTRATION", approverGroups, ["ADMINISTRATOR"], { title, link }, church.id);
   }
 }
 

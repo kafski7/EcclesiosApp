@@ -45,13 +45,17 @@ describe("public listening", () => {
     const youth = await http().get("/api/public/podcasts/youth-on-fire").expect(200);
     expect(youth.body.publisher.kind).toBe("CREATOR");
     // The public page never lists drafts.
-    const studioView = youth.body.episodes.every((e: { publishedAt: string | null }) => e.publishedAt !== null);
+    const studioView = youth.body.episodes.every(
+      (e: { publishedAt: string | null }) => e.publishedAt !== null,
+    );
     expect(studioView).toBe(true);
   });
   it("searches and 404s", async () => {
     const r = await http().get("/api/public/podcasts?q=gospel").expect(200);
     expect(r.body.items.map((x: { slug: string }) => x.slug)).toContain("ecclesios-weekly");
-    expect((await http().get("/api/public/podcasts/nope").expect(404)).body.error.code).toBe("PODCAST_NOT_FOUND");
+    expect((await http().get("/api/public/podcasts/nope").expect(404)).body.error.code).toBe(
+      "PODCAST_NOT_FOUND",
+    );
   });
 });
 
@@ -60,7 +64,11 @@ describe("who may publish (D-027)", () => {
     const t = await token(THERESA);
     const list = await http().get("/api/studio/podcasts").set(auth(t)).expect(200);
     expect(list.body).toEqual({ canCreate: false, items: [] });
-    await http().post("/api/studio/podcasts").set(auth(t)).send({ title: "Nope", summary: "Nope" }).expect(403);
+    await http()
+      .post("/api/studio/podcasts")
+      .set(auth(t))
+      .send({ title: "Nope", summary: "Nope" })
+      .expect(403);
     await http().get("/api/studio/podcasts/ecclesios-weekly").set(auth(t)).expect(403);
   });
 
@@ -82,7 +90,11 @@ describe("publishing an episode", () => {
     const r = await http()
       .post("/api/studio/podcasts")
       .set(auth(t))
-      .send({ title: "E2E Test Podcast", summary: "Only used by the end-to-end tests.", category: "Test" })
+      .send({
+        title: "E2E Test Podcast",
+        summary: "Only used by the end-to-end tests.",
+        category: "Test",
+      })
       .expect(201);
     expect(r.body).toMatchObject({ slug: "e2e-test-podcast", category: "test", episodes: [] });
     const e = await http()
@@ -103,27 +115,47 @@ describe("publishing an episode", () => {
   it("cannot publish without audio; uploads are type-checked", async () => {
     const t = await token(SUPER, undefined, "admin-login");
     const base = `/api/studio/podcasts/e2e-test-podcast/episodes/${episodeId}`;
-    const r = await http().post(`${base}/status`).set(auth(t)).send({ status: "PUBLISHED" }).expect(409);
+    const r = await http()
+      .post(`${base}/status`)
+      .set(auth(t))
+      .send({ status: "PUBLISHED" })
+      .expect(409);
     expect(r.body.error.code).toBe("AUDIO_REQUIRED");
-    await http().post(`${base}/upload`).set(auth(t)).send({ contentType: "video/mp4", bytes: 1000 }).expect(400);
-    const ok = await http().post(`${base}/upload`).set(auth(t)).send({ contentType: "audio/mpeg", bytes: 1000 }).expect(201);
+    await http()
+      .post(`${base}/upload`)
+      .set(auth(t))
+      .send({ contentType: "video/mp4", bytes: 1000 })
+      .expect(400);
+    const ok = await http()
+      .post(`${base}/upload`)
+      .set(auth(t))
+      .send({ contentType: "audio/mpeg", bytes: 1000 })
+      .expect(201);
     expect(ok.body.key).toMatch(/^podcasts\/.+\/episodes\/.+\.mp3$/);
   });
 
   it("publishing notifies followers once and shows the episode publicly", async () => {
     const esi = await token(ESI);
     await http().put("/api/podcasts/e2e-test-podcast/follow").set(auth(esi)).expect(204);
-    expect((await http().get("/api/podcasts/following").set(auth(esi)).expect(200)).body.slugs).toContain("e2e-test-podcast");
+    expect(
+      (await http().get("/api/podcasts/following").set(auth(esi)).expect(200)).body.slugs,
+    ).toContain("e2e-test-podcast");
 
     // Stand-in for a real upload (no storage in e2e): attach a key directly.
-    await handle.db.update(podcastEpisodes).set({ audioKey: "podcasts/e2e/episode.mp3", durationSec: 600 }).where(eq(podcastEpisodes.id, episodeId));
+    await handle.db
+      .update(podcastEpisodes)
+      .set({ audioKey: "podcasts/e2e/episode.mp3", durationSec: 600 })
+      .where(eq(podcastEpisodes.id, episodeId));
 
     const t = await token(SUPER, undefined, "admin-login");
     const base = `/api/studio/podcasts/e2e-test-podcast/episodes/${episodeId}`;
     await http().post(`${base}/status`).set(auth(t)).send({ status: "PUBLISHED" }).expect(200);
     await http().post(`${base}/status`).set(auth(t)).send({ status: "DRAFT" }).expect(200);
     await http().post(`${base}/status`).set(auth(t)).send({ status: "PUBLISHED" }).expect(200);
-    const sent = await handle.db.select().from(notifications).where(like(notifications.title, "E2E Test Podcast%"));
+    const sent = await handle.db
+      .select()
+      .from(notifications)
+      .where(like(notifications.title, "E2E Test Podcast%"));
     expect(sent.length).toBe(1);
 
     // Newest episode first (D-033 subquery fix): the series just published leads the list.
@@ -131,7 +163,9 @@ describe("publishing an episode", () => {
     expect(listed.body.items[0].slug).toBe("e2e-test-podcast");
 
     const pub = await http().get("/api/public/podcasts/e2e-test-podcast").expect(200);
-    expect(pub.body.episodes).toMatchObject([{ id: episodeId, title: "First steps", durationSec: 600 }]);
+    expect(pub.body.episodes).toMatchObject([
+      { id: episodeId, title: "First steps", durationSec: 600 },
+    ]);
     const url = await http().get(`/api/public/podcasts/episodes/${episodeId}/url`).expect(200);
     expect(url.body.url).toMatch(/^https?:\/\//);
   });
@@ -165,38 +199,89 @@ describe("episode media and extras (D-029)", () => {
     const e = await http()
       .post("/api/studio/podcasts/e2e-test-podcast/episodes")
       .set(auth(t))
-      .send({ title: "Watch: the Creed explained", number: 2, mediaKind: "YOUTUBE", transcript: "We believe in one God." })
+      .send({
+        title: "Watch: the Creed explained",
+        number: 2,
+        mediaKind: "YOUTUBE",
+        transcript: "We believe in one God.",
+      })
       .expect(201);
     episodeId = e.body.episodes.find((x: { title: string }) => x.title.startsWith("Watch")).id;
 
-    const blocked = await http().post(`${base()}/status`).set(auth(t)).send({ status: "PUBLISHED" }).expect(409);
+    const blocked = await http()
+      .post(`${base()}/status`)
+      .set(auth(t))
+      .send({ status: "PUBLISHED" })
+      .expect(409);
     expect(blocked.body.error.code).toBe("YOUTUBE_REQUIRED");
-    await http().put(`${base()}/youtube`).set(auth(t)).send({ url: "https://vimeo.com/1" }).expect(400);
-    await http().put(`${base()}/youtube`).set(auth(t)).send({ url: "https://youtu.be/dQw4w9WgXcQ" }).expect(200);
+    await http()
+      .put(`${base()}/youtube`)
+      .set(auth(t))
+      .send({ url: "https://vimeo.com/1" })
+      .expect(400);
+    await http()
+      .put(`${base()}/youtube`)
+      .set(auth(t))
+      .send({ url: "https://youtu.be/dQw4w9WgXcQ" })
+      .expect(200);
     await http().post(`${base()}/status`).set(auth(t)).send({ status: "PUBLISHED" }).expect(200);
 
     const pub = await http().get("/api/public/podcasts/e2e-test-podcast").expect(200);
     const ep = pub.body.episodes.find((x: { id: string }) => x.id === episodeId);
-    expect(ep).toMatchObject({ mediaKind: "YOUTUBE", youtubeId: "dQw4w9WgXcQ", hasAudio: false, available: true, hasTranscript: true });
-    expect((await http().get(`/api/public/podcasts/episodes/${episodeId}/transcript`).expect(200)).body.text).toBe("We believe in one God.");
+    expect(ep).toMatchObject({
+      mediaKind: "YOUTUBE",
+      youtubeId: "dQw4w9WgXcQ",
+      hasAudio: false,
+      available: true,
+      hasTranscript: true,
+    });
+    expect(
+      (await http().get(`/api/public/podcasts/episodes/${episodeId}/transcript`).expect(200)).body
+        .text,
+    ).toBe("We believe in one God.");
     // no audio → no stream URL
     await http().get(`/api/public/podcasts/episodes/${episodeId}/url`).expect(404);
   });
 
   it("a live YouTube-first episode keeps its link and can't switch to missing audio", async () => {
     const t = await superToken();
-    expect((await http().put(`${base()}/youtube`).set(auth(t)).send({ url: null }).expect(409)).body.error.code).toBe("YOUTUBE_REQUIRED");
-    const sw = await http().put(base()).set(auth(t)).send({ title: "Watch: the Creed explained", number: 2, mediaKind: "AUDIO" }).expect(409);
+    expect(
+      (await http().put(`${base()}/youtube`).set(auth(t)).send({ url: null }).expect(409)).body
+        .error.code,
+    ).toBe("YOUTUBE_REQUIRED");
+    const sw = await http()
+      .put(base())
+      .set(auth(t))
+      .send({ title: "Watch: the Creed explained", number: 2, mediaKind: "AUDIO" })
+      .expect(409);
     expect(sw.body.error.code).toBe("AUDIO_REQUIRED");
   });
 
   it("handouts are PDF only and key-checked; access defaults to free", async () => {
     const t = await superToken();
-    await http().post(`${base()}/attachment-upload`).set(auth(t)).send({ contentType: "image/png", bytes: 100 }).expect(400);
-    const up = await http().post(`${base()}/attachment-upload`).set(auth(t)).send({ contentType: "application/pdf", bytes: 100 }).expect(201);
+    await http()
+      .post(`${base()}/attachment-upload`)
+      .set(auth(t))
+      .send({ contentType: "image/png", bytes: 100 })
+      .expect(400);
+    const up = await http()
+      .post(`${base()}/attachment-upload`)
+      .set(auth(t))
+      .send({ contentType: "application/pdf", bytes: 100 })
+      .expect(201);
     expect(up.body.key).toMatch(/\/files\/.+\.pdf$/);
-    await http().post(`${base()}/attachments`).set(auth(t)).send({ key: "podcasts/other/x.pdf", label: "Notes" }).expect(400);
-    const studio = await http().get("/api/studio/podcasts/e2e-test-podcast").set(auth(t)).expect(200);
-    expect(studio.body.episodes.find((x: { id: string }) => x.id === episodeId)).toMatchObject({ access: "FREE", transcript: "We believe in one God." });
+    await http()
+      .post(`${base()}/attachments`)
+      .set(auth(t))
+      .send({ key: "podcasts/other/x.pdf", label: "Notes" })
+      .expect(400);
+    const studio = await http()
+      .get("/api/studio/podcasts/e2e-test-podcast")
+      .set(auth(t))
+      .expect(200);
+    expect(studio.body.episodes.find((x: { id: string }) => x.id === episodeId)).toMatchObject({
+      access: "FREE",
+      transcript: "We believe in one God.",
+    });
   });
 });

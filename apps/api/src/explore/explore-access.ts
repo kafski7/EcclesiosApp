@@ -21,20 +21,40 @@ export class ExploreAccess {
       return { kind: "user", id: p.id, role: p.role, privileges: rows.map((r) => r.privilege) };
     }
     const [grants, mine] = await Promise.all([
-      this.db.select({ privilege: memberPrivileges.privilege }).from(memberPrivileges).where(eq(memberPrivileges.memberId, p.id)),
       this.db
-        .select({ id: groups.id, level: groups.level, path: groups.path, name: groups.name, role: roles.code })
+        .select({ privilege: memberPrivileges.privilege })
+        .from(memberPrivileges)
+        .where(eq(memberPrivileges.memberId, p.id)),
+      this.db
+        .select({
+          id: groups.id,
+          level: groups.level,
+          path: groups.path,
+          name: groups.name,
+          role: roles.code,
+        })
         .from(memberships)
         .innerJoin(groups, eq(groups.id, memberships.groupId))
         .innerJoin(roles, eq(roles.id, memberships.roleId))
-        .where(and(eq(memberships.memberId, p.id), eq(memberships.status, "ACTIVE"), eq(groups.isActive, true))),
+        .where(
+          and(
+            eq(memberships.memberId, p.id),
+            eq(memberships.status, "ACTIVE"),
+            eq(groups.isActive, true),
+          ),
+        ),
     ]);
     const nodes: MembershipNode[] = mine.map((m) => ({
       group: { id: m.id, level: m.level, path: m.path },
       role: m.role,
       status: "ACTIVE",
     }));
-    return { kind: "member", id: p.id, privileges: grants.map((g) => g.privilege), memberships: nodes };
+    return {
+      kind: "member",
+      id: p.id,
+      privileges: grants.map((g) => g.privilege),
+      memberships: nodes,
+    };
   }
 
   /** Churches the member administers (where they may post in the church's name). */

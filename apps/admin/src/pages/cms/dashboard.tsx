@@ -1,15 +1,24 @@
 import { CAlert } from "@coreui/react";
-import { Bell, BookUser, Cake, UserPlus, UsersRound, type LucideIcon } from "lucide-react";
+import { Bell, BookUser, Cake, Network, UserPlus, UsersRound, type LucideIcon } from "lucide-react";
+import { FinanceCard } from "./collections";
 import { Link } from "react-router-dom";
 import { StateBadge } from "@/components/brand";
 import { formatDate, LEVEL_LABEL, useCurrent, useDashboard } from "@/lib/cms";
 
-/** Dashboard in the kit's admin.html layout (functionality §4.1). Activity feed arrives with notifications (Phase 6). */
+/** Dashboard in the kit's admin.html layout (functionality §4.1). Society-Leaders get their own view (D-039). */
 export function DashboardPage() {
   const ctx = useCurrent();
   const d = useDashboard(ctx.group.id);
   const s = ctx.subscription;
   const v = (n: number | undefined) => (d.isPending ? "…" : (n ?? 0).toLocaleString());
+  if (d.data?.view === "LEADER")
+    return (
+      <LeaderDashboard
+        societies={d.data.societies}
+        committees={d.data.committees}
+        unread={d.data.unreadNotifications}
+      />
+    );
 
   return (
     <>
@@ -51,6 +60,42 @@ export function DashboardPage() {
         />
       </section>
 
+      {d.data?.rollup ? (
+        <section className="stats-grid" aria-label="Everything below">
+          {ctx.group.level !== "PARISH" ? (
+            <Stat tone="info" icon={Network} value={v(d.data.rollup.parishes)} label="Parishes" />
+          ) : null}
+          <Stat tone="ok" icon={Network} value={v(d.data.rollup.outstations)} label="Outstations" />
+          <Stat
+            tone="gold"
+            icon={BookUser}
+            value={v(d.data.rollup.members)}
+            label="Members"
+            note={ctx.group.level === "PARISH" ? "With outstations" : "All levels below"}
+            noteTone="gold"
+          />
+          <Stat
+            tone="danger"
+            icon={UserPlus}
+            value={v(d.data.rollup.pendingRequests)}
+            label="Waiting to join"
+            note="All levels below"
+            noteTone="red"
+          />
+        </section>
+      ) : null}
+      {d.data?.rollup?.hiddenDioceses ? (
+        <p className="small muted">
+          {d.data.rollup.hiddenDioceses} suffragan{" "}
+          {d.data.rollup.hiddenDioceses === 1 ? "diocese has" : "dioceses have"} chosen not to share
+          figures; they're left out.
+        </p>
+      ) : null}
+      {(ctx.group.level === "PARISH" || ctx.group.level === "OUTSTATION") &&
+      (ctx.role === "ADMINISTRATOR" || ctx.role === "MANAGER") ? (
+        <FinanceCard groupId={ctx.group.id} />
+      ) : null}
+
       <div className="dash-grid">
         <section className="card panel">
           <header className="panel-head">
@@ -61,7 +106,10 @@ export function DashboardPage() {
               <UserPlus className="ic" style={{ display: "inline", marginRight: 8 }} aria-hidden />
               <b>{d.data.pendingRequests}</b>{" "}
               {d.data.pendingRequests === 1 ? "person is" : "people are"} waiting to join{" "}
-              {ctx.group.name}. Reviewing requests opens in the Members module.
+              {ctx.group.name}.{" "}
+              <Link className="link" to="/admin/members/requests">
+                Review requests
+              </Link>
             </p>
           ) : (
             <p className="small muted">No one is waiting to join.</p>
@@ -96,6 +144,59 @@ export function DashboardPage() {
           </section>
         </aside>
       </div>
+    </>
+  );
+}
+
+/** Society-Leaders see what they lead, not the church's figures (D-039). */
+function LeaderDashboard({
+  societies,
+  committees,
+  unread,
+}: {
+  societies: number;
+  committees: number;
+  unread: number;
+}) {
+  const ctx = useCurrent();
+  return (
+    <>
+      <div className="dash-head">
+        <div>
+          <h1>Dashboard</h1>
+          <p className="dash-sub">{ctx.group.name} · Society-Leader</p>
+        </div>
+      </div>
+      <section className="stats-grid" aria-label="What you lead">
+        <Stat tone="ok" icon={UsersRound} value={String(societies)} label="Societies you lead" />
+        <Stat
+          tone="info"
+          icon={UsersRound}
+          value={String(committees)}
+          label="Committees you lead"
+        />
+        <Stat
+          tone="danger"
+          icon={Bell}
+          value={String(unread)}
+          label="Notifications"
+          note="Unread"
+          noteTone="red"
+        />
+      </section>
+      <section className="card panel">
+        <p className="small mb-0">
+          Keep your rosters up to date in{" "}
+          <Link className="link" to="/admin/societies">
+            Societies
+          </Link>{" "}
+          and{" "}
+          <Link className="link" to="/admin/committees">
+            Committees
+          </Link>
+          . Messages to your members arrive in a later update.
+        </p>
+      </section>
     </>
   );
 }

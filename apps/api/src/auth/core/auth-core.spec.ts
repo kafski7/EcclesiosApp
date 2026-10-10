@@ -317,3 +317,61 @@ describe("primitives", () => {
     expect(threw).toBe(true);
   });
 });
+
+describe("claim a register entry (D-039)", () => {
+  const WALKIN = "00000000-0000-4000-8000-000000000777";
+  const addWalkin = (h: Awaited<ReturnType<typeof makeHarness>>) =>
+    h.stores.member.add({
+      ...h.stores.member.rows.get("00000000-0000-4000-8000-000000000517")!,
+      id: WALKIN,
+      email: null,
+      telephone: "+233209990777",
+      passwordHash: null,
+      firstLogin: null,
+    });
+
+  it("code → set password → signed in; afterwards it can't be claimed again", async () => {
+    const h = await makeHarness();
+    addWalkin(h);
+    const ch = await h.core.startClaim("+233209990777", META);
+    const r = await h.core.verifyOtp(ch.challengeToken, h.sent.at(-1)!.code, META);
+    expect(r.status).toBe("PASSWORD_SETUP_REQUIRED");
+    if (r.status !== "PASSWORD_SETUP_REQUIRED") return;
+    const pair = await h.core.setPassword(r.tempToken, "MyNewPass2026", META);
+    expect(pair.principal.id).toBe(WALKIN);
+    expect((await caught(() => h.core.startClaim("+233209990777", META))).code).toBe(
+      "NOTHING_TO_CLAIM",
+    );
+  });
+
+  it("accounts with a password and unknown details can't be claimed", async () => {
+    const h = await makeHarness();
+    expect((await caught(() => h.core.startClaim(THERESA, META))).code).toBe("NOTHING_TO_CLAIM");
+    expect((await caught(() => h.core.startClaim("nobody@x.org", META))).code).toBe(
+      "NOTHING_TO_CLAIM",
+    );
+  });
+});
+
+describe("change password (D-039)", () => {
+  it("needs the current password, ends other sessions, keeps this one", async () => {
+    const h = await makeHarness();
+    const { res } = await signIn(h, "member", THERESA);
+    if (res.status !== "AUTHENTICATED") throw new Error("expected tokens");
+    const id = res.principal.id;
+    expect(
+      (
+        await caught(() =>
+          h.core.changePassword("member", id, "wrong-one-1", "Another2026pw", META),
+        )
+      ).code,
+    ).toBe("WRONG_PASSWORD");
+    const pair = await h.core.changePassword("member", id, PW, "Another2026pw", META);
+    // This session continues with the new pair; the old refresh token is dead (and replaying it ends everything).
+    expect((await h.core.refresh(pair.refreshToken, META)).principal.id).toBe(id);
+    expect((await caught(() => h.core.refresh(res.refreshToken, META))).code).toBe(
+      "INVALID_REFRESH_TOKEN",
+    );
+    await h.core.login("member", THERESA, "Another2026pw", META);
+  });
+});

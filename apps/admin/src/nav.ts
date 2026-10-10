@@ -6,6 +6,8 @@ import {
   CreditCard,
   FileStack,
   GraduationCap,
+  HandCoins,
+  Network,
   LayoutDashboard,
   Library,
   Megaphone,
@@ -44,10 +46,27 @@ const ALL: readonly MemberRole[] = ["ADMINISTRATOR", "MANAGER", "SOCIETY_LEADER"
  */
 const CMS_NAV: readonly CmsNavItem[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, roles: ALL },
-  { to: "/admin/members", label: "Members", icon: BookUser, roles: ALL },
-  { to: "/admin/birthdays", label: "Birthdays", icon: Cake, roles: ALL },
+  // The groups under this one (D-041) — every level except outstations, which have none.
+  {
+    to: "/admin/groups",
+    label: "Groups",
+    icon: Network,
+    roles: STAFF,
+    levels: ["PROVINCE", "ARCHDIOCESE", "DIOCESE", "DEANERY", "PARISH"],
+  },
+  // Register and birthdays read records: staff only (D-037). Leaders keep their rosters in Societies (D-038).
+  { to: "/admin/members", label: "Members", icon: BookUser, roles: STAFF },
+  { to: "/admin/birthdays", label: "Birthdays", icon: Cake, roles: STAFF },
   { to: "/admin/societies", label: "Societies", icon: UsersRound, roles: ALL },
   { to: "/admin/committees", label: "Committees", icon: ListChecks, roles: ALL },
+  // Outstations record, parishes review (blueprint §8.1, D-041).
+  {
+    to: "/admin/collections",
+    label: "Collections",
+    icon: HandCoins,
+    roles: STAFF,
+    levels: ["PARISH", "OUTSTATION"],
+  },
   { to: "/admin/notifications", label: "Notifications", icon: Bell, roles: ALL },
   { to: "/admin/messages", label: "Messages", icon: Mail, roles: STAFF },
   { to: "/admin/users", label: "Users & Roles", icon: UserCog, roles: ["ADMINISTRATOR"] },

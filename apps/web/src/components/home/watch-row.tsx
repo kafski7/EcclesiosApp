@@ -6,7 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ago } from "@/lib/news";
 
-const KIND_LABEL: Record<WatchItem["kind"], string> = { EPISODE: "Podcast", POST: "Explore", HYMN: "Hymn" };
+const KIND_LABEL: Record<WatchItem["kind"], string> = {
+  EPISODE: "Podcast",
+  POST: "Explore",
+  HYMN: "Hymn",
+};
 
 /**
  * Home "Watch" row (D-034): newest videos in a horizontal, swipeable strip. Tapping a card plays it
@@ -20,7 +24,10 @@ export function WatchRow({ items }: { items: readonly WatchItem[] }) {
   const update = useCallback(() => {
     const el = strip.current;
     if (!el) return;
-    setEdges({ start: el.scrollLeft <= 4, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4 });
+    setEdges({
+      start: el.scrollLeft <= 4,
+      end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
+    });
   }, []);
   useEffect(() => {
     update();
@@ -29,7 +36,8 @@ export function WatchRow({ items }: { items: readonly WatchItem[] }) {
   }, [update, items.length]);
 
   if (!items.length) return null;
-  const page = (dir: 1 | -1) => strip.current?.scrollBy({ left: dir * strip.current.clientWidth * 0.85, behavior: "smooth" });
+  const page = (dir: 1 | -1) =>
+    strip.current?.scrollBy({ left: dir * strip.current.clientWidth * 0.85, behavior: "smooth" });
 
   return (
     <section className="watch-row" aria-labelledby="watch-title">
@@ -38,10 +46,22 @@ export function WatchRow({ items }: { items: readonly WatchItem[] }) {
           Watch
         </h2>
         <div className="flex gap-1">
-          <button type="button" className="icon-btn" onClick={() => page(-1)} disabled={edges.start} aria-label="Previous videos">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => page(-1)}
+            disabled={edges.start}
+            aria-label="Previous videos"
+          >
             <ChevronLeft className="ic" />
           </button>
-          <button type="button" className="icon-btn" onClick={() => page(1)} disabled={edges.end} aria-label="More videos">
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => page(1)}
+            disabled={edges.end}
+            aria-label="More videos"
+          >
             <ChevronRight className="ic" />
           </button>
         </div>
@@ -49,7 +69,12 @@ export function WatchRow({ items }: { items: readonly WatchItem[] }) {
       <ul ref={strip} className="watch-strip" onScroll={update}>
         {items.map((w) => (
           <li key={`${w.kind}:${w.key}`}>
-            <button type="button" className="watch-card" onClick={() => setPlaying(w)} aria-label={`Play ${w.title}`}>
+            <button
+              type="button"
+              className="watch-card"
+              onClick={() => setPlaying(w)}
+              aria-label={`Play ${w.title}`}
+            >
               <span className="watch-thumb">
                 <img src={youTubeThumb(w.youtubeId)} alt="" loading="lazy" />
                 <span className="watch-play" aria-hidden>
@@ -87,7 +112,11 @@ export function WatchRow({ items }: { items: readonly WatchItem[] }) {
                     </Dialog.Title>
                     <small className="muted">{playing.source}</small>
                   </div>
-                  <Link to={playing.href} className="btn btn-outline btn-sm" onClick={() => setPlaying(null)}>
+                  <Link
+                    to={playing.href}
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setPlaying(null)}
+                  >
                     Open <ExternalLink className="ic" aria-hidden />
                   </Link>
                   <Dialog.Close className="icon-btn" aria-label="Close">

@@ -6,6 +6,7 @@ describe("explore helpers", () => {
     expect(feedParams("ALL", { page: 1 })).toBe("page=1");
     expect(feedParams("EVENTS", { page: 2, q: " mass " })).toBe("page=2&kind=EVENT&q=mass");
     expect(feedParams("FOLLOWING", { page: 1 })).toBe("page=1&following=1");
+    expect(feedParams("PAST", { page: 1 })).toBe("page=1&kind=EVENT&past=1");
   });
   it("may write as self or for a church", () => {
     expect(canWrite(undefined)).toBe(false);

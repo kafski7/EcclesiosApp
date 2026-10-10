@@ -1,6 +1,8 @@
 import { Bell, LogOut, Menu } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { badgeCount } from "@ecclesios/shared/domain";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useUnread } from "@/lib/account";
 import type { NavItem } from "@/nav";
 import { signOut } from "@/lib/auth";
 import { useUi } from "@/stores/context";
@@ -13,6 +15,7 @@ export function Shell({
   footerNav = [],
   user,
   loginPath,
+  links,
   children,
 }: {
   sidebarTop: ReactNode;
@@ -20,8 +23,11 @@ export function Shell({
   footerNav?: readonly NavItem[];
   user: { name: string; role: string };
   loginPath: string;
+  /** Where the bell and the avatar go (D-039). */
+  links: { notifications: string; profile: string };
   children: ReactNode;
 }) {
+  const unread = badgeCount(useUnread().data?.unread ?? 0);
   const { navOpen, setNavOpen } = useUi();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -56,7 +62,9 @@ export function Shell({
           {footerNav.map(item)}
         </nav>
         <div className="sidebar-user">
-          <span className="avatar av-36 av-brand">{initials(user.name)}</span>
+          <Link to={links.profile} className="avatar av-36 av-brand" title="Your profile">
+            {initials(user.name)}
+          </Link>
           <span className="s-user-meta">
             <b>{user.name}</b>
             <small>{user.role}</small>
@@ -80,12 +88,21 @@ export function Shell({
             <Menu className="ic" aria-hidden />
           </button>
           <div className="top-actions">
-            <button type="button" className="icon-btn" aria-label="Notifications" disabled>
+            <Link
+              to={links.notifications}
+              className="icon-btn"
+              aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}
+            >
               <Bell className="ic" aria-hidden />
-            </button>
-            <span className="avatar av-36 av-brand" title={user.name}>
+              {unread ? <i className="dot-badge">{unread}</i> : null}
+            </Link>
+            <Link
+              to={links.profile}
+              className="avatar av-36 av-brand"
+              title={`${user.name} · your profile`}
+            >
               {initials(user.name)}
-            </span>
+            </Link>
           </div>
         </header>
         <main className="content" id="main">

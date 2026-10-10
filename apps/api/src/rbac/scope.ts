@@ -8,7 +8,8 @@ import type { Capability } from "@ecclesios/shared/domain";
 export type ScopeNeed = Capability;
 
 export interface ScopeOptions {
-  need: ScopeNeed;
+  /** One capability, or several where any one is enough. */
+  need: ScopeNeed | readonly ScopeNeed[];
   /** Route param holding the target group id (default "groupId"). */
   param?: string;
 }

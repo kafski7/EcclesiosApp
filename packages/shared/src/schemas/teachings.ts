@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { TEACHING_STATUSES } from "../domain/teachings.js";
 
-export const TeachingSlugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(100);
+export const TeachingSlugSchema = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+  .max(100);
 export const TopicSlugSchema = TeachingSlugSchema;
 export const TeachingStatusSchema = z.enum(TEACHING_STATUSES);
 
@@ -72,7 +75,10 @@ export type UpsertTeaching = z.input<typeof UpsertTeachingSchema>;
 
 export const TeachingStatusChangeSchema = z.object({ status: TeachingStatusSchema });
 
-export const AdminTeachingRowSchema = TeachingSummarySchema.extend({ status: TeachingStatusSchema, updatedAt: z.string().datetime() });
+export const AdminTeachingRowSchema = TeachingSummarySchema.extend({
+  status: TeachingStatusSchema,
+  updatedAt: z.string().datetime(),
+});
 export const AdminTeachingListSchema = z.object({ items: z.array(AdminTeachingRowSchema) });
 export const AdminTeachingSchema = TeachingSchema.extend({
   status: TeachingStatusSchema,

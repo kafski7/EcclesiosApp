@@ -1,5 +1,10 @@
 import { Body, Controller, Get, Param, Put, Req } from "@nestjs/common";
-import { IsoDateSchema, UpsertReadingDaySchema, type Principal, type ReadingDay } from "@ecclesios/shared";
+import {
+  IsoDateSchema,
+  UpsertReadingDaySchema,
+  type Principal,
+  type ReadingDay,
+} from "@ecclesios/shared";
 import { toIsoDate } from "@ecclesios/shared/domain";
 import type { Request } from "express";
 import type { z } from "zod";
@@ -17,7 +22,8 @@ export class ReadingsController {
   @Public()
   @Get("public/readings/:date")
   byDate(@Param("date") raw: string): Promise<ReadingDay> {
-    const date = raw === "today" ? toIsoDate(new Date()) : new ZodPipe(IsoDateSchema).transform(raw);
+    const date =
+      raw === "today" ? toIsoDate(new Date()) : new ZodPipe(IsoDateSchema).transform(raw);
     return this.readings.byDate(date);
   }
 

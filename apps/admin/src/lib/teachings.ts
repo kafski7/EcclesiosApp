@@ -28,7 +28,10 @@ export function useAdminTeaching(slug: string | undefined) {
 }
 
 export function useAdminTopics() {
-  return useQuery({ queryKey: ["platform", "teaching-topics"], queryFn: () => api.get(`${base}/topics`, TeachingTopicListSchema) });
+  return useQuery({
+    queryKey: ["platform", "teaching-topics"],
+    queryFn: () => api.get(`${base}/topics`, TeachingTopicListSchema),
+  });
 }
 
 function useTeachingMutation<V>(fn: (v: V) => Promise<AdminTeaching>) {
@@ -44,11 +47,15 @@ function useTeachingMutation<V>(fn: (v: V) => Promise<AdminTeaching>) {
 
 export const useSaveTeaching = (slug: string | undefined) =>
   useTeachingMutation((body: UpsertTeaching) =>
-    slug ? api.put(`${base}/${slug}`, body, AdminTeachingSchema) : api.post(base, body, AdminTeachingSchema),
+    slug
+      ? api.put(`${base}/${slug}`, body, AdminTeachingSchema)
+      : api.post(base, body, AdminTeachingSchema),
   );
 
 export const useTeachingStatus = (slug: string) =>
-  useTeachingMutation((status: TeachingStatus) => api.post(`${base}/${slug}/status`, { status }, AdminTeachingSchema));
+  useTeachingMutation((status: TeachingStatus) =>
+    api.post(`${base}/${slug}/status`, { status }, AdminTeachingSchema),
+  );
 
 export function useDeleteTeaching() {
   const qc = useQueryClient();
@@ -66,8 +73,10 @@ function useTopicMutation<V>(fn: (v: V) => Promise<{ items: unknown[] }>) {
   });
 }
 
-export const useAddTopic = () => useTopicMutation((b: UpsertTopic) => api.post(`${base}/topics`, b, TeachingTopicListSchema));
-export const useRemoveTopic = () => useTopicMutation((slug: string) => api.del(`${base}/topics/${slug}`, TeachingTopicListSchema));
+export const useAddTopic = () =>
+  useTopicMutation((b: UpsertTopic) => api.post(`${base}/topics`, b, TeachingTopicListSchema));
+export const useRemoveTopic = () =>
+  useTopicMutation((slug: string) => api.del(`${base}/topics/${slug}`, TeachingTopicListSchema));
 
 /** Snippets the editor's toolbar inserts (D-030 format). */
 export const SNIPPETS = {

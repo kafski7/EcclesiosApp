@@ -12,7 +12,6 @@ describe("studio uploads", () => {
   });
 });
 
-
 describe("handouts (D-029)", () => {
   it("labels from file names", () => {
     expect(handoutLabel("Week_3-notes.PDF")).toBe("Week 3 notes");

@@ -28,14 +28,24 @@ async function main() {
   // pnpm runs this inside packages/db; resolve --dir from where the command was typed.
   const rawDir = arg("dir");
   const dir = rawDir ? resolve(process.env.INIT_CWD ?? process.cwd(), rawDir) : undefined;
-  if (!code || !dir) throw new Error("Usage: pnpm bible:import -- --translation WEBC --dir <folder of .usfm files>");
+  if (!code || !dir)
+    throw new Error("Usage: pnpm bible:import -- --translation WEBC --dir <folder of .usfm files>");
 
   const { db, close } = createDb(undefined, { max: 1 });
   try {
-    const [t] = await db.select().from(bibleTranslations).where(eq(bibleTranslations.code, code)).limit(1);
-    if (!t) throw new Error(`Translation ${code} is not registered. Seed it or insert it into bible_translations first.`);
+    const [t] = await db
+      .select()
+      .from(bibleTranslations)
+      .where(eq(bibleTranslations.code, code))
+      .limit(1);
+    if (!t)
+      throw new Error(
+        `Translation ${code} is not registered. Seed it or insert it into bible_translations first.`,
+      );
 
-    const files = readdirSync(dir).filter((f) => /\.(usfm|sfm)$/i.test(f)).sort();
+    const files = readdirSync(dir)
+      .filter((f) => /\.(usfm|sfm)$/i.test(f))
+      .sort();
     if (!files.length) throw new Error(`No .usfm/.sfm files in ${dir}`);
 
     let books = 0;
@@ -44,7 +54,9 @@ async function main() {
       const book = parseUsfm(readFileSync(join(dir, file), "utf8"));
       if (!book || !book.verses.length) continue;
       await db.transaction(async (tx) => {
-        await tx.delete(bibleVerses).where(and(eq(bibleVerses.translationId, t.id), eq(bibleVerses.book, book.code)));
+        await tx
+          .delete(bibleVerses)
+          .where(and(eq(bibleVerses.translationId, t.id), eq(bibleVerses.book, book.code)));
         for (let i = 0; i < book.verses.length; i += 1000) {
           await tx.insert(bibleVerses).values(
             book.verses.slice(i, i + 1000).map((v) => ({

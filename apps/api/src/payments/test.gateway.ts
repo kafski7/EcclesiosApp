@@ -10,7 +10,11 @@ export class TestGateway implements PaymentGateway {
   constructor(private readonly webUrl: string) {}
 
   async initiate(i: InitiateInput) {
-    return { checkoutUrl: `${this.webUrl}/books/checkout/test?ref=${encodeURIComponent(i.clientReference)}`, gatewayRef: null, raw: { test: true } };
+    return {
+      checkoutUrl: `${this.webUrl}/books/checkout/test?ref=${encodeURIComponent(i.clientReference)}`,
+      gatewayRef: null,
+      raw: { test: true },
+    };
   }
 
   /** Called by the test checkout page. */
@@ -21,6 +25,11 @@ export class TestGateway implements PaymentGateway {
   async status(clientReference: string): Promise<GatewayStatus> {
     const p = this.paid.get(clientReference);
     if (!p) return { state: "PENDING", amountMinor: null, gatewayRef: null, raw: null };
-    return { state: p.failed ? "FAILED" : "PAID", amountMinor: p.amountMinor, gatewayRef: `TEST-${clientReference.slice(0, 8)}`, raw: { test: true } };
+    return {
+      state: p.failed ? "FAILED" : "PAID",
+      amountMinor: p.amountMinor,
+      gatewayRef: `TEST-${clientReference.slice(0, 8)}`,
+      raw: { test: true },
+    };
   }
 }

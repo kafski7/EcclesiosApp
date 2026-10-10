@@ -8,7 +8,13 @@ import { youTubeId } from "./hymnal.js";
 export const EPISODE_STATUSES = ["DRAFT", "PUBLISHED"] as const;
 export type EpisodeStatus = (typeof EPISODE_STATUSES)[number];
 
-export const PODCAST_AUDIO_TYPES = ["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/aac", "audio/ogg"] as const;
+export const PODCAST_AUDIO_TYPES = [
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/aac",
+  "audio/ogg",
+] as const;
 export const PODCAST_COVER_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export const MAX_EPISODE_BYTES = 200 * 1024 * 1024;
 export const MAX_COVER_BYTES = 5 * 1024 * 1024;
@@ -56,7 +62,9 @@ export interface EpisodeMediaState {
 }
 
 /** Why an episode can't go live yet, or null if it can: its primary media must be present. */
-export function publishBlocker(e: EpisodeMediaState): "AUDIO_REQUIRED" | "YOUTUBE_REQUIRED" | "VIDEO_NOT_AVAILABLE" | null {
+export function publishBlocker(
+  e: EpisodeMediaState,
+): "AUDIO_REQUIRED" | "YOUTUBE_REQUIRED" | "VIDEO_NOT_AVAILABLE" | null {
   if (e.mediaKind === "AUDIO") return e.audioKey ? null : "AUDIO_REQUIRED";
   if (e.mediaKind === "YOUTUBE") return e.youtubeId ? null : "YOUTUBE_REQUIRED";
   return "VIDEO_NOT_AVAILABLE";

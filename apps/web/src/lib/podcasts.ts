@@ -1,4 +1,10 @@
-import { FollowingPodcastsSchema, MediaUrlSchema, PodcastListSchema, PodcastSchema, TranscriptSchema } from "@ecclesios/shared";
+import {
+  FollowingPodcastsSchema,
+  MediaUrlSchema,
+  PodcastListSchema,
+  PodcastSchema,
+  TranscriptSchema,
+} from "@ecclesios/shared";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "./query";
 import { useSession } from "@/stores/session";
@@ -49,8 +55,10 @@ export function useFollowToggle(slug: string) {
 }
 
 /** Presigned URLs are short-lived: fetch right before playing. */
-export const episodeUrl = (id: string) => api.get(`/public/podcasts/episodes/${id}/url`, MediaUrlSchema);
-export const attachmentUrl = (id: string) => api.get(`/public/podcasts/attachments/${id}/url`, MediaUrlSchema);
+export const episodeUrl = (id: string) =>
+  api.get(`/public/podcasts/episodes/${id}/url`, MediaUrlSchema);
+export const attachmentUrl = (id: string) =>
+  api.get(`/public/podcasts/attachments/${id}/url`, MediaUrlSchema);
 
 export function useTranscript(episodeId: string, enabled: boolean) {
   return useQuery({
@@ -71,3 +79,23 @@ export const coverInitials = (title: string) =>
     .slice(0, 2)
     .map((w) => w[0]!.toUpperCase())
     .join("");
+
+/** An episode's own page (docs/social.md §9.5, D-045). */
+export const episodePath = (podcastSlug: string, episodeId: string) =>
+  `/podcasts/${podcastSlug}/episodes/${episodeId}`;
+
+/** Other episodes to suggest under one: the next newer and older ones first, at most `max`. */
+export function otherEpisodes<T extends { id: string }>(
+  all: readonly T[],
+  id: string,
+  max = 5,
+): T[] {
+  const i = all.findIndex((e) => e.id === id);
+  if (i < 0) return all.slice(0, max);
+  const out: T[] = [];
+  for (let d = 1; out.length < max && (i - d >= 0 || i + d < all.length); d++) {
+    if (i + d < all.length) out.push(all[i + d]!);
+    if (out.length < max && i - d >= 0) out.push(all[i - d]!);
+  }
+  return out;
+}
